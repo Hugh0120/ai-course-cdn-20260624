@@ -523,6 +523,58 @@ for each step:
 <li>极端稀疏奖励且探索困难的任务。</li>
 </ul>
 <p>连续控制通常用 DDPG、TD3、SAC、PPO 等算法。</p>
+<h2>本章例子：从 CartPole 到 DQN</h2>
+<h3>例子 1：CartPole</h3>
+<p>CartPole 的状态是：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>状态维度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>cart position</td>
+<td>小车位置</td>
+</tr>
+<tr>
+<td>cart velocity</td>
+<td>小车速度</td>
+</tr>
+<tr>
+<td>pole angle</td>
+<td>杆角度</td>
+</tr>
+<tr>
+<td>pole angular velocity</td>
+<td>杆角速度</td>
+</tr>
+</tbody></table>
+<p>动作只有两个：</p>
+<pre><code class="language-text">向左推 / 向右推
+</code></pre>
+<p>这类任务可以用 DQN 学：</p>
+<pre><code class="language-text">输入状态 s
+输出 Q(s, left), Q(s, right)
+选择 Q 最大的动作
+</code></pre>
+<h3>例子 2：为什么需要 replay buffer</h3>
+<p>如果 agent 连续玩游戏，连续样本高度相关：</p>
+<pre><code class="language-text">第 t 帧：球在左边
+第 t+1 帧：球稍微往右
+第 t+2 帧：球继续往右
+</code></pre>
+<p>直接按时间顺序训练，网络容易被最近局部轨迹带偏。Replay buffer 随机采样历史 transition，让 mini-batch 更接近独立同分布。</p>
+<h3>例子 3：Double DQN 过估计小例子</h3>
+<p>假设真实下一状态两个动作价值都接近 10，但网络估计有噪声：</p>
+<pre><code class="language-text">Q(s&#39;, a1) = 10.1
+Q(s&#39;, a2) = 9.8
+</code></pre>
+<p>普通 DQN 用同一个网络选动作和估值，会倾向选被噪声高估的动作。Double DQN 把“选动作”和“估值”拆开，可以降低这种系统性过估计。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>DQN 的关键不是“神经网络版 Q-learning”这么简单，而是 replay buffer 和 target network 解决了深度网络训练时的相关样本和移动目标问题。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. DQN 相比 Q-learning 改了什么？</h3>
 <p>DQN 用神经网络近似 Q 函数，使 Q-learning 可以处理高维状态输入，例如图像。为了稳定训练，引入了 experience replay 和 target network。</p>

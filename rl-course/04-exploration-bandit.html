@@ -430,6 +430,49 @@ receive reward R_t
 <li>参数空间噪声会让整个策略在一段时间内保持一致的探索模式。</li>
 </ul>
 <p>这在需要 temporally coherent exploration 的任务中更合理。</p>
+<h2>本章例子：广告推荐里的探索</h2>
+<h3>例子 1：Epsilon-greedy</h3>
+<p>假设有 3 个广告候选：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>广告</th>
+<th>当前点击率估计</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>4.0%</td>
+</tr>
+<tr>
+<td>B</td>
+<td>3.5%</td>
+</tr>
+<tr>
+<td>C</td>
+<td>1.0%</td>
+</tr>
+</tbody></table>
+<p>如果完全 exploitation，系统总是展示 A。但 C 的估计可能只是因为曝光少，不代表真实差。</p>
+<p>epsilon-greedy 的做法：</p>
+<ul>
+<li>95% 概率展示当前最优广告 A。</li>
+<li>5% 概率随机探索 A/B/C。</li>
+</ul>
+<p>这能避免过早把 B 或 C 判死。</p>
+<h3>例子 2：UCB</h3>
+<p>UCB 会给曝光少、不确定性高的广告更高 bonus。</p>
+<p>直觉：</p>
+<pre><code class="language-text">score = 当前平均收益 + 不确定性奖励
+</code></pre>
+<p>如果广告 C 曝光很少，即使平均点击率暂时低，也可能因为不确定性高被选中继续探索。</p>
+<h3>例子 3：Thompson Sampling</h3>
+<p>Thompson Sampling 会为每个广告维护一个后验分布，然后从分布里采样。</p>
+<p>如果广告 A 数据多，后验分布窄；广告 C 数据少，后验分布宽。C 偶尔采样出很高的潜在点击率，就会获得探索机会。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Epsilon-greedy 是固定比例随机探索；UCB 是乐观面对不确定性；Thompson Sampling 是按后验不确定性自然采样。推荐和广告场景里，探索机制直接影响冷启动和长期收益。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. 为什么强化学习需要探索？</h3>
 <p>因为 agent 初始并不知道哪些动作长期收益最高。如果只选择当前估计最优的动作，可能因为早期估计错误而陷入局部最优。</p>

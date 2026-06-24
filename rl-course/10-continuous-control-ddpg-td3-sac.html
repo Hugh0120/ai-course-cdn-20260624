@@ -561,6 +561,30 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <td>连续控制、鲁棒训练</td>
 </tr>
 </tbody></table>
+<h2>本章例子：连续控制怎么选算法</h2>
+<h3>例子 1：机械臂控制</h3>
+<p>机械臂每个关节输出连续力矩：</p>
+<pre><code class="language-text">a = [torque_shoulder, torque_elbow, torque_wrist]
+</code></pre>
+<p>DQN 不适合，因为动作不是离散的。DDPG、TD3、SAC 可以直接输出连续动作。</p>
+<h3>例子 2：DDPG 的问题</h3>
+<p>如果 critic 对某个连续动作附近估值过高，actor 会被 critic 引导到这个错误高值区域。</p>
+<p>这就是 DDPG 容易不稳定的原因：</p>
+<pre><code class="language-text">critic 估错 -&gt; actor 追错 -&gt; 数据分布变差 -&gt; critic 更难学准
+</code></pre>
+<h3>例子 3：TD3 怎么修</h3>
+<p>TD3 用两个 critic：</p>
+<div class="math-block"><span class="math-text">min(Q<sub><span class="math-text">1</span></sub>,Q<sub><span class="math-text">2</span></sub>)</span></div>
+
+<p>如果一个 critic 过高估计，另一个没那么高，取 min 可以降低过估计传播。</p>
+<h3>例子 4：SAC 为什么适合探索</h3>
+<p>如果机器人需要学会走路，早期策略不能太确定，否则很容易卡在局部动作模式。SAC 的 entropy 项鼓励策略保持随机性：</p>
+<pre><code class="language-text">既要拿高 reward，也要保持足够探索
+</code></pre>
+<p>面试表达：</p>
+<blockquote>
+<p>DDPG、TD3、SAC 都处理连续动作。DDPG 是基础 actor-critic，TD3 主要修过估计和不稳定，SAC 用最大熵目标把探索写进优化目标。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. 为什么 DQN 不适合连续动作？</h3>
 <p>DQN 需要对动作枚举并取 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>。连续动作空间无法枚举，直接求 argmax 也通常很难，因此需要 actor 直接输出连续动作。</p>

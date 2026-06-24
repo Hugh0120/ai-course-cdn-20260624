@@ -443,6 +443,43 @@ derive pi from V
 <li>TD 不需要模型，也不需要等 episode 结束。</li>
 <li>Deep RL 用神经网络处理大规模状态空间。</li>
 </ul>
+<h2>本章例子：小型 GridWorld 上的 DP</h2>
+<p>假设一个 3x3 GridWorld：</p>
+<ul>
+<li>右下角是终点，reward 为 +10。</li>
+<li>撞墙留在原地，reward 为 -1。</li>
+<li>普通移动 reward 为 -0.1。</li>
+<li>每个动作都是确定性的。</li>
+</ul>
+<h3>Policy Evaluation 例子</h3>
+<p>如果当前策略是在每个格子随机选择上下左右，那么 policy evaluation 做的是：</p>
+<blockquote>
+<p>固定这个随机策略，计算每个格子的长期价值。</p>
+</blockquote>
+<p>直觉结果：</p>
+<ul>
+<li>靠近终点的格子价值更高。</li>
+<li>靠近墙角但远离终点的格子价值较低。</li>
+<li>如果随机策略经常撞墙，撞墙附近的价值会被拉低。</li>
+</ul>
+<p>这时算法只是在回答：“如果我一直按这个随机策略走，每个格子平均值多少钱？”</p>
+<h3>Policy Improvement 例子</h3>
+<p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 后，在某个格子比较四个动作：</p>
+<pre><code class="language-text">向上：下一格价值 1.2
+向下：下一格价值 4.8
+向左：撞墙，价值 -1.0
+向右：下一格价值 3.5
+</code></pre>
+<p>policy improvement 会选择“向下”，因为它的一步 reward 加未来价值最大。</p>
+<h3>Value Iteration 例子</h3>
+<p>value iteration 不等完整 policy evaluation 收敛，而是每轮直接做：</p>
+<pre><code class="language-text">每个格子都看四个动作，选 Bellman backup 最大的那个。
+</code></pre>
+<p>所以它更像“边估值，边贪心改策略”。在小 GridWorld 上，这会逐渐形成指向终点的箭头场。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>DP 的例子一定要强调“已知模型”。GridWorld 里我知道每个动作会到哪个格子，所以能对下一状态做 Bellman backup。到了真实环境里不知道转移模型，就要转向 MC/TD。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. Policy Evaluation 是什么？</h3>
 <p>给定策略 <span class="math-text">π</span>，根据 Bellman expectation equation 计算该策略下每个状态的价值 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>

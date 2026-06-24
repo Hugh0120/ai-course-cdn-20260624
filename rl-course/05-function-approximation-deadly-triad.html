@@ -424,6 +424,38 @@
 <p>或者软更新：</p>
 <div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ w + (1 - τ) w<sup><span class="math-text">-</span></sup></span></div>
 
+<h2>本章例子：为什么表格法不够</h2>
+<h3>例子 1：Atari 像素输入</h3>
+<p>Atari 游戏状态是一张图片。如果用表格法，每一种像素组合都对应一个状态，状态数量几乎无限。</p>
+<p>函数逼近的做法是：</p>
+<pre><code class="language-text">输入：游戏画面
+神经网络：CNN / encoder
+输出：每个动作的 Q 值
+</code></pre>
+<p>这样模型可以泛化。例如两个画面只差几个像素，但局面本质相似，网络可以给出相近价值。</p>
+<h3>例子 2：推荐系统高维状态</h3>
+<p>推荐系统状态可能包含：</p>
+<ul>
+<li>用户画像。</li>
+<li>最近点击序列。</li>
+<li>商品特征。</li>
+<li>时间、地点、设备。</li>
+</ul>
+<p>这些状态无法枚举。函数逼近可以把高维特征映射到价值或策略：</p>
+<div class="math-block"><span class="math-text">Q(s,a;θ)</span></div>
+
+<h3>例子 3：Deadly Triad 为什么危险</h3>
+<p>假设用 DQN 训练一个推荐策略：</p>
+<ul>
+<li>function approximation：用神经网络估计 Q。</li>
+<li>bootstrapping：target 里有 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>。</li>
+<li>off-policy：数据来自旧策略或 replay buffer。</li>
+</ul>
+<p>如果新策略常推荐训练数据里很少出现的内容，Q 网络可能对这些动作过度乐观；bootstrap 又会把这种高估继续传播，训练就可能发散。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Deadly Triad 的危险不是三个词各自危险，而是它们叠加后，错误估计会通过 bootstrap 在 off-policy 分布外被不断放大。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. 为什么表格型 RL 不够用？</h3>
 <p>因为真实任务的状态空间通常很大或连续，无法为每个状态动作对单独存一个值。函数逼近可以泛化到未见状态，并处理高维输入。</p>

@@ -532,6 +532,36 @@
 <li>policy loss 和 value loss 的梯度可能相互干扰。</li>
 <li>需要调节 value loss coefficient。</li>
 </ul>
+<h2>本章例子：Actor 和 Critic 分工</h2>
+<h3>例子 1：游戏 agent</h3>
+<p>在一个游戏中：</p>
+<ul>
+<li>Actor 负责选择动作，例如移动、攻击、防御。</li>
+<li>Critic 负责评价当前局面值多少钱。</li>
+</ul>
+<p>如果 Actor 做了一个动作后，Critic 发现：</p>
+<pre><code class="language-text">r + gamma V(s&#39;) - V(s) &gt; 0
+</code></pre>
+<p>说明这步结果比预期好，Actor 应该增加这个动作在该状态下的概率。</p>
+<p>如果 TD error 小于 0，则说明这步比预期差，Actor 应该降低该动作概率。</p>
+<h3>例子 2：A2C 和 REINFORCE 对比</h3>
+<p>REINFORCE 要等一整局结束，用完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 更新策略。A2C 用 critic 提供一步或多步 target，可以更早更新。</p>
+<pre><code class="language-text">REINFORCE target: G_t
+A2C target: r + gamma V(s&#39;)
+</code></pre>
+<p>所以 A2C 通常方差更低，但 critic 不准时会带来 bias。</p>
+<h3>例子 3：GAE 的直觉</h3>
+<p>如果只用一步 TD error，更新稳定但可能短视。</p>
+<p>如果用完整 return，信息完整但方差大。</p>
+<p>GAE 用 <span class="math-text">λ</span> 在中间插值：</p>
+<ul>
+<li><span class="math-text">λ</span> 接近 0：更像一步 TD。</li>
+<li><span class="math-text">λ</span> 接近 1：更像 Monte Carlo。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Actor-Critic 可以理解成 policy gradient 加一个会估值的助手。Critic 不直接决定动作，而是告诉 Actor 这次动作比预期好还是差。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. Actor-Critic 中 actor 和 critic 分别做什么？</h3>
 <p>Actor 学习策略并负责选动作。Critic 学习价值函数，用来评价 actor 的动作，并为 policy gradient 提供低方差的 advantage 估计。</p>

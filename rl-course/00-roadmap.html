@@ -474,6 +474,40 @@
 <li>最后看稳定化：baseline、critic、GAE、target network、replay、PPO clipping、SAC entropy 都是在处理方差、偏差、分布漂移或探索。</li>
 </ol>
 <p>面试里如果一时忘公式，可以从这条链路往回推：目标是什么，target 是什么，target 为什么可靠，更新过大或估计不准会出什么问题。</p>
+<h2>例子阅读方式</h2>
+<p>每章都补了“本章例子”或“典型例子”。读例子时不要只记场景名，要把它映射回四件事：</p>
+<ol>
+<li>状态是什么。</li>
+<li>动作是什么。</li>
+<li>奖励怎么定义。</li>
+<li>算法为什么适合这个场景。</li>
+</ol>
+<p>例如 CartPole 不是“一个小游戏”，而是：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>元素</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态</td>
+<td>小车位置、速度、杆角度、角速度。</td>
+</tr>
+<tr>
+<td>动作</td>
+<td>向左推或向右推。</td>
+</tr>
+<tr>
+<td>奖励</td>
+<td>杆保持不倒时每步 +1。</td>
+</tr>
+<tr>
+<td>算法</td>
+<td>离散动作、低维状态时可用 DQN 或 PPO。</td>
+</tr>
+</tbody></table>
+<p>面试时讲例子的目的不是展示你见过环境，而是证明你能把业务问题建模成 MDP，再解释为什么某个算法匹配这个 MDP。</p>
 <h2>章节目录</h2>
 <table class="roadmap-table">
 <thead>

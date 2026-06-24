@@ -534,6 +534,41 @@
 <blockquote>
 <p>DPO 直接从偏好数据推导监督式目标，避免显式训练 reward model 后再跑 PPO，工程上更简单。</p>
 </blockquote>
+<h2>本章例子：四类高级 RL 场景</h2>
+<h3>例子 1：Model-based RL 做机器人规划</h3>
+<p>机器人先学习一个 dynamics model：</p>
+<div class="math-block"><span class="math-text">P̂(s'∣ s,a)</span></div>
+
+<p>然后在模型里模拟不同动作序列：</p>
+<pre><code class="language-text">动作序列 1 -&gt; 预测会撞墙
+动作序列 2 -&gt; 预测能到目标点
+动作序列 3 -&gt; 预测路径更短但风险高
+</code></pre>
+<p>再选择预测回报最高的动作序列执行。</p>
+<h3>例子 2：Offline RL 做历史推荐日志</h3>
+<p>公司已经有大量推荐日志：</p>
+<pre><code class="language-text">用户状态、展示内容、点击/停留/购买
+</code></pre>
+<p>Offline RL 希望只用这些历史数据学习新策略。但难点是新策略可能推荐历史日志里很少出现的内容，价值估计容易外推错误。</p>
+<p>所以 offline RL 常需要保守约束：不要让策略偏离数据分布太远。</p>
+<h3>例子 3：Imitation Learning 做驾驶</h3>
+<p>Behavior Cloning 可以用人类驾驶数据训练：</p>
+<pre><code class="language-text">输入：摄像头、速度、导航
+输出：方向盘角度、油门、刹车
+</code></pre>
+<p>问题是模型一旦偏离人类数据分布，就可能进入训练集中没见过的状态。DAgger 的思路是让专家在模型实际访问到的状态上继续标注，补齐分布偏移。</p>
+<h3>例子 4：RLHF 做聊天模型</h3>
+<p>RLHF pipeline：</p>
+<ol>
+<li>用 SFT 让模型学会基本回答格式。</li>
+<li>收集同一个 prompt 下多个回答的人类偏好。</li>
+<li>训练 reward model。</li>
+<li>用 PPO 等方法优化策略，同时用 KL 限制模型偏离参考模型。</li>
+</ol>
+<p>面试表达：</p>
+<blockquote>
+<p>Model-based、Offline、Imitation、RLHF 的共同点是都在解决“真实交互成本高或风险大”的问题：要么学模型模拟，要么复用历史数据，要么模仿专家，要么用人类偏好构造 reward。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. Model-free 和 model-based RL 区别？</h3>
 <p>Model-free 不显式学习环境模型，直接学习 policy 或 value。Model-based 学习或使用环境 dynamics 和 reward model，并基于模型 planning 或生成数据。</p>

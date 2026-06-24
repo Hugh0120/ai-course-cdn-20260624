@@ -544,6 +544,77 @@
 <li>两者差值就是 TD error。</li>
 <li>用学习率 <span class="math-text">α</span> 做一个增量更新。</li>
 </ul>
+<h2>本章例子：把问题建模成 MDP</h2>
+<h3>例子 1：GridWorld 迷宫</h3>
+<p>一个机器人在网格里走，从起点走到终点。</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>MDP 元素</th>
+<th>对应例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>State</td>
+<td>机器人当前格子坐标，例如 <span class="math-text">(2,3)</span>。</td>
+</tr>
+<tr>
+<td>Action</td>
+<td>上、下、左、右。</td>
+</tr>
+<tr>
+<td>Transition</td>
+<td>执行动作后到达相邻格子，也可能因为墙或噪声停在原地。</td>
+</tr>
+<tr>
+<td>Reward</td>
+<td>到终点 +10，撞墙 -1，每走一步 -0.1。</td>
+</tr>
+<tr>
+<td>Policy</td>
+<td>在每个格子选择哪个方向走。</td>
+</tr>
+<tr>
+<td>Value</td>
+<td>从某个格子出发，长期来看能拿到多少 reward。</td>
+</tr>
+</tbody></table>
+<p>这个例子的价值在于直观：离终点近、不容易撞墙的状态价值高；容易掉进惩罚区域的状态价值低。</p>
+<h3>例子 2：推荐系统</h3>
+<p>用户打开 App，系统要选择展示什么内容。</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>MDP 元素</th>
+<th>对应例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>State</td>
+<td>用户画像、最近点击、当前场景、时间、设备。</td>
+</tr>
+<tr>
+<td>Action</td>
+<td>推荐某个视频、商品或文章。</td>
+</tr>
+<tr>
+<td>Reward</td>
+<td>点击、停留、购买、负反馈等综合信号。</td>
+</tr>
+<tr>
+<td>Transition</td>
+<td>用户看完内容后兴趣状态变化。</td>
+</tr>
+<tr>
+<td>Policy</td>
+<td>给不同用户和场景选择不同推荐内容。</td>
+</tr>
+</tbody></table>
+<p>如果只看单次点击，这更像 bandit；如果考虑长期留存、疲劳、兴趣迁移，就更像完整 RL。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>我会先问这个问题有没有长期影响。如果动作只影响当前 reward，可以先用 bandit；如果动作会改变后续状态，例如用户兴趣或库存状态，就需要 MDP/RL 视角。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. RL 和监督学习有什么区别？</h3>
 <p>监督学习有固定标签，通常假设样本 i.i.d.，目标是拟合输入到标签的映射。RL 没有逐步标准答案，只有 reward，且 reward 可能延迟出现。Agent 的动作会改变未来状态分布，因此需要处理 exploration-exploitation 和长期收益最大化。</p>

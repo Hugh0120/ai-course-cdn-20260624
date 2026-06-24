@@ -555,6 +555,96 @@
 <li>简化推荐系统 bandit。</li>
 <li>RLHF toy example，例如偏好数据训练 reward model。</li>
 </ol>
+<h2>面试例子索引</h2>
+<p>准备面试时，建议把算法和例子绑定记忆：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>算法/概念</th>
+<th>推荐例子</th>
+<th>为什么适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MDP / Bellman</td>
+<td>GridWorld</td>
+<td>状态、动作、转移、奖励最直观。</td>
+</tr>
+<tr>
+<td>DP</td>
+<td>已知地图的 GridWorld</td>
+<td>可以明确说明“已知环境模型”。</td>
+</tr>
+<tr>
+<td>MC</td>
+<td>Blackjack</td>
+<td>episode 短，完整 return 容易得到。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>在线推荐或持续控制</td>
+<td>不想等 episode 结束，每步都能更新。</td>
+</tr>
+<tr>
+<td>SARSA / Q-learning</td>
+<td>Cliff Walking</td>
+<td>on-policy 与 off-policy 差异明显。</td>
+</tr>
+<tr>
+<td>Bandit</td>
+<td>广告推荐冷启动</td>
+<td>探索和利用最直接。</td>
+</tr>
+<tr>
+<td>Function Approximation</td>
+<td>Atari 或推荐系统</td>
+<td>状态空间无法枚举。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>CartPole / Atari</td>
+<td>离散动作 + Q 网络。</td>
+</tr>
+<tr>
+<td>Policy Gradient</td>
+<td>连续控制机器人</td>
+<td>动作连续，难以枚举 max。</td>
+</tr>
+<tr>
+<td>Actor-Critic / GAE</td>
+<td>游戏或机器人控制</td>
+<td>Actor 选动作，Critic 降低方差。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>RLHF 或 LunarLander</td>
+<td>策略更新稳定，工程常用。</td>
+</tr>
+<tr>
+<td>DDPG / TD3 / SAC</td>
+<td>机械臂、MuJoCo</td>
+<td>连续动作控制。</td>
+</tr>
+<tr>
+<td>Offline RL</td>
+<td>历史推荐日志</td>
+<td>只能用离线数据，不能随便探索。</td>
+</tr>
+<tr>
+<td>Imitation Learning</td>
+<td>自动驾驶示范数据</td>
+<td>从专家轨迹学习行为。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>聊天模型对齐</td>
+<td>用人类偏好构造 reward。</td>
+</tr>
+</tbody></table>
+<p>回答时不要只说“我用 DQN 做 CartPole”。更好的结构是：</p>
+<blockquote>
+<p>CartPole 是离散动作控制任务，状态低维连续，动作是 left/right，reward 是存活步数。DQN 用 Q 网络输出两个动作价值，配合 replay buffer 和 target network 稳定训练。</p>
+</blockquote>
 <h2>项目表达模板</h2>
 <pre><code class="language-text">项目背景：
 任务建模：

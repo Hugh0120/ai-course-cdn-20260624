@@ -513,6 +513,58 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <li>改善训练稳定性。</li>
 </ul>
 <p>SAC 中 entropy regularization 是核心组成部分。</p>
+<h2>本章例子：为什么需要直接优化策略</h2>
+<h3>例子 1：连续动作机器人</h3>
+<p>机器人手臂要输出关节力矩：</p>
+<pre><code class="language-text">a = [torque_1, torque_2, torque_3]
+</code></pre>
+<p>如果用 DQN，要对连续动作求 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>，这个优化很难。Policy Gradient 直接学习：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span></div>
+
+<p>或确定性策略：</p>
+<div class="math-block"><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
+
+<p>这样动作可以直接由策略网络输出。</p>
+<h3>例子 2：Softmax 策略更新</h3>
+<p>假设在某个状态有两个动作：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>动作</th>
+<th>当前概率</th>
+<th>采样后 return</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>left</td>
+<td>0.4</td>
+<td>+5</td>
+</tr>
+<tr>
+<td>right</td>
+<td>0.6</td>
+<td>-1</td>
+</tr>
+</tbody></table>
+<p>Policy Gradient 会提高产生高 return 的动作概率，降低低 return 动作概率。</p>
+<p>直觉：</p>
+<pre><code class="language-text">采样到 left 且结果好 -&gt; 增大 log pi(left|s)
+采样到 right 且结果差 -&gt; 减小 log pi(right|s)
+</code></pre>
+<h3>例子 3：Baseline 的作用</h3>
+<p>如果一个游戏平均每局 return 是 100：</p>
+<ul>
+<li>某次动作后 return 是 105，不算特别好，只比平均好 5。</li>
+<li>另一动作后 return 是 20，明显差。</li>
+</ul>
+<p>使用 baseline 后，更新看的是：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> - V(s)</span></div>
+
+<p>这比直接用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 更能判断动作相对好坏，方差更低。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Policy Gradient 的核心例子是连续控制和随机策略。它不需要枚举动作，也不需要对 Q 做 argmax，而是让高回报轨迹上的动作概率上升。</p>
+</blockquote>
 <h2>本章面试高频问题</h2>
 <h3>1. Policy Gradient 适合什么场景？</h3>
 <p>适合连续动作空间、随机策略建模、需要直接优化策略分布的场景。相比 value-based 方法，不需要对动作做 <span class="math-text">argmax</span>。</p>
