@@ -245,6 +245,18 @@
 <td>用 bootstrap target 在线更新价值估计。</td>
 </tr>
 <tr>
+<td>DP</td>
+<td>Dynamic Programming</td>
+<td>动态规划</td>
+<td>已知环境模型时，通过 Bellman backup 求解价值和策略。</td>
+</tr>
+<tr>
+<td>MDP</td>
+<td>Markov Decision Process</td>
+<td>马尔可夫决策过程</td>
+<td>强化学习中描述状态、动作、转移、奖励和折扣的数学框架。</td>
+</tr>
+<tr>
 <td>SARSA</td>
 <td>State-Action-Reward-State-Action</td>
 <td>状态-动作-奖励-状态-动作</td>
@@ -359,6 +371,59 @@
 <pre><code class="language-text">(s, a, r, s&#39;)
 </code></pre>
 <p>然后用这些样本估计价值函数或优化策略。</p>
+<h2>统一出发点：价值函数是一个期望</h2>
+<p>MC 和 TD 都不是凭空来的。它们解决的是同一个问题：价值函数定义里有一个期望，但 model-free 场景下我们没法直接算这个期望。</p>
+<p>先看状态价值函数：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>其中 return 是：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+γ<sup><span class="math-text">2</span></sup>R<sub><span class="math-text">t+3</span></sub>+·s</span></div>
+
+<p>这句话的含义是：</p>
+<blockquote>
+<p>状态 <span class="math-text">s</span> 的价值，就是在策略 <span class="math-text">π</span> 下从 <span class="math-text">s</span> 出发，未来累计折扣 reward 的平均水平。</p>
+</blockquote>
+<p>问题在于这个平均值不能直接看到。我们每次和环境交互，只能看到一条随机轨迹：</p>
+<pre><code class="language-text">S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1}, R_{t+2}, ...
+</code></pre>
+<p>因此从价值定义到算法，核心只有一步：</p>
+<blockquote>
+<p>用样本估计期望。</p>
+</blockquote>
+<p>不同方法的区别在于“用什么样的样本 target”：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>可用信息</th>
+<th>target 怎么来</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DP</td>
+<td>知道 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span></td>
+<td>对所有下一状态求精确期望</td>
+<td>需要环境模型</td>
+</tr>
+<tr>
+<td>MC</td>
+<td>不知道模型，但能等 episode 结束</td>
+<td>用完整真实 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>等得久，方差大</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>不知道模型，也不想等结束</td>
+<td>用一步 reward 加下一状态估计 <span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></td>
+<td>有 bootstrap bias</td>
+</tr>
+</tbody></table>
+<p>所以 MC 和 TD 可以理解成 DP 的两个 model-free 版本：</p>
+<ul>
+<li>MC：不用模型，也不用下一状态估计，直接等真实 return 出来。</li>
+<li>TD：不用模型，也不等真实 return，用一步采样加当前价值函数估计。</li>
+</ul>
 <h2>Monte Carlo 方法</h2>
 <p>Monte Carlo 方法用完整 episode 的实际 return 来估计价值。</p>
 <p>对于状态价值：</p>
@@ -384,24 +449,90 @@
 <p>MC 的出发点是价值函数定义：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
-<p>这个式子里真正难的是期望。MC 的想法很朴素：</p>
-<ol>
-<li>我不知道这个期望的解析值。</li>
-<li>但我可以多跑很多条 episode。</li>
-<li>每次访问状态 <span class="math-text">s</span> 后，都能观察到一个真实 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
-<li>多个 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的平均值，就近似这个期望。</li>
-</ol>
-<p>所以 tabular MC 更新写成：</p>
+<p>这个式子可以拆成一句统计学问题：</p>
+<blockquote>
+<p>我想估计一个随机变量 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 在条件 <span class="math-text">S<sub><span class="math-text">t</span></sub>=s</span> 下的均值。</p>
+</blockquote>
+<p>如果我们多次访问同一个状态 <span class="math-text">s</span>，就会得到很多个 return 样本：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>,G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(2)</span></sup>,…,G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></div>
+
+<p>用样本均值估计期望：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)≈ 1 / n∑<sub><span class="math-text">i=1</span></sub><sup><span class="math-text">n</span></sup>G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(i)</span></sup></span></div>
+
+<p>这就是 MC prediction 的核心。它不是先写更新公式，而是先把“价值函数”看成“return 的均值”。</p>
+<p>如果每次都重新算平均值，写法是：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">n</span></sub>(s)=1 / n∑<sub><span class="math-text">i=1</span></sub><sup><span class="math-text">n</span></sup>G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(i)</span></sup></span></div>
+
+<p>为了在线更新，可以把样本均值写成递推形式：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">n</span></sub>(s)=V<sub><span class="math-text">n-1</span></sub>(s)+1 / n[G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>-V<sub><span class="math-text">n-1</span></sub>(s)]</span></div>
+
+<p>如果不用严格的 <span class="math-text">1/n</span>，而用固定学习率 <span class="math-text">α</span>，就得到常见写法：</p>
 <div class="math-block"><span class="math-text">V(s) ← V(s)+α[G<sub><span class="math-text">t</span></sub>-V(s)]</span></div>
 
-<p>这里 <span class="math-text">G<sub><span class="math-text">t</span></sub>-V(s)</span> 可以理解为“这次真实观察到的长期回报”和“当前估计”的差。更新不是一次替换成 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>，而是用学习率 <span class="math-text">α</span> 做平滑平均。</p>
-<p>为什么 MC 方差大？</p>
+<p>这里的结构很重要：</p>
+<pre><code class="language-text">new estimate = old estimate + step size * (target - old estimate)
+</code></pre>
+<p>对 MC 来说：</p>
+<pre><code class="language-text">target = G_t
+error = G_t - V(s)
+</code></pre>
+<p>因此 MC 的完整逻辑是：</p>
+<ol>
+<li>从状态 <span class="math-text">s</span> 出发采样一条 episode。</li>
+<li>等 episode 结束后，计算真实 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
+<li>把 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 当作这次对 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 的观测样本。</li>
+<li>用样本平均或增量平均更新 <span class="math-text">V(s)</span>。</li>
+</ol>
+<h3>为什么 MC target 是无偏的</h3>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]=V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<p>这说明在策略 <span class="math-text">π</span> 不变、采样充分时，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的期望就是目标价值。MC 用真实 return 做 target，target 本身不依赖当前估计 <span class="math-text">V(s)</span>，因此没有 bootstrap bias。</p>
+<p>但它的方差可能很大。原因是 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 包含整个未来：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+γ<sup><span class="math-text">2</span></sup>R<sub><span class="math-text">t+3</span></sub>+·s</span></div>
+
+<p>从 <span class="math-text">S<sub><span class="math-text">t</span></sub>=s</span> 开始，后面每一步动作、转移和 reward 都会引入随机性。轨迹越长，return 波动越大。</p>
+<p>举个直觉例子：</p>
 <ul>
-<li>同一个状态后面可能经历很长的随机轨迹。</li>
-<li>后续每一步动作、转移、reward 都会影响 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
-<li>轨迹越长、随机性越强，return 波动越大。</li>
+<li>同一个状态 <span class="math-text">s</span>，这次 episode 后面走到高奖励区域，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 很大。</li>
+<li>下次 episode 后面因为探索动作走偏，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 很小。</li>
+<li>MC 会忠实记录这些完整结果，所以 target 真实，但抖动大。</li>
 </ul>
-<p>但 MC 的好处是 target 不依赖当前价值函数估计，所以 bootstrap bias 小。</p>
+<h3>First-visit 和 Every-visit 的区别</h3>
+<p>如果一个 episode 里同一个状态 <span class="math-text">s</span> 出现多次：</p>
+<pre><code class="language-text">s -&gt; ... -&gt; s -&gt; ... -&gt; terminal
+</code></pre>
+<p>First-visit MC 只用第一次访问后的 return 更新。Every-visit MC 每次访问都更新。</p>
+<p>面试里一般不需要展开收敛证明，核心记住：</p>
+<ul>
+<li>两者都在用 return 样本估计期望。</li>
+<li>first-visit 更贴近“每条 episode 给一个独立样本”的直觉。</li>
+<li>every-visit 使用更多样本，但同一 episode 内样本相关性更强。</li>
+</ul>
+<h2>从 MC 过渡到 TD：为什么不想等到 episode 结束</h2>
+<p>MC 的问题不是思路错，而是工程上有明显限制：</p>
+<ol>
+<li>很多任务 episode 很长，等完整 return 才更新太慢。</li>
+<li>continuing task 没有自然终止，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 不容易等出来。</li>
+<li>长轨迹 return 方差大，学习曲线抖动。</li>
+<li>如果中间某一步已经明显好或坏，MC 也要等结束后才把信号传回前面状态。</li>
+</ol>
+<p>TD 的动机就是解决这个问题：</p>
+<blockquote>
+<p>能不能不等完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>，只走一步就更新？</p>
+</blockquote>
+<p>答案来自 return 的递归分解：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>如果我们知道真实的 <span class="math-text">G<sub><span class="math-text">t+1</span></sub></span>，那还是要等 episode 结束。但价值函数本身就是对 <span class="math-text">G<sub><span class="math-text">t+1</span></sub></span> 的估计：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t+1</span></sub>∣ S<sub><span class="math-text">t+1</span></sub>]</span></div>
+
+<p>于是 TD 做了一个替换：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t+1</span></sub>≈ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>代回去：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>≈ R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>这就是 TD target 的来源。</p>
 <h2>TD Learning</h2>
 <p>Temporal Difference Learning 结合了 Monte Carlo 和 Dynamic Programming 的思想。</p>
 <p>TD(0) 更新：</p>
@@ -421,24 +552,53 @@
 <li>通常方差低于 MC，但可能有 bias。</li>
 </ul>
 <h2>TD 的推理过程</h2>
-<p>TD 从 Bellman expectation 的紧凑形式来：</p>
+<p>TD 可以从两个等价角度推出来。</p>
+<h3>角度一：从 Bellman expectation 推出</h3>
+<p>Bellman expectation equation 是：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
-<p>如果我们有环境模型，可以像 DP 一样对所有 <span class="math-text">s&#39;</span> 求期望。但 model-free 场景下，我们只有一次采样：</p>
+<p>如果有环境模型，DP 可以把这个期望展开成对所有动作和下一状态求和：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=∑<sub><span class="math-text">a</span></sub> π(a∣ s)∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V<sub><span class="math-text">π</span></sub>(s')]</span></div>
+
+<p>但 model-free 场景下，我们不知道 <span class="math-text">P(s&#39;∣ s,a)</span>，也不知道完整的转移分布。我们只有一次真实采样：</p>
 <pre><code class="language-text">(S_t, A_t, R_{t+1}, S_{t+1})
 </code></pre>
-<p>于是把期望里的随机变量用这一次样本替代，得到一步 bootstrap target：</p>
+<p>于是用这一次样本近似 Bellman 期望里的随机变量：</p>
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
 
-<p>再用“target 减当前估计”构造误差：</p>
+<p>这就是 stochastic approximation，即用随机样本近似期望更新。</p>
+<h3>角度二：从 return 递归推出</h3>
+<p>return 有递归形式：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>MC 使用真实 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>，所以必须等未来全部 reward 出来。TD 不等 <span class="math-text">G<sub><span class="math-text">t+1</span></sub></span>，而是用当前估计替代：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t+1</span></sub>≈ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>所以 TD target 变成：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>这一步叫 bootstrap，因为 target 里用了模型自己当前的估计。</p>
+<h3>TD error 的含义</h3>
+<p>有了 target 后，再用“target 减当前估计”构造误差：</p>
 <div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div>
 
-<p>最后更新：</p>
+<p>然后按误差方向更新：</p>
 <div class="math-block"><span class="math-text">V(S<sub><span class="math-text">t</span></sub>)← V(S<sub><span class="math-text">t</span></sub>)+αδ<sub><span class="math-text">t</span></sub></span></div>
 
-<p>这就是 TD 的核心推理：</p>
+<p>如果 <span class="math-text">δ<sub><span class="math-text">t</span></sub>&gt;0</span>，说明当前 <span class="math-text">V(S<sub><span class="math-text">t</span></sub>)</span> 低估了，因为一步 reward 加下一状态价值比当前估计更高。</p>
+<p>如果 <span class="math-text">δ<sub><span class="math-text">t</span></sub>&lt;0</span>，说明当前 <span class="math-text">V(S<sub><span class="math-text">t</span></sub>)</span> 高估了。</p>
+<h3>TD 为什么方差低但有 bias</h3>
+<p>TD target 只包含一步真实 reward：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>后面的长期未来不再用真实随机轨迹，而用估计值：</p>
+<div class="math-block"><span class="math-text">V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>因此 TD target 少受后续随机动作和随机转移影响，方差通常低于 MC。</p>
+<p>但 <span class="math-text">V(S<sub><span class="math-text">t+1</span></sub>)</span> 可能本身不准。target 依赖当前估计，所以会引入 bootstrap bias。</p>
+<p>一句话：</p>
 <blockquote>
-<p>Bellman 方程给了期望 target；model-free 不能精确求期望，就用采样 transition 做随机近似；为了不等 episode 结束，用下一状态当前价值估计 bootstrap。</p>
+<p>MC 的 target 真实但晚、噪声大；TD 的 target 来得早、噪声小，但里面混入了当前价值函数的估计误差。</p>
 </blockquote>
 <h2>MC vs TD</h2>
 <table class="three-col-table">
@@ -484,11 +644,50 @@
 <td>episodic task</td>
 <td>episodic 或 continuing task</td>
 </tr>
+<tr>
+<td>更新时机</td>
+<td>episode 结束后</td>
+<td>每一步之后</td>
+</tr>
+<tr>
+<td>信息传播</td>
+<td>等完整 return 再回传</td>
+<td>reward 可以一步步向前传播</td>
+</tr>
 </tbody></table>
 <p>面试表达：</p>
 <blockquote>
 <p>MC 用完整轨迹的真实 return 做 target，不 bootstrap，所以 bias 小但 variance 大。TD 用一步 reward 加下一状态的估计值做 target，能在线更新，variance 小，但因为 target 依赖当前估计，所以会引入 bias。</p>
 </blockquote>
+<h2>一个最小数值例子</h2>
+<p>假设当前估计：</p>
+<div class="math-block"><span class="math-text">V(s)=5,  V(s')=8,  γ=0.9,  α=0.1</span></div>
+
+<p>这一步从 <span class="math-text">s</span> 到 <span class="math-text">s&#39;</span>，拿到 reward：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>=2</span></div>
+
+<p>TD target 是：</p>
+<div class="math-block"><span class="math-text">2+0.9× 8=9.2</span></div>
+
+<p>TD error 是：</p>
+<div class="math-block"><span class="math-text">δ=9.2-5=4.2</span></div>
+
+<p>更新后：</p>
+<div class="math-block"><span class="math-text">V(s)← 5+0.1× 4.2=5.42</span></div>
+
+<p>这里没有等 episode 结束。TD 只用了一步真实 reward 和下一状态当前估计。</p>
+<p>如果用 MC，则必须等整条 episode 结束。假设最后算出来真实 return 是：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=12</span></div>
+
+<p>MC 更新是：</p>
+<div class="math-block"><span class="math-text">V(s)← 5+0.1×(12-5)=5.7</span></div>
+
+<p>两者差异就在 target：</p>
+<ul>
+<li>MC target 是完整真实 return：<span class="math-text">12</span>。</li>
+<li>TD target 是一步 bootstrap：<span class="math-text">9.2</span>。</li>
+</ul>
+<p>这个例子说明：TD 不一定比 MC 更准，它只是更早、更低方差地更新。</p>
 <h2>SARSA</h2>
 <p>SARSA 是 on-policy TD control 方法。名字来自一次更新用到的五元组：</p>
 <div class="math-block"><span class="math-text">(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub>, A<sub><span class="math-text">t+1</span></sub>)</span></div>
