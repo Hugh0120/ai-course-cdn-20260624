@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 10 章：Agentic Systems、Coding Agent 与长期任务</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-reasoning-rlvr-process-supervision.html">← 上一章</a><a href="./11-sota-tech-reports-2026.html">下一章 →</a></nav><h1>第 10 章：Agentic Systems、Coding Agent 与长期任务</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Agentic AI</td>
+<td>Agentic Artificial Intelligence</td>
+<td>智能体式 AI</td>
+<td>能持续规划、执行、观察和修正的 AI 系统。</td>
+</tr>
+<tr>
+<td>Coding Agent</td>
+<td>Coding Agent</td>
+<td>编程智能体</td>
+<td>能读仓库、改代码、跑测试、修 bug 的 agent。</td>
+</tr>
+<tr>
+<td>Computer Use</td>
+<td>Computer Use</td>
+<td>计算机使用</td>
+<td>模型操作 GUI、浏览器、文件和桌面应用的能力。</td>
+</tr>
+<tr>
+<td>GUI</td>
+<td>Graphical User Interface</td>
+<td>图形用户界面</td>
+<td>agent 可以点击、输入、观察的可视化界面。</td>
+</tr>
+<tr>
+<td>Browser Agent</td>
+<td>Browser Agent</td>
+<td>浏览器智能体</td>
+<td>能搜索、点击、阅读网页并完成网页任务的 agent。</td>
+</tr>
+<tr>
+<td>Long-horizon Task</td>
+<td>Long-horizon Task</td>
+<td>长周期任务</td>
+<td>需要很多步骤、较长时间和状态保持的任务。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>agent 调用外部业务系统或工具的接口。</td>
+</tr>
+<tr>
+<td>Tool Use</td>
+<td>Tool Use</td>
+<td>工具调用</td>
+<td>使用 shell、browser、editor、database、API 等工具。</td>
+</tr>
+<tr>
+<td>Tool Error</td>
+<td>Tool Error</td>
+<td>工具错误</td>
+<td>工具调用参数错、执行失败、状态不一致等。</td>
+</tr>
+<tr>
+<td>Agent Harness</td>
+<td>Agent Harness</td>
+<td>智能体执行框架</td>
+<td>管理上下文、工具、权限、状态、trace、恢复和验证的系统层。</td>
+</tr>
+<tr>
+<td>Scaffold</td>
+<td>Scaffold</td>
+<td>外部脚手架</td>
+<td>agent 外层的控制循环、工具、记忆和验证代码。</td>
+</tr>
+<tr>
+<td>Planner</td>
+<td>Planner</td>
+<td>规划器</td>
+<td>拆任务和安排顺序的模块。</td>
+</tr>
+<tr>
+<td>Executor</td>
+<td>Executor</td>
+<td>执行器</td>
+<td>执行工具和产生修改的模块。</td>
+</tr>
+<tr>
+<td>Critic</td>
+<td>Critic</td>
+<td>评审器</td>
+<td>审查计划、代码、答案和安全风险的模块。</td>
+</tr>
+<tr>
+<td>Verifier</td>
+<td>Verifier</td>
+<td>验证器</td>
+<td>运行测试、检查状态或引用的模块。</td>
+</tr>
+<tr>
+<td>SWE-bench</td>
+<td>Software Engineering Benchmark</td>
+<td>软件工程基准</td>
+<td>真实 GitHub issue 修复任务。</td>
+</tr>
+<tr>
+<td>Terminal-Bench</td>
+<td>Terminal Benchmark</td>
+<td>终端任务基准</td>
+<td>命令行环境长期任务。</td>
+</tr>
+<tr>
+<td>OSWorld</td>
+<td>Operating System World Benchmark</td>
+<td>操作系统世界基准</td>
+<td>GUI/computer-use 任务评测。</td>
+</tr>
+<tr>
+<td>TAU-bench</td>
+<td>Tool-Agent-User Benchmark</td>
+<td>工具-智能体-用户交互基准</td>
+<td>业务 API 多轮交互任务。</td>
+</tr>
+<tr>
+<td>BrowseComp</td>
+<td>Browsing Competition Benchmark</td>
+<td>浏览检索基准</td>
+<td>难查信息的网页浏览任务。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 agentic system 的核心结构。</li>
+<li>能讲清 coding agent 和普通代码补全的差别。</li>
+<li>能设计一个生产可用 agent 的状态、工具、权限、验证和观测方案。</li>
+<li>能识别 agent eval 的常见陷阱。</li>
+</ul>
+<h2>Agentic AI 的核心循环</h2>
+<p>Agent 的最小闭环：</p>
+<pre><code class="language-text">goal -&gt; plan -&gt; act -&gt; observe -&gt; verify -&gt; update plan -&gt; finish
+</code></pre>
+<p>和普通 LLM API 的差异：</p>
+<ul>
+<li>普通 LLM 主要是单轮生成。</li>
+<li>Agent 是多轮决策系统。</li>
+<li>Agent 的能力来自模型 + scaffold + tools + verifier。</li>
+<li>Agent 的风险来自写权限、长上下文、外部不可信信息和自动执行。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Agentic AI 不是单个模型能力，而是一个闭环系统。模型负责推理和决策，scaffold 负责状态、工具、预算、权限和验证。生产系统真正难的是可控性和可评估性。</p>
+</blockquote>
+<h2>Coding Agent</h2>
+<p>Coding agent 的典型流程：</p>
+<ol>
+<li>读 issue / 用户需求。</li>
+<li>搜索仓库结构。</li>
+<li>找相关文件和测试。</li>
+<li>制定修改计划。</li>
+<li>编辑代码。</li>
+<li>运行测试或静态检查。</li>
+<li>根据失败日志修复。</li>
+<li>输出 diff、验证结果和风险。</li>
+</ol>
+<p>和代码补全的区别：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>能力</th>
+<th>Code Completion</th>
+<th>Coding Agent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>上下文</td>
+<td>当前文件附近</td>
+<td>整个仓库、issue、测试、历史日志</td>
+</tr>
+<tr>
+<td>动作</td>
+<td>生成片段</td>
+<td>搜索、编辑、运行、调试、验证</td>
+</tr>
+<tr>
+<td>反馈</td>
+<td>人类看结果</td>
+<td>工具和测试实时反馈</td>
+</tr>
+<tr>
+<td>任务长度</td>
+<td>秒级</td>
+<td>分钟到小时级</td>
+</tr>
+<tr>
+<td>评价</td>
+<td>代码片段质量</td>
+<td>最终 issue 是否解决</td>
+</tr>
+</tbody></table>
+<h2>Long-horizon 为什么难</h2>
+<p>长期任务常见失败模式：</p>
+<ul>
+<li>目标漂移：做着做着偏离原始需求。</li>
+<li>状态遗忘：忘了已经尝试过什么。</li>
+<li>局部修复：修了当前测试，破坏其他行为。</li>
+<li>工具错误：命令失败但模型没发现。</li>
+<li>循环卡住：重复同一动作。</li>
+<li>过度修改：改太多无关文件。</li>
+<li>自信汇报：没有验证却声称完成。</li>
+</ul>
+<p>解决思路：</p>
+<ul>
+<li>明确任务状态机。</li>
+<li>每步记录 trace。</li>
+<li>对写操作做 diff 和最小权限。</li>
+<li>测试失败必须回读日志。</li>
+<li>设置预算、重试上限和终止条件。</li>
+<li>最终输出必须包含验证证据。</li>
+</ul>
+<h2>工具和权限设计</h2>
+<p>Agent 工具不是越多越好。每个工具都要明确：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>设计项</th>
+<th>English</th>
+<th>中文</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Schema</td>
+<td>Tool Schema</td>
+<td>工具接口</td>
+<td>参数类型、必填项、约束。</td>
+</tr>
+<tr>
+<td>Permission</td>
+<td>Permission</td>
+<td>权限</td>
+<td>read/write/delete/network/payment 等。</td>
+</tr>
+<tr>
+<td>Sandbox</td>
+<td>Sandbox</td>
+<td>沙箱</td>
+<td>限制文件系统、网络和命令。</td>
+</tr>
+<tr>
+<td>Approval</td>
+<td>Approval Gate</td>
+<td>审批门</td>
+<td>高风险动作需要人类确认。</td>
+</tr>
+<tr>
+<td>Timeout</td>
+<td>Timeout</td>
+<td>超时</td>
+<td>防止无限执行。</td>
+</tr>
+<tr>
+<td>Rollback</td>
+<td>Rollback</td>
+<td>回滚</td>
+<td>出错可恢复。</td>
+</tr>
+<tr>
+<td>Audit Log</td>
+<td>Audit Log</td>
+<td>审计日志</td>
+<td>记录动作和结果。</td>
+</tr>
+</tbody></table>
+<p>面试回答：</p>
+<blockquote>
+<p>我会把工具按风险分层：只读工具默认允许，写工具需要 diff，破坏性工具需要审批，外部副作用工具需要强约束和审计。</p>
+</blockquote>
+<h2>多 Agent 与 Agent Swarm</h2>
+<p>多 agent 不等于更强，常见模式包括：</p>
+<ul>
+<li>Planner + Executor：一个规划，一个执行。</li>
+<li>Developer + Reviewer：一个写，一个审。</li>
+<li>Researcher + Synthesizer：一个查资料，一个汇总。</li>
+<li>Parallel Attempts：多个 agent 并行尝试，再由 verifier 选择。</li>
+<li>Specialist Agents：不同 agent 负责前端、后端、测试、文档。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>通信成本高。</li>
+<li>错误会互相放大。</li>
+<li>没有统一状态时容易冲突。</li>
+<li>verifier 不强时，多 agent 只是更贵的幻觉。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>多 agent 的价值在于并行探索和角色分工，但必须有共享状态、冲突解决和最终 verifier。否则只是把单 agent 的不稳定放大。</p>
+</blockquote>
+<h2>Agentic Coding 评测</h2>
+<p>常见 benchmark：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>Benchmark</th>
+<th>English</th>
+<th>中文</th>
+<th>关注点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SWE-bench</td>
+<td>Software Engineering Benchmark</td>
+<td>软件工程基准</td>
+<td>真实 GitHub issue 修复。</td>
+</tr>
+<tr>
+<td>SWE-bench Verified</td>
+<td>SWE-bench Verified</td>
+<td>人工验证软件工程基准</td>
+<td>更可靠的真实 issue 子集。</td>
+</tr>
+<tr>
+<td>Terminal-Bench</td>
+<td>Terminal Benchmark</td>
+<td>终端任务基准</td>
+<td>命令行多步任务。</td>
+</tr>
+<tr>
+<td>OSWorld</td>
+<td>Operating System World</td>
+<td>操作系统世界</td>
+<td>GUI/computer use。</td>
+</tr>
+<tr>
+<td>BrowseComp</td>
+<td>Browsing Competition Benchmark</td>
+<td>浏览检索基准</td>
+<td>多步网页查找。</td>
+</tr>
+<tr>
+<td>TAU-bench</td>
+<td>Tool-Agent-User Benchmark</td>
+<td>工具-用户交互基准</td>
+<td>业务 API、用户对话和规则遵循。</td>
+</tr>
+</tbody></table>
+<p>评测时必须问：</p>
+<ul>
+<li>是否用了同样 scaffold？</li>
+<li>是否允许浏览器、shell、测试？</li>
+<li>是否 pass@1 还是多次采样？</li>
+<li>是否有隐藏测试？</li>
+<li>是否计算成本和延迟？</li>
+<li>是否记录 tool error？</li>
+<li>是否做安全和权限评估？</li>
+</ul>
+<h2>Agent Harness 为什么重要</h2>
+<p>同一个 base model 放在不同 agent harness 里，表现可能完全不同。Harness 会决定：</p>
+<ul>
+<li>模型看到多少上下文。</li>
+<li>是否有文件搜索、浏览器、shell、测试运行器。</li>
+<li>工具失败后是否自动恢复。</li>
+<li>是否允许并行尝试。</li>
+<li>是否有 reviewer / verifier。</li>
+<li>写操作是否需要审批。</li>
+<li>最终 trace 是否可回放。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Agent 能力不是 base model 单独决定的，而是 model + scaffold + harness + tools + budget 的组合。2026 年看 coding agent benchmark 时，必须问清楚 harness 和 protocol，否则分数不可比。</p>
+</blockquote>
+<h2>Agent 安全</h2>
+<p>Agent 比聊天模型风险更高，因为它可以行动。</p>
+<p>关键风险：</p>
+<ul>
+<li>Prompt injection：网页或文档指挥模型忽略系统指令。</li>
+<li>Data exfiltration：外部内容诱导模型泄露机密。</li>
+<li>Tool misuse：模型调用不该调用的工具。</li>
+<li>Over-delegation：用户把高风险决策完全交给 agent。</li>
+<li>Reward hacking：为了通过测试修改测试或绕过规则。</li>
+</ul>
+<p>安全策略：</p>
+<ol>
+<li>工具输出默认不可信。</li>
+<li>明确系统指令优先级。</li>
+<li>高风险动作 human-in-the-loop。</li>
+<li>审计每个 tool call。</li>
+<li>verifier 检查最终状态，不只检查回答文本。</li>
+<li>对 prompt injection 做专门红队数据集。</li>
+</ol>
+<h2>生产系统 Observability</h2>
+<p>Agent 上线要监控：</p>
+<ul>
+<li>task success rate。</li>
+<li>tool call count。</li>
+<li>tool error rate。</li>
+<li>retry count。</li>
+<li>latency。</li>
+<li>token cost。</li>
+<li>human escalation rate。</li>
+<li>rollback rate。</li>
+<li>safety violation rate。</li>
+<li>用户修正率和满意度。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Agent 产品不是 demo 成功就行。要能观察每一步 tool call、失败原因、成本、用户接管点和安全事件，否则出了问题无法 debug。</p>
+</blockquote>
+<h2>本章面试高频问题</h2>
+<h3>1. Coding agent 为什么比代码补全难？</h3>
+<p>因为它要理解仓库、定位 bug、编辑多个文件、运行测试、读失败日志、持续修正，并保证最终状态正确。这是长周期闭环任务，不是单次 token completion。</p>
+<h3>2. 为什么 benchmark 结果经常不可比？</h3>
+<p>不同模型可能用了不同 scaffold、工具、采样次数、预算、测试可见性和人工干预。agent benchmark 必须报告 evaluation protocol。</p>
+<h3>3. Agent 怎么防 prompt injection？</h3>
+<p>把工具输出作为不可信数据，区分系统指令/用户指令/外部内容；敏感工具做权限隔离和审批；最终动作由 verifier 和 policy guard 检查。</p>
+<h3>4. 多 agent 有什么价值？</h3>
+<p>适合并行探索、角色分工和互审。但只有在有共享状态、冲突解决、强 verifier 时才稳定，否则会增加成本和错误传播。</p>
+<h3>5. 设计一个 coding agent 项目怎么讲？</h3>
+<p>按“任务-工具-状态-验证-评测-安全”讲。任务是 issue 修复；工具是代码搜索、编辑、shell、测试；状态是计划和尝试记录；验证是单测/回归测试；评测是 SWE-bench 类任务和内部 issue；安全是最小权限、diff 审批和日志审计。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting in Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2302.04761">Toolformer: Language Models Can Teach Themselves to Use Tools</a></li>
+<li><a href="https://arxiv.org/abs/2308.03688">AgentBench: Evaluating LLMs as Agents</a></li>
+<li><a href="https://arxiv.org/abs/2310.06770">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a></li>
+<li><a href="https://arxiv.org/abs/2406.12045">TAU-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains</a></li>
+<li><a href="https://arxiv.org/abs/2504.12516">BrowseComp: A Simple Yet Challenging Benchmark for Browsing Agents</a></li>
+<li><a href="https://arxiv.org/abs/2507.20534">Kimi K2: Open Agentic Intelligence</a></li>
+<li><a href="https://arxiv.org/abs/2605.20520">Open-World Evaluations for Measuring Frontier AI Capabilities</a></li>
+<li><a href="https://arxiv.org/abs/2605.27922">Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows</a></li>
+<li><a href="https://www.anthropic.com/news/claude-opus-4-7">Claude Opus 4.7</a></li>
+<li><a href="https://openai.com/index/introducing-gpt-5-5/">Introducing GPT-5.5</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./09-reasoning-rlvr-process-supervision.html">← 上一章</a><a href="./11-sota-tech-reports-2026.html">下一章 →</a></nav></main></body>
+</html>

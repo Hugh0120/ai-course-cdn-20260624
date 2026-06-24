@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav><h1>第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></td>
+<td>Parameterized Policy</td>
+<td>参数化策略</td>
+<td>参数为 <span class="math-text">θ</span> 的策略分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span></td>
+<td>Policy Parameters</td>
+<td>策略参数</td>
+<td>policy network 的可学习参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">τ</span></td>
+<td>Trajectory</td>
+<td>轨迹</td>
+<td>一整段 state-action-reward 序列。</td>
+</tr>
+<tr>
+<td><span class="math-text">J(θ)</span></td>
+<td>Objective Function</td>
+<td>目标函数</td>
+<td>policy gradient 中要最大化的期望 return。</td>
+</tr>
+<tr>
+<td><span class="math-text">R(τ)</span></td>
+<td>Trajectory Return</td>
+<td>轨迹回报</td>
+<td>整条轨迹的累计 reward。</td>
+</tr>
+<tr>
+<td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>Return</td>
+<td>回报 / 累计折扣奖励</td>
+<td>从时刻 <span class="math-text">t</span> 开始的累计收益。</td>
+</tr>
+<tr>
+<td><span class="math-text">b(s)</span></td>
+<td>Baseline</td>
+<td>基线函数</td>
+<td>用来降低 policy gradient 方差的 action-independent 函数。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态 <span class="math-text">s</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态-动作对 <span class="math-text">(s,a)</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Advantage Function</td>
+<td>优势函数</td>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span>，表示动作比平均水平好多少。</td>
+</tr>
+<tr>
+<td><span class="math-text">H(π)</span></td>
+<td>Entropy</td>
+<td>熵</td>
+<td>衡量策略随机性，常用于鼓励探索。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>Policy Gradient 是 RL 中直接优化策略的一类方法。</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>Soft Actor-Critic</td>
+<td>软 Actor-Critic</td>
+<td>后续最大熵 actor-critic 算法，本章先介绍 entropy 思想。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习 policy-based RL 的基础。你需要掌握：</p>
+<ul>
+<li>为什么需要直接优化 policy。</li>
+<li>stochastic policy。</li>
+<li>policy gradient theorem。</li>
+<li>log-derivative trick。</li>
+<li>REINFORCE。</li>
+<li>baseline。</li>
+<li>advantage function。</li>
+</ul>
+<h2>为什么需要 Policy Gradient</h2>
+<p>Value-based 方法学习 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。它在离散动作空间中很自然，但在以下场景中不够方便：</p>
+<ul>
+<li>动作空间连续。</li>
+<li>策略本身需要随机性。</li>
+<li>希望直接优化策略分布。</li>
+<li><span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 很难计算。</li>
+</ul>
+<p>Policy Gradient 直接参数化策略：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></div>
+
+<p>目标是最大化期望 return：</p>
+<div class="math-block"><span class="math-text">J(θ) = 𝔼<sub><span class="math-text">τ ∼ π<sub><span class="math-text">θ</span></sub></span></sub>[R(τ)]</span></div>
+
+<p>其中 trajectory：</p>
+<div class="math-block"><span class="math-text">τ = (s<sub><span class="math-text">0</span></sub>, a<sub><span class="math-text">0</span></sub>, r<sub><span class="math-text">1</span></sub>, s<sub><span class="math-text">1</span></sub>, a<sub><span class="math-text">1</span></sub>, ...)</span></div>
+
+<h2>随机策略</h2>
+<p>离散动作空间中，策略可以是 categorical distribution：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s) = softmax(f<sub><span class="math-text">θ</span></sub>(s))</span></div>
+
+<p>连续动作空间中，策略常用 Gaussian：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s) = 𝒩(μ<sub><span class="math-text">θ</span></sub>(s), σ<sub><span class="math-text">θ</span></sub>(s))</span></div>
+
+<p>随机策略的好处：</p>
+<ul>
+<li>自带探索。</li>
+<li>可以表达多模态或不确定行为。</li>
+<li>适合 policy gradient 的概率形式推导。</li>
+</ul>
+<h2>Log-derivative Trick</h2>
+<p>核心恒等式：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">θ</span></sub> p<sub><span class="math-text">θ</span></sub>(x) = p<sub><span class="math-text">θ</span></sub>(x) ∇<sub><span class="math-text">θ</span></sub> log p<sub><span class="math-text">θ</span></sub>(x)</span></div>
+
+<p>因为：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">θ</span></sub> log p<sub><span class="math-text">θ</span></sub>(x) = ∇<sub><span class="math-text">θ</span></sub> p<sub><span class="math-text">θ</span></sub>(x) / p<sub><span class="math-text">θ</span></sub>(x)</span></div>
+
+<p>这个技巧让我们可以对采样分布依赖参数的期望求梯度。</p>
+<p>目标：</p>
+<div class="math-block"><span class="math-text">J(θ) = 𝔼<sub><span class="math-text">τ ∼ p<sub><span class="math-text">θ</span></sub>(τ)</span></sub>[R(τ)]</span></div>
+
+<p>梯度：</p>
+<div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= ∇ ∈t p<sub><span class="math-text">θ</span></sub>(τ) R(τ)   dτ</span></div><div><span class="math-text">= ∈t ∇ p<sub><span class="math-text">θ</span></sub>(τ) R(τ)   dτ</span></div><div><span class="math-text">= ∈t p<sub><span class="math-text">θ</span></sub>(τ) ∇ log p<sub><span class="math-text">θ</span></sub>(τ) R(τ)   dτ</span></div><div><span class="math-text">= 𝔼[∇ log p<sub><span class="math-text">θ</span></sub>(τ) R(τ)]</span></div></div>
+
+<p>trajectory 概率：</p>
+<div class="math-block multi"><div><span class="math-text">p<sub><span class="math-text">θ</span></sub>(τ)</span></div><div><span class="math-text">= p(s<sub><span class="math-text">0</span></sub>) ∏<sub><span class="math-text">t</span></sub> π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) P(s<sub><span class="math-text">t+1</span></sub> ∣ s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span></div></div>
+
+<p>环境转移 <span class="math-text">P</span> 不依赖 <span class="math-text">θ</span>，所以：</p>
+<div class="math-block multi"><div><span class="math-text">∇ log p<sub><span class="math-text">θ</span></sub>(τ)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">t</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div></div>
+
+<p>得到 policy gradient：</p>
+<div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼<sub><span class="math-text">τ</span></sub> [∑<sub><span class="math-text">t</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) R(τ)]</span></div></div>
+
+<h2>Policy Gradient 推导阅读线</h2>
+<p>这段推导最容易觉得“公式突然变形”。可以按下面逻辑理解。</p>
+<p>第一步，目标函数是期望：</p>
+<div class="math-block"><span class="math-text">J(θ)=𝔼<sub><span class="math-text">τ∼ p<sub><span class="math-text">θ</span></sub>(τ)</span></sub>[R(τ)]</span></div>
+
+<p>难点在于：被求期望的轨迹分布 <span class="math-text">p<sub><span class="math-text">θ</span></sub>(τ)</span> 本身依赖策略参数 <span class="math-text">θ</span>。参数变了，采样出来的轨迹分布也变了。</p>
+<p>第二步，把期望写成积分或求和：</p>
+<div class="math-block"><span class="math-text">J(θ)=∈t p<sub><span class="math-text">θ</span></sub>(τ)R(τ)dτ</span></div>
+
+<p>由于 reward 函数本身通常不直接对策略参数求导，梯度主要作用在轨迹概率上：</p>
+<div class="math-block"><span class="math-text">∇ J(θ)=∈t ∇ p<sub><span class="math-text">θ</span></sub>(τ)R(τ)dτ</span></div>
+
+<p>第三步，用 log-derivative trick 把 <span class="math-text">∇ p</span> 改写成 <span class="math-text">p∇log p</span>：</p>
+<div class="math-block"><span class="math-text">∇ p<sub><span class="math-text">θ</span></sub>(τ)=p<sub><span class="math-text">θ</span></sub>(τ)∇log p<sub><span class="math-text">θ</span></sub>(τ)</span></div>
+
+<p>这样积分又变回期望：</p>
+<div class="math-block"><span class="math-text">∇ J(θ)=𝔼<sub><span class="math-text">τ</span></sub>[∇log p<sub><span class="math-text">θ</span></sub>(τ)R(τ)]</span></div>
+
+<p>第四步，展开轨迹概率：</p>
+<div class="math-block"><span class="math-text">p<sub><span class="math-text">θ</span></sub>(τ)=p(s<sub><span class="math-text">0</span></sub>)∏<sub><span class="math-text">t</span></sub> π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)P(s<sub><span class="math-text">t+1</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>这里环境初始分布和转移概率不由策略参数控制，所以对 <span class="math-text">θ</span> 求梯度时只剩策略项：</p>
+<div class="math-block"><span class="math-text">∇log p<sub><span class="math-text">θ</span></sub>(τ)=∑<sub><span class="math-text">t</span></sub>∇logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>最后得到：</p>
+<div class="math-block"><span class="math-text">∇ J(θ)=𝔼<sub><span class="math-text">τ</span></sub>[∑<sub><span class="math-text">t</span></sub>∇logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)R(τ)]</span></div>
+
+<p>一句话记忆：</p>
+<blockquote>
+<p>因为采样动作本身不可直接反传，所以 policy gradient 不对 action 求导，而是对“采到这个 action 的 log probability”求导。高 return 的轨迹会提高其中动作的 log probability，低 return 的轨迹会降低它们。</p>
+</blockquote>
+<h2>REINFORCE</h2>
+<p>REINFORCE 是最基础的 Monte Carlo policy gradient 算法。</p>
+<p>更新方向：</p>
+<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
+
+<p>直觉：</p>
+<ul>
+<li>如果某个 action 后续 return 高，就增加该 action 在该 state 下的概率。</li>
+<li>如果 return 低，就降低该 action 的概率。</li>
+</ul>
+<p>算法流程：</p>
+<pre><code class="language-text">initialize policy pi_theta
+repeat:
+    sample trajectories using pi_theta
+    compute returns G_t
+    update theta by sum_t grad log pi_theta(a_t|s_t) G_t
+</code></pre>
+<p>REINFORCE 的优点：</p>
+<ul>
+<li>概念简单。</li>
+<li>不需要 value function。</li>
+<li>可以直接处理随机策略。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>必须等 episode 结束。</li>
+<li>Monte Carlo return 方差很大。</li>
+<li>sample efficiency 较低。</li>
+</ul>
+<h2>为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></h2>
+<p>基础推导中，每个时间步都乘整条轨迹回报 <span class="math-text">R(τ)</span>。但动作 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 不可能影响 <span class="math-text">t</span> 之前已经发生的 reward，所以更合理的学习信号是从当前时间开始的 reward-to-go：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+...</span></div>
+
+<p>于是实际常用：</p>
+<div class="math-block"><span class="math-text">∇ J(θ)=𝔼[∑<sub><span class="math-text">t</span></sub>∇logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)G<sub><span class="math-text">t</span></sub>]</span></div>
+
+<p>这样做不会丢掉由 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 影响的未来回报，反而去掉了和 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 无关的过去 reward，因此方差更低。</p>
+<h2>Baseline</h2>
+<p>为了降低方差，可以从 return 中减去 baseline：</p>
+<div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) (G<sub><span class="math-text">t</span></sub> - b(s<sub><span class="math-text">t</span></sub>))]</span></div></div>
+
+<p>常用 baseline：</p>
+<div class="math-block"><span class="math-text">b(s<sub><span class="math-text">t</span></sub>) = V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>为什么 baseline 不引入 bias？</p>
+<p>因为：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a ~ π</span></sub>[∇ log π(a∣ s) b(s)] = 0</span></div>
+
+<p>推导：</p>
+<div class="math-block multi"><div><span class="math-text">∑<sub><span class="math-text">a</span></sub> π(a∣ s) ∇ log π(a∣ s) b(s)</span></div><div><span class="math-text">= b(s) ∑<sub><span class="math-text">a</span></sub> π(a∣ s) ∇ log π(a∣ s)</span></div><div><span class="math-text">= b(s) ∑<sub><span class="math-text">a</span></sub> ∇ π(a∣ s)</span></div><div><span class="math-text">= b(s) ∇ ∑<sub><span class="math-text">a</span></sub> π(a∣ s)</span></div><div><span class="math-text">= b(s) ∇ 1</span></div><div><span class="math-text">= 0</span></div></div>
+
+<p>只要 baseline 不依赖 action，就不会改变 policy gradient 的期望，只会改变方差。</p>
+<p>更直观地说，baseline 只是把“绝对分数”改成“相对分数”：</p>
+<ul>
+<li>原来：这次 return 是 100，就增加动作概率。</li>
+<li>加 baseline 后：如果这个状态平均就能拿 120，那么 100 其实低于预期，应该降低动作概率。</li>
+</ul>
+<p>这就是 advantage 的来源。</p>
+<h2>Advantage Function</h2>
+<p>Advantage 定义：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s, a) = Q<sub><span class="math-text">π</span></sub>(s, a) - V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<p>含义：</p>
+<blockquote>
+<p>在状态 <span class="math-text">s</span> 下，动作 <span class="math-text">a</span> 比当前策略的平均动作好多少。</p>
+</blockquote>
+<p>使用 advantage 的 policy gradient：</p>
+<div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)]</span></div></div>
+
+<p>直觉：</p>
+<ul>
+<li>如果 <span class="math-text">A(s,a) &gt; 0</span>，说明动作比平均水平好，增加其概率。</li>
+<li>如果 <span class="math-text">A(s,a) &lt; 0</span>，说明动作比平均水平差，降低其概率。</li>
+</ul>
+<p>相比直接用 return，advantage 通常方差更低，学习信号更明确。</p>
+<h2>从 Baseline 到 Actor-Critic</h2>
+<p>如果 baseline 取 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>，那么：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> - V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>就是一个 advantage 的 Monte Carlo 估计。问题是 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 仍然要等 episode 结束且方差大。</p>
+<p>Actor-Critic 的下一步就是：训练一个 critic 来估计 <span class="math-text">V(s)</span> 或 <span class="math-text">Q(s,a)</span>，用 TD target 更快、更低方差地构造 advantage。也就是说：</p>
+<pre><code class="language-text">REINFORCE:      用完整 return 做策略更新
+REINFORCE+b:    用 return - baseline 降低方差
+Actor-Critic:  用 critic 估计 baseline / advantage
+GAE/PPO:        用更稳定的 advantage 和受限策略更新
+</code></pre>
+<p>所以第 7 章和第 8/9 章不是割裂的：后面的 actor-critic、GAE、PPO 都是在让 policy gradient 的学习信号更稳。</p>
+<h2>Reward-to-go</h2>
+<p>原始 REINFORCE 可能用整条轨迹 return <span class="math-text">R(τ)</span> 更新每个时间步。<br>更合理的是使用从当前时间步开始的 return：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = ∑<sub><span class="math-text">k=t</span></sub><sup><span class="math-text">T</span></sup> γ<sup><span class="math-text">k-t</span></sup> R<sub><span class="math-text">k+1</span></sub></span></div>
+
+<p>原因：</p>
+<p>时间 <span class="math-text">t</span> 的 action 不会影响过去已经发生的 reward，因此不需要用过去 reward 作为学习信号。</p>
+<h2>Entropy Regularization</h2>
+<p>为了鼓励探索，常在目标中加入 entropy：</p>
+<div class="math-block"><span class="math-text">J(θ) = 𝔼[return] + β 𝔼[H(π<sub><span class="math-text">θ</span></sub>(· ∣ s))]</span></div>
+
+<p>策略熵：</p>
+<div class="math-block"><span class="math-text">H(π(.∣ s)) = - ∑<sub><span class="math-text">a</span></sub> π(a∣ s) log π(a∣ s)</span></div>
+
+<p>作用：</p>
+<ul>
+<li>防止策略过早变得确定。</li>
+<li>增强探索。</li>
+<li>改善训练稳定性。</li>
+</ul>
+<p>SAC 中 entropy regularization 是核心组成部分。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. Policy Gradient 适合什么场景？</h3>
+<p>适合连续动作空间、随机策略建模、需要直接优化策略分布的场景。相比 value-based 方法，不需要对动作做 <span class="math-text">argmax</span>。</p>
+<h3>2. REINFORCE 的核心更新是什么？</h3>
+<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
+
+<p>如果某个动作带来高 return，就提升该动作概率；如果 return 低，就降低该动作概率。</p>
+<h3>3. 为什么 baseline 不改变梯度期望？</h3>
+<p>因为 baseline 不依赖 action，而 <span class="math-text">𝔼<sub><span class="math-text">a∼π</span></sub>[∇ log π(a∣ s)] = 0</span>。所以减去 baseline 不引入 bias，只降低 variance。</p>
+<h3>4. Advantage 的意义是什么？</h3>
+<p>Advantage 衡量某个动作相对于该状态平均动作的好坏。它比直接用 return 更能反映动作的相对贡献，通常降低方差并稳定训练。</p>
+<h3>5. Policy Gradient 的主要缺点？</h3>
+<p>方差较大、sample efficiency 较低、训练对学习率敏感。REINFORCE 尤其需要完整 episode，训练慢且不稳定。</p>
+<h2>本章练习</h2>
+<ol>
+<li>手写 log-derivative trick 推导。</li>
+<li>证明 action-independent baseline 不引入 bias。</li>
+<li>解释 <span class="math-text">Q(s,a)</span>、<span class="math-text">V(s)</span>、<span class="math-text">A(s,a)</span> 的关系。</li>
+<li>对比 value-based 和 policy-based 方法。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav></main></body>
+</html>

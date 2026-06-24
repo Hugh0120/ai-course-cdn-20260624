@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav><h1>第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DDPG</td>
+<td>Deep Deterministic Policy Gradient</td>
+<td>深度确定性策略梯度</td>
+<td>连续动作空间的 off-policy actor-critic 算法。</td>
+</tr>
+<tr>
+<td>TD3</td>
+<td>Twin Delayed DDPG</td>
+<td>双延迟 DDPG</td>
+<td>用双 Q、延迟 actor 更新和 target smoothing 改进 DDPG。</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>Soft Actor-Critic</td>
+<td>软 Actor-Critic</td>
+<td>最大熵 off-policy actor-critic 算法。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
+<td>Critic Action-value Function</td>
+<td>Critic 动作价值函数</td>
+<td>参数 <span class="math-text">w</span> 下的 Q 估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span></td>
+<td>Deterministic Actor</td>
+<td>确定性 actor</td>
+<td>DDPG/TD3 中 actor 输出的连续动作。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></td>
+<td>Stochastic Actor</td>
+<td>随机 actor</td>
+<td>SAC 中 actor 输出的动作分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>Bellman Target</td>
+<td>Bellman 目标</td>
+<td>critic 训练时的目标值。</td>
+</tr>
+<tr>
+<td><span class="math-text">J(θ)</span></td>
+<td>Actor Objective</td>
+<td>Actor 目标函数</td>
+<td>actor 要最大化或等价最小化的目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">1</span></sub></span> / <span class="math-text">Q<sub><span class="math-text">2</span></sub></span></td>
+<td>Twin Q Networks</td>
+<td>双 Q 网络</td>
+<td>TD3/SAC 中用于缓解过估计的两个 critic。</td>
+</tr>
+<tr>
+<td><span class="math-text">H(π)</span></td>
+<td>Entropy</td>
+<td>熵</td>
+<td>SAC 目标中鼓励策略随机性的项。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span></td>
+<td>Temperature</td>
+<td>温度系数</td>
+<td>SAC 中 reward 和 entropy 的权衡参数。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>离散动作空间的 value-based 算法，本章用它引出连续动作困难。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习连续动作空间中的经典 off-policy actor-critic 算法。你需要掌握：</p>
+<ul>
+<li>连续动作为什么不适合普通 DQN。</li>
+<li>DDPG。</li>
+<li>TD3。</li>
+<li>SAC。</li>
+<li>entropy regularization。</li>
+<li>deterministic policy vs stochastic policy。</li>
+</ul>
+<h2>连续动作空间的挑战</h2>
+<p>DQN 需要计算：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s', a)</span></div>
+
+<p>如果动作空间是离散且规模不大，可以枚举所有动作。<br>但连续动作空间无法枚举，例如机器人控制中的力矩、速度、角度。</p>
+<p>因此需要直接学习一个 actor 输出动作：</p>
+<div class="math-block"><span class="math-text">a = μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
+
+<p>或者输出动作分布：</p>
+<div class="math-block"><span class="math-text">a ~ π<sub><span class="math-text">θ</span></sub>(. ∣ s)</span></div>
+
+<h2>从 DQN 到 Actor 的推理过程</h2>
+<p>DQN 在离散动作中可以做：</p>
+<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>=argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+
+<p>连续动作下，这个 maximization 本身就是一个困难优化问题。如果每次决策都在动作空间里搜索最大 Q，代价很高，也不稳定。</p>
+<p>DDPG/TD3/SAC 的思路是额外训练一个 actor，让 actor 学会直接输出“critic 认为高价值”的动作：</p>
+<pre><code class="language-text">critic:  评价 Q(s, a)
+actor:   产生让 Q(s, a) 尽量大的动作
+</code></pre>
+<p>所以连续控制里的 actor 不是装饰，它是在替代 DQN 中对动作的显式枚举或 argmax。</p>
+<h2>DDPG</h2>
+<p>DDPG 是 Deep Deterministic Policy Gradient。</p>
+<p>它适用于连续动作空间，是 off-policy actor-critic。</p>
+<p>组件：</p>
+<ul>
+<li>Actor：确定性策略 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>。</li>
+<li>Critic：动作价值函数 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>。</li>
+<li>Replay buffer。</li>
+<li>Target actor。</li>
+<li>Target critic。</li>
+</ul>
+<p>Critic target：</p>
+<div class="math-block"><span class="math-text">y = r + γ Q<sub><span class="math-text">w<sup><span class="math-text">-</span></sup></span></sub>(s', μ<sub><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></sub>(s'))</span></div>
+
+<p>Critic loss：</p>
+<div class="math-block"><span class="math-text">L(w) = 𝔼[(Q<sub><span class="math-text">w</span></sub>(s,a) - y)<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>Actor objective：</p>
+<div class="math-block"><span class="math-text">J(θ) = 𝔼[Q<sub><span class="math-text">w</span></sub>(s, μ<sub><span class="math-text">θ</span></sub>(s))]</span></div>
+
+<p>Actor 更新：</p>
+<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J</span></div><div><span class="math-text">= 𝔼[∇<sub><span class="math-text">a</span></sub> Q<sub><span class="math-text">w</span></sub>(s,a)∣<sub><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></sub> ∇<sub><span class="math-text">θ</span></sub> μ<sub><span class="math-text">θ</span></sub>(s)]</span></div></div>
+
+<p>这个梯度来自 chain rule。目标是让：</p>
+<div class="math-block"><span class="math-text">J(θ)=Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span></div>
+
+<p>变大。参数 <span class="math-text">θ</span> 先影响 actor 输出的动作 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>，动作再影响 critic 给出的 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>。所以更新方向分两段：</p>
+<ul>
+<li><span class="math-text">∇<sub><span class="math-text">a</span></sub> Q<sub><span class="math-text">w</span></sub>(s,a)</span>：critic 告诉 actor，动作往哪个方向改能提高 Q。</li>
+<li><span class="math-text">∇<sub><span class="math-text">θ</span></sub> μ<sub><span class="math-text">θ</span></sub>(s)</span>：actor 告诉参数，怎么改参数能让动作往那个方向移动。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DDPG 用 critic 对连续动作求梯度，再通过 actor 反传到策略参数，相当于用 actor 学一个可微的 argmax。</p>
+</blockquote>
+<p>探索：</p>
+<p>DDPG 的策略是 deterministic，因此训练时通常给动作加噪声：</p>
+<div class="math-block"><span class="math-text">a<sub><span class="math-text">t</span></sub> = μ<sub><span class="math-text">θ</span></sub>(s<sub><span class="math-text">t</span></sub>) + ε<sub><span class="math-text">t</span></sub></span></div>
+
+<h2>DDPG 的问题</h2>
+<p>DDPG 比较脆弱，常见问题：</p>
+<ul>
+<li>Q 值过估计。</li>
+<li>对超参数敏感。</li>
+<li>exploration noise 难调。</li>
+<li>actor 可能利用 critic 的错误高估。</li>
+<li>训练容易不稳定。</li>
+</ul>
+<p>TD3 就是针对 DDPG 的几个问题做改进。</p>
+<h2>TD3</h2>
+<p>TD3 是 Twin Delayed DDPG。</p>
+<p>核心改进：</p>
+<ol>
+<li>Clipped Double Q-learning。</li>
+<li>Delayed policy update。</li>
+<li>Target policy smoothing。</li>
+</ol>
+<h3>Clipped Double Q-learning</h3>
+<p>TD3 学两个 critic：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">1</span></sub>(s,a), Q<sub><span class="math-text">2</span></sub>(s,a)</span></div>
+
+<p>target 使用两者较小值：</p>
+<div class="math-block"><span class="math-text">y = r + γ min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a')</span></div>
+
+<p>这样可以缓解 overestimation bias。</p>
+<h3>Delayed Policy Update</h3>
+<p>Critic 更新多次后，actor 再更新一次。</p>
+<p>直觉：</p>
+<p>critic 估计更可靠后，再用它指导 actor，减少 actor 被错误 Q 值带偏。</p>
+<h3>Target Policy Smoothing</h3>
+<p>target action 加入 clipped noise：</p>
+<div class="math-block"><span class="math-text">a' = μ<sup><span class="math-text">-</span></sup>(s') + ε<sub><span class="math-text">clip</span></sub></span></div>
+
+<p>再用 <span class="math-text">a&#39;</span> 计算 target。</p>
+<p>直觉：</p>
+<p>让 critic 不要对动作空间中的尖锐错误峰值过拟合，使 Q 函数更平滑。</p>
+<h2>TD3 三个改进的共同逻辑</h2>
+<p>TD3 的三个 trick 都围绕同一个问题：actor 很容易利用 critic 的错误。</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>改进</th>
+<th>解决的问题</th>
+<th>推理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>双 Q 取最小</td>
+<td>Q 过估计</td>
+<td>如果一个 critic 偶然高估，取 min 可以更保守。</td>
+</tr>
+<tr>
+<td>延迟 actor 更新</td>
+<td>actor 跟着错误 critic 跑</td>
+<td>先多训几步 critic，让评价器更靠谱，再更新 actor。</td>
+</tr>
+<tr>
+<td>target smoothing</td>
+<td>critic 对尖锐动作峰值过拟合</td>
+<td>target 动作附近加噪声，让 Q 在局部更平滑。</td>
+</tr>
+</tbody></table>
+<p>一句话：</p>
+<blockquote>
+<p>TD3 不是三个孤立技巧，而是在防止 deterministic actor 钻 critic 估计误差的空子。</p>
+</blockquote>
+<h2>SAC</h2>
+<p>SAC 是 Soft Actor-Critic，是现代连续控制中非常常用的算法。</p>
+<p>核心思想：</p>
+<blockquote>
+<p>最大化 reward 的同时最大化策略 entropy。</p>
+</blockquote>
+<p>目标：</p>
+<div class="math-block"><span class="math-text">𝔼[∑<sub><span class="math-text">t</span></sub> γ<sup><span class="math-text">t</span></sup> (r<sub><span class="math-text">t</span></sub> + α H(π(.∣ s<sub><span class="math-text">t</span></sub>)))]</span></div>
+
+<p>或者写成：</p>
+<div class="math-block"><span class="math-text">𝔼[∑<sub><span class="math-text">t</span></sub> γ<sup><span class="math-text">t</span></sup> (r<sub><span class="math-text">t</span></sub> - α log π(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
+
+<p>其中 <span class="math-text">α</span> 是 temperature，控制 entropy 权重。</p>
+<h2>SAC 的组件</h2>
+<p>SAC 通常包含：</p>
+<ul>
+<li>Stochastic actor：<span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>。</li>
+<li>两个 Q network：<span class="math-text">Q<sub><span class="math-text">1</span></sub></span>, <span class="math-text">Q<sub><span class="math-text">2</span></sub></span>。</li>
+<li>target Q networks。</li>
+<li>replay buffer。</li>
+<li>temperature parameter <span class="math-text">α</span>。</li>
+</ul>
+<p>Soft Q target：</p>
+<div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a') - α log π(a'∣ s')]</span></div>
+
+<p>其中：</p>
+<div class="math-block"><span class="math-text">a' ~ π<sub><span class="math-text">θ</span></sub>(.∣ s')</span></div>
+
+<p>Actor objective：</p>
+<div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ) = 𝔼[α log π<sub><span class="math-text">θ</span></sub>(a∣ s) - min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
+
+<p>最小化这个 loss 等价于选择高 Q 且高 entropy 的动作分布。</p>
+<h2>SAC Soft Target 的推理过程</h2>
+<p>普通 Bellman target 是：</p>
+<div class="math-block"><span class="math-text">y=r+γ Q(s',a')</span></div>
+
+<p>SAC 的目标不是只最大化 reward，而是最大化 reward 加 entropy。对某个动作来说，entropy 项可以写成：</p>
+<div class="math-block"><span class="math-text">-αlogπ(a'∣ s')</span></div>
+
+<p>所以 soft value 可以理解为：</p>
+<div class="math-block"><span class="math-text">Q(s',a')-αlogπ(a'∣ s')</span></div>
+
+<p>代回 Bellman target，就得到：</p>
+<div class="math-block"><span class="math-text">y=r+γ[min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a')-αlogπ(a'∣ s')]</span></div>
+
+<p>为什么 actor loss 是：</p>
+<div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ)=𝔼[αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)-min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
+
+<p>因为实现里通常最小化 loss。最小化这个式子等价于：</p>
+<ul>
+<li>最大化 Q：让动作回报高。</li>
+<li>最大化 entropy：因为最小化 <span class="math-text">logπ</span> 倾向避免策略过度确定。</li>
+</ul>
+<p>面试里可以说：</p>
+<blockquote>
+<p>SAC 把探索写进目标函数，而不是只靠外加噪声。Soft target 中的 <span class="math-text">-αlogπ</span> 会奖励更高熵的动作分布，因此策略既追求高 Q，也保持足够随机性。</p>
+</blockquote>
+<h2>Entropy Regularization 的意义</h2>
+<p>SAC 不只是把 entropy 当作训练 trick，而是把它放进目标函数。</p>
+<p>好处：</p>
+<ul>
+<li>鼓励探索。</li>
+<li>避免策略过早确定。</li>
+<li>对多模态最优策略更友好。</li>
+<li>训练通常比 DDPG/TD3 更稳定。</li>
+</ul>
+<p><span class="math-text">α</span> 控制探索程度：</p>
+<ul>
+<li><span class="math-text">α</span> 大：更重视 entropy，策略更随机。</li>
+<li><span class="math-text">α</span> 小：更重视 reward，策略更确定。</li>
+</ul>
+<p>现代 SAC 常自动调节 <span class="math-text">α</span>，让策略 entropy 接近 target entropy。</p>
+<h2>DDPG vs TD3 vs SAC</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>DDPG</th>
+<th>TD3</th>
+<th>SAC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>策略</td>
+<td>deterministic</td>
+<td>deterministic</td>
+<td>stochastic</td>
+</tr>
+<tr>
+<td>数据</td>
+<td>off-policy</td>
+<td>off-policy</td>
+<td>off-policy</td>
+</tr>
+<tr>
+<td>critic</td>
+<td>单 Q</td>
+<td>双 Q</td>
+<td>双 Q</td>
+</tr>
+<tr>
+<td>探索</td>
+<td>外加噪声</td>
+<td>外加噪声</td>
+<td>entropy 驱动</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>较弱</td>
+<td>比 DDPG 强</td>
+<td>通常更强</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>连续控制</td>
+<td>连续控制</td>
+<td>连续控制、鲁棒训练</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. 为什么 DQN 不适合连续动作？</h3>
+<p>DQN 需要对动作枚举并取 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>。连续动作空间无法枚举，直接求 argmax 也通常很难，因此需要 actor 直接输出连续动作。</p>
+<h3>2. DDPG 的核心是什么？</h3>
+<p>DDPG 是连续动作空间下的 off-policy actor-critic。Actor 输出确定性动作，critic 评估 <span class="math-text">Q(s,a)</span>，actor 通过最大化 critic 给出的 Q 值来更新。</p>
+<h3>3. TD3 相比 DDPG 做了哪些改进？</h3>
+<p>TD3 使用双 critic 取最小值缓解过估计，延迟 actor 更新提高稳定性，并使用 target policy smoothing 平滑 Q 函数。</p>
+<h3>4. SAC 为什么稳定？</h3>
+<p>SAC 使用最大熵目标，鼓励高 reward 和高 entropy 的策略；同时使用双 Q 网络、target network 和 replay buffer。Entropy regularization 带来更好的探索和鲁棒性。</p>
+<h3>5. SAC 中 <span class="math-text">α</span> 是什么？</h3>
+<p><span class="math-text">α</span> 是 entropy temperature，控制 reward 和 entropy 的权衡。<span class="math-text">α</span> 越大，策略越随机、探索越强；<span class="math-text">α</span> 越小，策略越偏向最大化 reward。</p>
+<h2>本章练习</h2>
+<ol>
+<li>写出 DDPG critic target 和 actor objective。</li>
+<li>解释 TD3 的三个 trick。</li>
+<li>写出 SAC soft Q target。</li>
+<li>对比 deterministic policy 和 stochastic policy。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav></main></body>
+</html>

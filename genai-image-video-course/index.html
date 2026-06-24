@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 分章节版</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell">
+    <h1>文生图与文生视频面试课程 · 分章节版</h1>
+    <p>这里是按章节拆出的本地 HTML 页面；PDF 文件单独放在 output/pdf 目录。</p>
+    <p><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a></p>
+    <ul class="chapter-index"><li><span><a href="./00-roadmap.html">文生图 / 文生视频课程 Roadmap</a><br><span class="chapter-source">00-roadmap</span></span><a href="./00-roadmap.html">HTML</a><a href="../pdf/genai-image-video-course/00-roadmap.pdf">PDF</a></li>
+<li><span><a href="./01-generative-models-and-diffusion.html">第 1 章：生成模型、DDPM、Score 与 Flow Matching</a><br><span class="chapter-source">01-generative-models-and-diffusion</span></span><a href="./01-generative-models-and-diffusion.html">HTML</a><a href="../pdf/genai-image-video-course/01-generative-models-and-diffusion.pdf">PDF</a></li>
+<li><span><a href="./02-text-to-image-architectures.html">第 2 章：文生图架构：CLIP、Imagen、Stable Diffusion、DiT 与原生多模态生成</a><br><span class="chapter-source">02-text-to-image-architectures</span></span><a href="./02-text-to-image-architectures.html">HTML</a><a href="../pdf/genai-image-video-course/02-text-to-image-architectures.pdf">PDF</a></li>
+<li><span><a href="./03-conditioning-editing-control.html">第 3 章：Conditioning、Editing、Control 与 Reference Consistency</a><br><span class="chapter-source">03-conditioning-editing-control</span></span><a href="./03-conditioning-editing-control.html">HTML</a><a href="../pdf/genai-image-video-course/03-conditioning-editing-control.pdf">PDF</a></li>
+<li><span><a href="./04-video-generation.html">第 4 章：文生视频、Temporal Consistency、World Model 与音视频生成</a><br><span class="chapter-source">04-video-generation</span></span><a href="./04-video-generation.html">HTML</a><a href="../pdf/genai-image-video-course/04-video-generation.pdf">PDF</a></li>
+<li><span><a href="./05-video-data-training-control.html">第 5 章：文生视频数据构造、预处理与训练实操</a><br><span class="chapter-source">05-video-data-training-control</span></span><a href="./05-video-data-training-control.html">HTML</a><a href="../pdf/genai-image-video-course/05-video-data-training-control.pdf">PDF</a></li>
+<li><span><a href="./06-video-workflow-evaluation-projects.html">第 6 章：文生视频工作流、控制、评测与项目实操</a><br><span class="chapter-source">06-video-workflow-evaluation-projects</span></span><a href="./06-video-workflow-evaluation-projects.html">HTML</a><a href="../pdf/genai-image-video-course/06-video-workflow-evaluation-projects.pdf">PDF</a></li>
+<li><span><a href="./07-evaluation-safety-projects.html">第 7 章：面试速查、项目表达与常见追问</a><br><span class="chapter-source">07-evaluation-safety-projects</span></span><a href="./07-evaluation-safety-projects.html">HTML</a><a href="../pdf/genai-image-video-course/07-evaluation-safety-projects.pdf">PDF</a></li>
+<li><span><a href="./08-sota-tech-reports-2026.html">第 8 章：2026 SOTA 技术报告阅读地图</a><br><span class="chapter-source">08-sota-tech-reports-2026</span></span><a href="./08-sota-tech-reports-2026.html">HTML</a><a href="../pdf/genai-image-video-course/08-sota-tech-reports-2026.pdf">PDF</a></li>
+<li><span><a href="./09-eval-harness-and-benchmarking.html">第 9 章：Eval Harness、Benchmarking、人评与自动评测</a><br><span class="chapter-source">09-eval-harness-and-benchmarking</span></span><a href="./09-eval-harness-and-benchmarking.html">HTML</a><a href="../pdf/genai-image-video-course/09-eval-harness-and-benchmarking.pdf">PDF</a></li>
+<li><span><a href="./10-training-safety-productization.html">第 10 章：训练、对齐、安全、Provenance 与产品化</a><br><span class="chapter-source">10-training-safety-productization</span></span><a href="./10-training-safety-productization.html">HTML</a><a href="../pdf/genai-image-video-course/10-training-safety-productization.pdf">PDF</a></li>
+<li><span><a href="./99-references.html">文生图 / 文生视频 References</a><br><span class="chapter-source">99-references</span></span><a href="./99-references.html">HTML</a><a href="../pdf/genai-image-video-course/99-references.pdf">PDF</a></li></ul>
+  </main></body>
+</html>

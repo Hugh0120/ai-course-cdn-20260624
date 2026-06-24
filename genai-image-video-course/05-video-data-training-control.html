@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 5 章：文生视频数据构造、预处理与训练实操</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-video-generation.html">← 上一章</a><a href="./06-video-workflow-evaluation-projects.html">下一章 →</a></nav><h1>第 5 章：文生视频数据构造、预处理与训练实操</h1>
+<p>这一章专门讲文生视频的训练侧。视频生成模型不是把文生图模型“多生成几帧”就完事了，真正难点在视频数据、caption、镜头边界、时间一致性、音视频同步、训练样本打包和后训练。面试里能把这些讲清楚，会比单纯背 Sora、Veo、Movie Gen、Seedance 的名字更有说服力。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T2V</td>
+<td>Text-to-Video</td>
+<td>文生视频</td>
+<td>根据文本 prompt 生成视频。</td>
+</tr>
+<tr>
+<td>I2V</td>
+<td>Image-to-Video</td>
+<td>图生视频</td>
+<td>根据起始图、参考图或关键帧生成视频。</td>
+</tr>
+<tr>
+<td>V2V</td>
+<td>Video-to-Video</td>
+<td>视频到视频</td>
+<td>根据输入视频做编辑、风格化或重生成。</td>
+</tr>
+<tr>
+<td>AV</td>
+<td>Audio-Video</td>
+<td>音视频</td>
+<td>联合生成或理解画面与声音。</td>
+</tr>
+<tr>
+<td>FPS</td>
+<td>Frames Per Second</td>
+<td>每秒帧数</td>
+<td>视频时间分辨率。</td>
+</tr>
+<tr>
+<td>Shot</td>
+<td>Shot</td>
+<td>镜头</td>
+<td>连续拍摄或生成的一段画面。</td>
+</tr>
+<tr>
+<td>ASR</td>
+<td>Automatic Speech Recognition</td>
+<td>自动语音识别</td>
+<td>把视频中的语音转成文字。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>识别视频帧中的文字。</td>
+</tr>
+<tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>把视频压缩到 latent space 的编码器/解码器。</td>
+</tr>
+<tr>
+<td>DiT</td>
+<td>Diffusion Transformer</td>
+<td>扩散 Transformer</td>
+<td>视频 diffusion / flow 常用 backbone。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用高质量指令和样本微调模型。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好优化视频生成质量。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>用偏好对直接优化模型偏好。</td>
+</tr>
+<tr>
+<td>Distillation</td>
+<td>Knowledge Distillation</td>
+<td>知识蒸馏</td>
+<td>用大模型或多步采样结果训练更快模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">V</span></td>
+<td>Video</td>
+<td>视频</td>
+<td>输入或输出的视频片段。</td>
+</tr>
+<tr>
+<td><span class="math-text">F</span></td>
+<td>Frames</td>
+<td>帧序列</td>
+<td>视频由多帧图像组成。</td>
+</tr>
+<tr>
+<td><span class="math-text">T</span></td>
+<td>Time Length</td>
+<td>时间长度</td>
+<td>视频时长或帧数。</td>
+</tr>
+<tr>
+<td><span class="math-text">H</span> / <span class="math-text">W</span></td>
+<td>Height / Width</td>
+<td>高 / 宽</td>
+<td>视频空间分辨率。</td>
+</tr>
+<tr>
+<td><span class="math-text">z</span></td>
+<td>Latent</td>
+<td>潜变量</td>
+<td>VAE 编码后的视频 latent。</td>
+</tr>
+<tr>
+<td><span class="math-text">c</span></td>
+<td>Condition</td>
+<td>条件</td>
+<td>文本、首帧、尾帧、参考图、mask、audio 等控制输入。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>能讲清视频数据从采集到训练样本的完整 pipeline。</li>
+<li>能解释 caption、shot detection、frame sampling、音频处理为什么关键。</li>
+<li>能区分 T2V、I2V、V2V、editing、AV 训练样本。</li>
+<li>能说明视频 post-training、RLHF、distillation 怎么服务产品质量和成本。</li>
+</ul>
+<h2>视频数据为什么比图像数据更难</h2>
+<p>图像样本通常是单帧语义，视频样本包含：</p>
+<ul>
+<li>时间顺序。</li>
+<li>镜头切换。</li>
+<li>角色身份保持。</li>
+<li>物体状态变化。</li>
+<li>相机运动。</li>
+<li>动作和物理因果。</li>
+<li>音频、对白、环境声。</li>
+<li>字幕、水印、logo 和剪辑痕迹。</li>
+</ul>
+<p>同样一条 caption，“a person opens a door” 对视频来说还不够。训练需要知道门从关到开的过程、人的位置变化、镜头是否移动、声音是否出现、有没有切镜头。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>文生视频的数据核心不是“有视频就行”，而是要把视频拆成可学习的时空事件：镜头、动作、主体、场景、相机、声音和状态变化。caption 越能描述时间变化，模型越容易学到 prompt 到 motion 的映射。</p>
+</blockquote>
+<h2>视频数据 Pipeline</h2>
+<pre><code class="language-text">原始视频
+-&gt; 解码、格式统一、fps / 分辨率标准化
+-&gt; shot detection：切镜头、去片头片尾、去黑帧
+-&gt; 质量过滤：清晰度、运动模糊、压缩、水印、字幕、NSFW、版权
+-&gt; frame sampling：均匀采样、关键帧、运动峰值、首尾帧
+-&gt; captioning / recaptioning：主体、动作、镜头、时间变化、声音
+-&gt; ASR / OCR / audio tagging：对白、字幕、屏幕文字、音效
+-&gt; task packaging：T2V、I2V、V2V、editing、AV
+-&gt; train / dev / test 切分、去重、去污染
+-&gt; tokenization / VAE latent / spacetime patch
+-&gt; pretraining、SFT、preference、distillation、eval
+</code></pre>
+<h2>数据过滤维度</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>过滤维度</th>
+<th>English</th>
+<th>中文</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Resolution</td>
+<td>Resolution</td>
+<td>分辨率</td>
+<td>太低会损伤细节和文字。</td>
+</tr>
+<tr>
+<td>Compression</td>
+<td>Compression Artifact</td>
+<td>压缩伪影</td>
+<td>会让模型学到噪声和块状纹理。</td>
+</tr>
+<tr>
+<td>Motion Blur</td>
+<td>Motion Blur</td>
+<td>运动模糊</td>
+<td>影响主体和动作学习。</td>
+</tr>
+<tr>
+<td>Shot Boundary</td>
+<td>Shot Boundary</td>
+<td>镜头边界</td>
+<td>不切镜头会造成时序不连续。</td>
+</tr>
+<tr>
+<td>Watermark</td>
+<td>Watermark</td>
+<td>水印</td>
+<td>模型可能生成水印或 logo 残影。</td>
+</tr>
+<tr>
+<td>Subtitle</td>
+<td>Subtitle</td>
+<td>字幕</td>
+<td>可能污染画面文字和语义。</td>
+</tr>
+<tr>
+<td>NSFW</td>
+<td>Not Safe For Work</td>
+<td>不适宜工作场景内容</td>
+<td>安全和合规风险。</td>
+</tr>
+<tr>
+<td>Copyright</td>
+<td>Copyright</td>
+<td>版权</td>
+<td>训练授权和生成风险。</td>
+</tr>
+<tr>
+<td>Identity</td>
+<td>Identity</td>
+<td>身份信息</td>
+<td>真人肖像、未成年人、隐私风险。</td>
+</tr>
+<tr>
+<td>Audio Quality</td>
+<td>Audio Quality</td>
+<td>音频质量</td>
+<td>影响音视频联合训练。</td>
+</tr>
+</tbody></table>
+<h2>Caption 要描述什么</h2>
+<p>视频 caption 至少要覆盖六类信息：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>类别</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主体</td>
+<td>一名穿红色外套的滑雪者、一辆白色 SUV。</td>
+</tr>
+<tr>
+<td>动作</td>
+<td>从坡顶滑下、转弯、停住、挥手。</td>
+</tr>
+<tr>
+<td>时间变化</td>
+<td>开始在远处，随后靠近镜头，最后离开画面。</td>
+</tr>
+<tr>
+<td>相机</td>
+<td>handheld、pan left、slow zoom in、drone shot。</td>
+</tr>
+<tr>
+<td>场景</td>
+<td>雪山、黄昏、城市街道、室内厨房。</td>
+</tr>
+<tr>
+<td>声音</td>
+<td>风声、脚步声、门铃、对白、背景音乐。</td>
+</tr>
+</tbody></table>
+<p>不好的 caption：</p>
+<pre><code class="language-text">a person skiing
+</code></pre>
+<p>更好的 caption：</p>
+<pre><code class="language-text">A skier in a red jacket descends a snowy slope, makes two wide turns, slows near the camera, and raises one hand. The camera stays fixed while wind noise is heard in the background.
+</code></pre>
+<p>如果训练目标是中文产品，也要有中文 caption 或双语 caption，否则中文 prompt adherence 会弱。</p>
+<h2>训练样本 Schema</h2>
+<p>T2V 样本：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;t2v_000001&quot;,
+  &quot;task&quot;: &quot;text_to_video&quot;,
+  &quot;prompt&quot;: &quot;黄昏时，一辆白色汽车沿海边公路行驶，镜头缓慢跟拍。&quot;,
+  &quot;video&quot;: &quot;clips/t2v_000001.mp4&quot;,
+  &quot;metadata&quot;: {
+    &quot;fps&quot;: 16,
+    &quot;duration_sec&quot;: 5,
+    &quot;resolution&quot;: &quot;720p&quot;,
+    &quot;camera&quot;: &quot;tracking shot&quot;,
+    &quot;source&quot;: &quot;licensed&quot;
+  }
+}
+</code></pre>
+<p>I2V 样本：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;i2v_000018&quot;,
+  &quot;task&quot;: &quot;image_to_video&quot;,
+  &quot;image&quot;: &quot;keyframes/start.png&quot;,
+  &quot;prompt&quot;: &quot;让画面中的花朵在微风中轻轻摆动，背景保持不变。&quot;,
+  &quot;video&quot;: &quot;clips/i2v_000018.mp4&quot;,
+  &quot;metadata&quot;: {
+    &quot;motion&quot;: &quot;subtle object motion&quot;,
+    &quot;identity_preservation&quot;: true
+  }
+}
+</code></pre>
+<p>视频编辑样本：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;v2v_edit_000042&quot;,
+  &quot;task&quot;: &quot;video_editing&quot;,
+  &quot;input_video&quot;: &quot;clips/input.mp4&quot;,
+  &quot;instruction&quot;: &quot;把天空改成傍晚橙色，但保持人物和镜头运动不变。&quot;,
+  &quot;target_video&quot;: &quot;clips/target.mp4&quot;,
+  &quot;metadata&quot;: {
+    &quot;edit_type&quot;: &quot;local_style&quot;,
+    &quot;preserve&quot;: [&quot;person_identity&quot;, &quot;motion&quot;, &quot;composition&quot;]
+  }
+}
+</code></pre>
+<h2>训练阶段</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>English</th>
+<th>中文</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image Pretraining</td>
+<td>Image Pretraining</td>
+<td>图像预训练</td>
+<td>学习外观、语义、构图。</td>
+</tr>
+<tr>
+<td>Video Pretraining</td>
+<td>Video Pretraining</td>
+<td>视频预训练</td>
+<td>学习运动、时序和相机变化。</td>
+</tr>
+<tr>
+<td>High-quality Finetuning</td>
+<td>High-quality Fine-tuning</td>
+<td>高质量微调</td>
+<td>提升美学、清晰度、prompt adherence。</td>
+</tr>
+<tr>
+<td>Task SFT</td>
+<td>Task Supervised Fine-Tuning</td>
+<td>任务监督微调</td>
+<td>支持 T2V、I2V、V2V、editing、AV。</td>
+</tr>
+<tr>
+<td>Preference Tuning</td>
+<td>Preference Tuning</td>
+<td>偏好调优</td>
+<td>优化人类偏好、一致性、安全。</td>
+</tr>
+<tr>
+<td>Video RLHF</td>
+<td>Video Reinforcement Learning from Human Feedback</td>
+<td>视频人类反馈强化学习</td>
+<td>针对视频质量、运动、物理和安全优化。</td>
+</tr>
+<tr>
+<td>Distillation</td>
+<td>Distillation</td>
+<td>蒸馏</td>
+<td>缩短采样步数、降低 TTV。</td>
+</tr>
+<tr>
+<td>Safety Tuning</td>
+<td>Safety Tuning</td>
+<td>安全调优</td>
+<td>降低不合规、侵权、身份滥用。</td>
+</tr>
+</tbody></table>
+<p>面试表达：</p>
+<blockquote>
+<p>工业视频模型通常是多阶段训练：先从图像学外观，再从视频学运动，再用高质量数据和偏好数据修产品体验，最后用蒸馏把慢模型变成可上线的低延迟模型。</p>
+</blockquote>
+<h2>Batch 和 Token Budget</h2>
+<p>视频样本的成本由 <span class="math-text">T</span>、<span class="math-text">H</span>、<span class="math-text">W</span> 和 latent 压缩率共同决定。直觉上：</p>
+<div class="math-block"><span class="math-text">N<sub><span class="math-text">v</span></sub> propto T × H × W</span></div>
+
+<p>这意味着时长、分辨率和帧率不能同时无脑拉满。常见训练策略：</p>
+<ul>
+<li>短片段先训，逐步增加时长。</li>
+<li>低分辨率预训练，高分辨率微调。</li>
+<li>frame dropping 或 temporal compression 控制成本。</li>
+<li>按宽高比和时长做 bucket。</li>
+<li>混合 T2I、T2V、I2V 数据维持外观和运动。</li>
+</ul>
+<h2>偏好数据怎么构造</h2>
+<p>视频偏好通常不是简单“哪个好看”，而是拆维度：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>偏好维度</th>
+<th>中文</th>
+<th>判断问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt Adherence</td>
+<td>提示遵循</td>
+<td>是否满足 prompt 里的主体、动作、风格。</td>
+</tr>
+<tr>
+<td>Temporal Consistency</td>
+<td>时间一致性</td>
+<td>是否闪烁、身份漂移、物体消失。</td>
+</tr>
+<tr>
+<td>Motion Naturalness</td>
+<td>运动自然度</td>
+<td>动作是否连贯，物理是否合理。</td>
+</tr>
+<tr>
+<td>Visual Quality</td>
+<td>视觉质量</td>
+<td>清晰度、构图、光照、美学。</td>
+</tr>
+<tr>
+<td>Camera Control</td>
+<td>镜头控制</td>
+<td>镜头运动是否符合要求。</td>
+</tr>
+<tr>
+<td>Audio Sync</td>
+<td>音画同步</td>
+<td>声音是否和动作、对白同步。</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>安全</td>
+<td>是否有违规、肖像、版权、暴力等风险。</td>
+</tr>
+</tbody></table>
+<p>偏好数据可以是 pairwise，也可以是多维评分。面试时要强调：多维偏好比单一总分更可诊断。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. 为什么文生视频需要 shot detection？</h3>
+<p>因为一个视频文件可能包含多个镜头、剪辑和转场。如果不切镜头，模型会把突然切换的画面当成连续运动学习，导致生成时出现跳变、空间关系混乱和身份漂移。</p>
+<h3>2. 视频 caption 和图像 caption 的区别？</h3>
+<p>图像 caption 主要描述静态内容，视频 caption 还要描述动作、时间变化、镜头、事件顺序和声音。文生视频 prompt adherence 很依赖 caption 对 motion 的覆盖。</p>
+<h3>3. 为什么视频模型常先用图像预训练？</h3>
+<p>图像数据规模更大、质量更高，可以让模型先学会外观、语义和构图；视频训练再补充运动和时序。这样比只用视频从零训练更高效。</p>
+<h3>4. Distillation 在视频生成里为什么重要？</h3>
+<p>视频采样成本高，线上 TTV 很敏感。蒸馏可以减少采样步数或压缩模型，让生成速度接近产品可用，同时尽量保留质量。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2209.14792">Make-A-Video: Text-to-Video Generation without Text-Video Data</a></li>
+<li><a href="https://arxiv.org/abs/2210.02303">Imagen Video: High Definition Video Generation with Diffusion Models</a></li>
+<li><a href="https://arxiv.org/abs/2311.15127">Stable Video Diffusion</a></li>
+<li><a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video generation models as world simulators</a></li>
+<li><a href="https://ai.meta.com/research/publications/movie-gen-a-cast-of-media-foundation-models/">Movie Gen: A Cast of Media Foundation Models</a></li>
+<li><a href="https://arxiv.org/abs/2506.09113">Seedance 1.0</a></li>
+<li><a href="https://arxiv.org/abs/2604.14148">Seedance 2.0</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./04-video-generation.html">← 上一章</a><a href="./06-video-workflow-evaluation-projects.html">下一章 →</a></nav></main></body>
+</html>

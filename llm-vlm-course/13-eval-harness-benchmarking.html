@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 13 章：Eval Harness、Benchmark 与可复现评测</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./12-rag-systems-and-evaluation.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav><h1>第 13 章：Eval Harness、Benchmark 与可复现评测</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Eval</td>
+<td>Evaluation</td>
+<td>评测</td>
+<td>对模型或系统能力、风险和成本的测量。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>被评测的语言模型或系统核心。</td>
+</tr>
+<tr>
+<td>LM</td>
+<td>Language Model</td>
+<td>语言模型</td>
+<td>LM Evaluation Harness 名称中的缩写。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理视觉和语言输入的模型。</td>
+</tr>
+<tr>
+<td>RAG</td>
+<td>Retrieval-Augmented Generation</td>
+<td>检索增强生成</td>
+<td>需要单独设计 retrieval、generation、citation 评测的系统。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>模型或工具服务的调用接口。</td>
+</tr>
+<tr>
+<td>Harness</td>
+<td>Harness</td>
+<td>评测/执行框架</td>
+<td>管理数据、prompt、模型调用、工具、环境、打分和记录的系统层。</td>
+</tr>
+<tr>
+<td>Eval Harness</td>
+<td>Evaluation Harness</td>
+<td>评测框架</td>
+<td>把 benchmark 跑成可复现实验的执行框架。</td>
+</tr>
+<tr>
+<td>Agent Harness</td>
+<td>Agent Harness</td>
+<td>智能体执行框架</td>
+<td>管理 agent 上下文、工具、状态、权限、trace 和恢复的系统层。</td>
+</tr>
+<tr>
+<td>Benchmark</td>
+<td>Benchmark</td>
+<td>基准测试</td>
+<td>固定任务集合和指标，用于比较模型或系统。</td>
+</tr>
+<tr>
+<td>Leaderboard</td>
+<td>Leaderboard</td>
+<td>排行榜</td>
+<td>汇总 benchmark 分数的公开排名。</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>Evaluation Protocol</td>
+<td>评测协议</td>
+<td>规定 prompt、采样、工具、预算、指标和报告方式。</td>
+</tr>
+<tr>
+<td>Model Adapter</td>
+<td>Model Adapter</td>
+<td>模型适配器</td>
+<td>把不同模型/API 统一成 harness 可调用接口。</td>
+</tr>
+<tr>
+<td>Task Adapter</td>
+<td>Task Adapter</td>
+<td>任务适配器</td>
+<td>把数据样本转成 prompt、工具环境和期望输出。</td>
+</tr>
+<tr>
+<td>Dataset Adapter</td>
+<td>Dataset Adapter</td>
+<td>数据集适配器</td>
+<td>读取、过滤、切分和版本化数据集。</td>
+</tr>
+<tr>
+<td>Prompt Template</td>
+<td>Prompt Template</td>
+<td>提示模板</td>
+<td>评测时固定的输入格式。</td>
+</tr>
+<tr>
+<td>Runner</td>
+<td>Runner</td>
+<td>运行器</td>
+<td>批量执行模型调用或 agent 任务的组件。</td>
+</tr>
+<tr>
+<td>Sandbox</td>
+<td>Sandbox</td>
+<td>沙箱</td>
+<td>隔离文件系统、网络和外部副作用的环境。</td>
+</tr>
+<tr>
+<td>Environment</td>
+<td>Environment</td>
+<td>环境</td>
+<td>agent 可以观察和行动的任务世界。</td>
+</tr>
+<tr>
+<td>Oracle</td>
+<td>Oracle</td>
+<td>标准判定器</td>
+<td>能可靠判断答案或最终状态是否正确的程序/标注。</td>
+</tr>
+<tr>
+<td>Scorer</td>
+<td>Scorer</td>
+<td>打分器</td>
+<td>将输出转成数值分数的组件。</td>
+</tr>
+<tr>
+<td>Judge</td>
+<td>Judge</td>
+<td>裁判模型/评审者</td>
+<td>用模型或人类判断开放式输出质量。</td>
+</tr>
+<tr>
+<td>LLM-as-a-Judge</td>
+<td>LLM as a Judge</td>
+<td>大模型裁判</td>
+<td>用 LLM 给答案、引用或轨迹评分。</td>
+</tr>
+<tr>
+<td>HELM</td>
+<td>Holistic Evaluation of Language Models</td>
+<td>语言模型整体评测</td>
+<td>Stanford CRFM 的综合评测框架。</td>
+</tr>
+<tr>
+<td>VHELM</td>
+<td>Vision Holistic Evaluation of Language Models</td>
+<td>视觉语言模型整体评测</td>
+<td>HELM 思路扩展到 VLM 的评测。</td>
+</tr>
+<tr>
+<td>MMLU</td>
+<td>Massive Multitask Language Understanding</td>
+<td>大规模多任务语言理解基准</td>
+<td>常见知识和推理评测。</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>Mean Reciprocal Rank</td>
+<td>平均倒数排名</td>
+<td>检索排序指标。</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>F1 Score</td>
+<td>F1 分数</td>
+<td>precision 和 recall 的调和平均。</td>
+</tr>
+<tr>
+<td>SWE-bench</td>
+<td>Software Engineering Benchmark</td>
+<td>软件工程基准</td>
+<td>真实 GitHub issue 修复任务。</td>
+</tr>
+<tr>
+<td>TAU-bench</td>
+<td>Tool-Agent-User Benchmark</td>
+<td>工具-智能体-用户交互基准</td>
+<td>业务工具调用和用户交互任务。</td>
+</tr>
+<tr>
+<td>Trace</td>
+<td>Trace</td>
+<td>轨迹日志</td>
+<td>记录 prompt、tool call、observation、输出和分数。</td>
+</tr>
+<tr>
+<td>Trajectory</td>
+<td>Trajectory</td>
+<td>执行轨迹</td>
+<td>agent 从开始到结束的动作序列。</td>
+</tr>
+<tr>
+<td>Replay</td>
+<td>Replay</td>
+<td>回放</td>
+<td>用保存的输入、状态和工具结果复现实验。</td>
+</tr>
+<tr>
+<td>pass@k</td>
+<td>Pass at k</td>
+<td>k 次通过率</td>
+<td>采样 k 次至少一次成功的概率指标。</td>
+</tr>
+<tr>
+<td>Contamination</td>
+<td>Data Contamination</td>
+<td>数据污染</td>
+<td>测试集进入训练数据或 prompt 导致分数虚高。</td>
+</tr>
+<tr>
+<td>Decontamination</td>
+<td>Decontamination</td>
+<td>去污染</td>
+<td>检查并移除训练/评测重叠的过程。</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>Continuous Integration</td>
+<td>持续集成</td>
+<td>代码变更后自动运行测试和评测的工程流程。</td>
+</tr>
+<tr>
+<td><span class="math-text">M</span></td>
+<td>Model</td>
+<td>模型</td>
+<td>被评测的基础模型或系统。</td>
+</tr>
+<tr>
+<td><span class="math-text">T</span></td>
+<td>Task Set</td>
+<td>任务集合</td>
+<td>benchmark 中的任务样本集合。</td>
+</tr>
+<tr>
+<td><span class="math-text">H</span></td>
+<td>Harness</td>
+<td>评测框架</td>
+<td>执行评测的系统层。</td>
+</tr>
+<tr>
+<td><span class="math-text">s<sub><span class="math-text">i</span></sub></span></td>
+<td>Score</td>
+<td>第 <span class="math-text">i</span> 个样本分数</td>
+<td>单个任务的评分。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 benchmark、eval、harness、leaderboard 的区别。</li>
+<li>能解释为什么 2026 年要报告 model + harness + scaffold，而不是只报 model 名。</li>
+<li>能设计 LLM、RAG、coding agent、VLM 的评测 harness。</li>
+<li>能识别 benchmark 污染、工具预算不公平、LLM judge 偏差、pass@k 滥用。</li>
+<li>能把 eval 接入研发闭环，而不是只跑一次排行榜。</li>
+</ul>
+<h2>Harness 是什么</h2>
+<p>Harness 本质上是“把评测跑起来并保证可复现”的系统层。</p>
+<p>它通常负责：</p>
+<ul>
+<li>读数据集和版本。</li>
+<li>构造 prompt 或工具环境。</li>
+<li>调用模型/API。</li>
+<li>控制 temperature、top-p、seed、max tokens、thinking budget。</li>
+<li>管理工具、权限、sandbox、timeout。</li>
+<li>解析输出。</li>
+<li>调用 scorer、oracle 或 judge。</li>
+<li>保存 trace、日志、成本和错误。</li>
+<li>生成报告。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Benchmark 是题，metric 是怎么算分，harness 是把题以固定协议喂给模型并记录结果的执行系统。对 agent 来说，harness 还包含工具、状态、权限、恢复和 trace，所以分数不能只归因于 base model。</p>
+</blockquote>
+<h2>Benchmark、Harness、Scaffold 的区别</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>概念</th>
+<th>English</th>
+<th>中文</th>
+<th>关注点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Benchmark</td>
+<td>Benchmark</td>
+<td>基准</td>
+<td>任务集合、标准答案、指标。</td>
+</tr>
+<tr>
+<td>Harness</td>
+<td>Harness</td>
+<td>评测/执行框架</td>
+<td>如何执行任务、调用模型、打分、记录。</td>
+</tr>
+<tr>
+<td>Scaffold</td>
+<td>Scaffold</td>
+<td>外部脚手架</td>
+<td>agent 的 planner、memory、tools、verifier、retry 逻辑。</td>
+</tr>
+<tr>
+<td>Leaderboard</td>
+<td>Leaderboard</td>
+<td>排行榜</td>
+<td>按某协议汇总比较分数。</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>Protocol</td>
+<td>协议</td>
+<td>是否允许工具、预算、采样次数、prompt 格式。</td>
+</tr>
+</tbody></table>
+<p>一个模型的分数可以抽象成：</p>
+<div class="math-block"><span class="math-text">Score = f(M, H, T, P, B)</span></div>
+
+<p>其中 <span class="math-text">M</span> 是模型，<span class="math-text">H</span> 是 harness，<span class="math-text">T</span> 是任务集合，<span class="math-text">P</span> 是 prompt/protocol，<span class="math-text">B</span> 是预算。只说“某模型在某榜单多少分”往往信息不足。</p>
+<h2>LM Evaluation Harness</h2>
+<p>EleutherAI 的 LM Evaluation Harness 是经典 model eval harness。它把很多文本 benchmark 统一到同一套接口里。</p>
+<p>核心组件：</p>
+<ul>
+<li>model adapter：Hugging Face、vLLM、SGLang、API model。</li>
+<li>task config：数据集、prompt、few-shot、metric。</li>
+<li>runner：批量执行。</li>
+<li>output parser：解析模型输出。</li>
+<li>metric：accuracy、exact match、F1、perplexity 等。</li>
+</ul>
+<p>适合：</p>
+<ul>
+<li>基础语言理解。</li>
+<li>few-shot / zero-shot benchmark。</li>
+<li>开源模型横向比较。</li>
+<li>回归测试某次训练或微调是否退化。</li>
+</ul>
+<p>局限：</p>
+<ul>
+<li>很多任务是静态文本，不覆盖工具使用。</li>
+<li>对 reasoning model，要处理 hidden CoT / think_end_token。</li>
+<li>对 agentic 系统，单轮 harness 不够。</li>
+</ul>
+<h2>OpenAI Evals 与自定义 Eval</h2>
+<p>OpenAI Evals 代表另一类思路：把 eval 当成产品和模型迭代的一部分。</p>
+<p>典型结构：</p>
+<ol>
+<li>样本：输入、期望行为、评分标准。</li>
+<li>Completion function：调用某个模型或系统。</li>
+<li>Eval class：执行样本并收集输出。</li>
+<li>Scorer：程序打分或 LLM-as-a-judge。</li>
+<li>Report：聚合错误类型和样例。</li>
+</ol>
+<p>面试重点：</p>
+<blockquote>
+<p>生产 eval 不是只跑 MMLU，而是把真实用户失败样本、红队样本、权限边界样本、格式约束样本持续加入回归集。</p>
+</blockquote>
+<h2>Agent Harness</h2>
+<p>Agent harness 比普通 model harness 多很多东西。</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>English</th>
+<th>中文</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Context Manager</td>
+<td>Context Manager</td>
+<td>上下文管理器</td>
+<td>决定给模型看哪些历史、文件和工具结果。</td>
+</tr>
+<tr>
+<td>Tool Runtime</td>
+<td>Tool Runtime</td>
+<td>工具运行时</td>
+<td>执行 shell、browser、database、editor。</td>
+</tr>
+<tr>
+<td>State Store</td>
+<td>State Store</td>
+<td>状态存储</td>
+<td>保存任务进度、文件 diff、memory。</td>
+</tr>
+<tr>
+<td>Permission Gate</td>
+<td>Permission Gate</td>
+<td>权限门</td>
+<td>控制写操作、网络、支付、删除等风险动作。</td>
+</tr>
+<tr>
+<td>Recovery Policy</td>
+<td>Recovery Policy</td>
+<td>恢复策略</td>
+<td>工具失败、超时、循环时如何处理。</td>
+</tr>
+<tr>
+<td>Trace Logger</td>
+<td>Trace Logger</td>
+<td>轨迹日志</td>
+<td>记录每步动作和观察。</td>
+</tr>
+<tr>
+<td>Validator</td>
+<td>Validator</td>
+<td>验证器</td>
+<td>检查最终 artifact、测试结果、业务状态。</td>
+</tr>
+</tbody></table>
+<p>Harness-Bench 这类研究强调：同一个 base model 在不同 harness 下可能表现差很多。因此报告 agent 能力时要说明：</p>
+<ul>
+<li>模型版本。</li>
+<li>harness 版本。</li>
+<li>工具集合。</li>
+<li>上下文策略。</li>
+<li>是否允许并行尝试。</li>
+<li>时间和 token 预算。</li>
+<li>是否有 reviewer/verifier。</li>
+<li>最终如何判定成功。</li>
+</ul>
+<h2>Coding Agent Harness</h2>
+<p>Coding agent 的 harness 通常包含：</p>
+<ol>
+<li>仓库快照：固定 commit。</li>
+<li>Issue 描述：用户需求或真实 bug。</li>
+<li>Sandbox：隔离执行代码。</li>
+<li>Tool set：搜索、编辑、测试、lint、类型检查。</li>
+<li>Patch capture：记录最终 diff。</li>
+<li>Hidden tests：避免只拟合公开测试。</li>
+<li>Validator：运行测试或人工验证。</li>
+<li>Trace：记录每次命令、文件读取和修改。</li>
+</ol>
+<p>评测指标：</p>
+<ul>
+<li>pass@1。</li>
+<li>pass@k。</li>
+<li>resolved rate。</li>
+<li>regression rate。</li>
+<li>tool error rate。</li>
+<li>average cost。</li>
+<li>time-to-resolution。</li>
+<li>patch size。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>SWE-bench 分数不只是模型能力，还取决于 scaffold、工具、测试预算、重试策略和 patch 验证方式。比较 coding agent 时必须看 protocol。</p>
+</blockquote>
+<h2>RAG Harness</h2>
+<p>RAG harness 需要同时固定 corpus、query、权限、gold evidence 和 judge。</p>
+<p>最小结构：</p>
+<ul>
+<li>corpus version：文档库版本。</li>
+<li>index version：chunking、embedding、reranker 版本。</li>
+<li>query set：用户问题集合。</li>
+<li>gold evidence：标准证据块。</li>
+<li>expected answer：标准答案或评分 rubrics。</li>
+<li>permission scope：每个 query 允许访问哪些文档。</li>
+<li>scorer：retrieval scorer、generation scorer、citation scorer。</li>
+</ul>
+<p>RAG harness 输出不应该只有 answer accuracy，还要有：</p>
+<ul>
+<li>Recall@k。</li>
+<li>MRR。</li>
+<li>citation precision。</li>
+<li>unsupported claim rate。</li>
+<li>refusal precision / recall。</li>
+<li>latency。</li>
+<li>cost。</li>
+<li>permission violation rate。</li>
+</ul>
+<h2>LLM-as-a-Judge 怎么用</h2>
+<p>LLM-as-a-Judge 适合开放式答案，但不能裸用。</p>
+<p>要注意：</p>
+<ul>
+<li>先用人工样本校准 judge。</li>
+<li>prompt 里明确评分 rubrics。</li>
+<li>使用 pairwise comparison 通常比绝对打分更稳定。</li>
+<li>对 judge 本身做版本固定。</li>
+<li>对安全和权限问题优先用规则或 oracle。</li>
+<li>记录 judge rationale，但不要把 rationale 当真值。</li>
+</ul>
+<p>常见问题：</p>
+<ul>
+<li>position bias：更偏好第一个答案。</li>
+<li>verbosity bias：更偏好长答案。</li>
+<li>self-preference：偏好同系列模型输出。</li>
+<li>rubric drift：评分标准不稳定。</li>
+<li>evidence blindness：没有认真核对引用。</li>
+</ul>
+<h2>污染、泄漏与可比性</h2>
+<p>2026 年 benchmark 最大的问题之一是可比性。</p>
+<p>常见风险：</p>
+<ul>
+<li>test contamination：测试集进入预训练或微调数据。</li>
+<li>prompt leakage：评测 prompt 在网上公开并被训练。</li>
+<li>overfitting leaderboard：专门优化公开榜。</li>
+<li>hidden scaffold：不同模型使用了不同外部工具或预算。</li>
+<li>pass@k abuse：用大量采样把分数堆高，却不报告成本。</li>
+<li>benchmark saturation：题目太简单，区分不了前沿模型。</li>
+</ul>
+<p>报告结果时至少说明：</p>
+<ol>
+<li>模型版本。</li>
+<li>harness 版本。</li>
+<li>benchmark 版本。</li>
+<li>prompt 模板。</li>
+<li>decoding 参数。</li>
+<li>tool access。</li>
+<li>thinking budget。</li>
+<li>retries / pass@k。</li>
+<li>成本和延迟。</li>
+<li>是否做 decontamination。</li>
+</ol>
+<h2>Eval 研发闭环</h2>
+<p>一个成熟团队不会只在发布前跑一次评测，而是建立闭环：</p>
+<pre><code class="language-text">线上失败样本 -&gt; 标注/归因 -&gt; 加入 eval set -&gt; 修模型/修系统 -&gt; CI 回归 -&gt; 灰度监控
+</code></pre>
+<p>评测集应该分层：</p>
+<ul>
+<li>smoke eval：几十条，提交前快速跑。</li>
+<li>regression eval：几百到几千条，覆盖核心场景。</li>
+<li>red-team eval：安全、越权、prompt injection。</li>
+<li>canary eval：新模型或新 prompt 灰度前跑。</li>
+<li>online eval：真实流量抽检和人工反馈。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Eval 的价值不是得一个分数，而是形成 failure taxonomy 和回归闭环。每次线上事故或人工纠错都应该沉淀成可复现 eval。</p>
+</blockquote>
+<h2>面试高频问题</h2>
+<h3>1. Harness 和 benchmark 有什么区别？</h3>
+<p>Benchmark 是题和指标，harness 是执行系统。Harness 决定 prompt、工具、预算、解析、打分、日志和复现方式。</p>
+<h3>2. 为什么 agent 要报告 model-harness 组合？</h3>
+<p>因为 agent 能力强依赖工具、context management、retry、verifier、sandbox 和权限策略。同一模型换 harness，成功率和失败模式都可能变。</p>
+<h3>3. 怎么设计一个 RAG eval harness？</h3>
+<p>固定 corpus/index/query/gold evidence/permission scope，分别评估 retrieval、rerank、generation、citation、refusal、latency、cost 和越权率。</p>
+<h3>4. LLM-as-a-Judge 靠谱吗？</h3>
+<p>可以用于趋势和开放式评测，但要用人工样本校准，固定 judge 版本，控制位置偏差和冗长偏差；高风险结论要用规则、oracle 或人工复核。</p>
+<h3>5. 为什么排行榜分数不能直接横比？</h3>
+<p>因为 prompt、decoding、thinking budget、tool access、scaffold、pass@k 和测试污染都可能不同。面试里要先问 protocol，再看分数。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://github.com/EleutherAI/lm-evaluation-harness">EleutherAI LM Evaluation Harness</a></li>
+<li><a href="https://github.com/openai/evals">OpenAI Evals</a></li>
+<li><a href="https://arxiv.org/abs/2211.09110">HELM: Holistic Evaluation of Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2410.07112">VHELM: A Holistic Evaluation of Vision Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2605.27922">Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows</a></li>
+<li><a href="https://arxiv.org/abs/2310.06770">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a></li>
+<li><a href="https://arxiv.org/abs/2406.12045">TAU-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./12-rag-systems-and-evaluation.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav></main></body>
+</html>

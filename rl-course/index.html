@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 分章节版</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell">
+    <h1>强化学习面试课程 · 分章节版</h1>
+    <p>这里是按章节拆出的本地 HTML 页面；PDF 文件单独放在 output/pdf 目录。</p>
+    <p><a href="../pdf/rl-course.pdf">整本 PDF</a></p>
+    <ul class="chapter-index"><li><span><a href="./00-roadmap.html">强化学习面试课程 Roadmap</a><br><span class="chapter-source">00-roadmap</span></span><a href="./00-roadmap.html">HTML</a><a href="../pdf/rl-course/00-roadmap.pdf">PDF</a></li>
+<li><span><a href="./01-rl-fundamentals-mdp-bellman.html">第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</a><br><span class="chapter-source">01-rl-fundamentals-mdp-bellman</span></span><a href="./01-rl-fundamentals-mdp-bellman.html">HTML</a><a href="../pdf/rl-course/01-rl-fundamentals-mdp-bellman.pdf">PDF</a></li>
+<li><span><a href="./02-dynamic-programming.html">第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</a><br><span class="chapter-source">02-dynamic-programming</span></span><a href="./02-dynamic-programming.html">HTML</a><a href="../pdf/rl-course/02-dynamic-programming.pdf">PDF</a></li>
+<li><span><a href="./03-monte-carlo-td-learning.html">第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</a><br><span class="chapter-source">03-monte-carlo-td-learning</span></span><a href="./03-monte-carlo-td-learning.html">HTML</a><a href="../pdf/rl-course/03-monte-carlo-td-learning.pdf">PDF</a></li>
+<li><span><a href="./04-exploration-bandit.html">第 4 章：探索与利用、Bandit、UCB（Upper Confidence Bound，置信上界）与 Thompson Sampling</a><br><span class="chapter-source">04-exploration-bandit</span></span><a href="./04-exploration-bandit.html">HTML</a><a href="../pdf/rl-course/04-exploration-bandit.pdf">PDF</a></li>
+<li><span><a href="./05-function-approximation-deadly-triad.html">第 5 章：函数逼近、稳定性与 Deadly Triad</a><br><span class="chapter-source">05-function-approximation-deadly-triad</span></span><a href="./05-function-approximation-deadly-triad.html">HTML</a><a href="../pdf/rl-course/05-function-approximation-deadly-triad.pdf">PDF</a></li>
+<li><span><a href="./06-dqn-and-variants.html">第 6 章：DQN（Deep Q-Network，深度 Q 网络）与经典改进</a><br><span class="chapter-source">06-dqn-and-variants</span></span><a href="./06-dqn-and-variants.html">HTML</a><a href="../pdf/rl-course/06-dqn-and-variants.pdf">PDF</a></li>
+<li><span><a href="./07-policy-gradient.html">第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</a><br><span class="chapter-source">07-policy-gradient</span></span><a href="./07-policy-gradient.html">HTML</a><a href="../pdf/rl-course/07-policy-gradient.pdf">PDF</a></li>
+<li><span><a href="./08-actor-critic-gae.html">第 8 章：Actor-Critic、A2C（Advantage Actor-Critic，优势 Actor-Critic）、A3C（Asynchronous Advantage Actor-Critic，异步优势 Actor-Critic）与 GAE（Generalized Advantage Estimation，广义优势估计）</a><br><span class="chapter-source">08-actor-critic-gae</span></span><a href="./08-actor-critic-gae.html">HTML</a><a href="../pdf/rl-course/08-actor-critic-gae.pdf">PDF</a></li>
+<li><span><a href="./09-ppo-trpo.html">第 9 章：TRPO（Trust Region Policy Optimization，信赖域策略优化）、PPO（Proximal Policy Optimization，近端策略优化）与策略更新约束</a><br><span class="chapter-source">09-ppo-trpo</span></span><a href="./09-ppo-trpo.html">HTML</a><a href="../pdf/rl-course/09-ppo-trpo.pdf">PDF</a></li>
+<li><span><a href="./10-continuous-control-ddpg-td3-sac.html">第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</a><br><span class="chapter-source">10-continuous-control-ddpg-td3-sac</span></span><a href="./10-continuous-control-ddpg-td3-sac.html">HTML</a><a href="../pdf/rl-course/10-continuous-control-ddpg-td3-sac.pdf">PDF</a></li>
+<li><span><a href="./11-model-based-offline-imitation-rlhf.html">第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</a><br><span class="chapter-source">11-model-based-offline-imitation-rlhf</span></span><a href="./11-model-based-offline-imitation-rlhf.html">HTML</a><a href="../pdf/rl-course/11-model-based-offline-imitation-rlhf.pdf">PDF</a></li>
+<li><span><a href="./12-interview-cheatsheet-projects.html">第 12 章：强化学习面试速查与项目准备</a><br><span class="chapter-source">12-interview-cheatsheet-projects</span></span><a href="./12-interview-cheatsheet-projects.html">HTML</a><a href="../pdf/rl-course/12-interview-cheatsheet-projects.pdf">PDF</a></li></ul>
+  </main></body>
+</html>

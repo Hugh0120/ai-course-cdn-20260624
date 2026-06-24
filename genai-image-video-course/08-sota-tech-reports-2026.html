@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 8 章：2026 SOTA 技术报告阅读地图</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./07-evaluation-safety-projects.html">← 上一章</a><a href="./09-eval-harness-and-benchmarking.html">下一章 →</a></nav><h1>第 8 章：2026 SOTA 技术报告阅读地图</h1>
+<p>这一章帮你把 SOTA（State of the Art，当前最佳水平）模型放进同一张地图。面试里不要只说“我看过 Sora、Veo、FLUX”，而要能说出每个报告在数据、架构、训练、评测、安全上的关键启发。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SOTA</td>
+<td>State of the Art</td>
+<td>当前最佳水平</td>
+<td>当前公开或行业中表现领先的技术。</td>
+</tr>
+<tr>
+<td>T2I</td>
+<td>Text-to-Image</td>
+<td>文生图</td>
+<td>文本生成图像。</td>
+</tr>
+<tr>
+<td>T2V</td>
+<td>Text-to-Video</td>
+<td>文生视频</td>
+<td>文本生成视频。</td>
+</tr>
+<tr>
+<td>I2I</td>
+<td>Image-to-Image</td>
+<td>图生图</td>
+<td>图像编辑或重绘。</td>
+</tr>
+<tr>
+<td>I2V</td>
+<td>Image-to-Video</td>
+<td>图生视频</td>
+<td>参考图生成视频。</td>
+</tr>
+<tr>
+<td>MMDiT</td>
+<td>Multimodal Diffusion Transformer</td>
+<td>多模态扩散 Transformer</td>
+<td>文本和图像 token 交互的 DiT。</td>
+</tr>
+<tr>
+<td>SD3</td>
+<td>Stable Diffusion 3</td>
+<td>Stable Diffusion 3 模型系列</td>
+<td>使用 MMDiT 和 rectified flow 的图像生成系列。</td>
+</tr>
+<tr>
+<td>FLUX.1</td>
+<td>FLUX.1 Model Family</td>
+<td>FLUX.1 模型系列</td>
+<td>图像生成和编辑模型系列。</td>
+</tr>
+<tr>
+<td>FM</td>
+<td>Flow Matching</td>
+<td>流匹配</td>
+<td>学习生成路径速度场。</td>
+</tr>
+<tr>
+<td>RF</td>
+<td>Rectified Flow</td>
+<td>矫正流</td>
+<td>用更直接路径提升生成效率。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好优化模型行为。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>用于 caption、规划、评测或多模态生成。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理图像和文本的模型。</td>
+</tr>
+<tr>
+<td>AV</td>
+<td>Audio-Video</td>
+<td>音视频</td>
+<td>联合视频和声音生成。</td>
+</tr>
+</tbody></table>
+<h2>读技术报告的统一框架</h2>
+<p>每篇报告按 9 个问题拆：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>你要找什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Task</td>
+<td>它解决 T2I、I2I、T2V、I2V、V2V、AV 还是多任务统一？</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>数据规模、来源、过滤、caption、版权和安全处理怎么做？</td>
+</tr>
+<tr>
+<td>Tokenizer</td>
+<td>用像素、VAE latent、3D VAE、spacetime patch、discrete token 还是原生多模态 token？</td>
+</tr>
+<tr>
+<td>Backbone</td>
+<td>U-Net、DiT、MMDiT、LLM-style transformer、cascade 还是混合架构？</td>
+</tr>
+<tr>
+<td>Objective</td>
+<td>DDPM、EDM、v-prediction、flow matching、rectified flow、autoregressive？</td>
+</tr>
+<tr>
+<td>Conditioning</td>
+<td>文本、参考图、多图、首尾帧、mask、pose、audio、video reference 怎么注入？</td>
+</tr>
+<tr>
+<td>Post-training</td>
+<td>SFT、偏好优化、RLHF、distillation、安全对齐做了什么？</td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td>自动指标、人评、benchmark、业务测试、失败维度怎么设计？</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>watermark、C2PA、SynthID、真人肖像、版权、红队、安全过滤怎么做？</td>
+</tr>
+</tbody></table>
+<p>这张表就是你的“报告阅读 harness”。</p>
+<h2>文生图与图像编辑主线</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模型/报告</th>
+<th>时间线</th>
+<th>关键词</th>
+<th>面试重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Stable Diffusion 3 / 3.5</td>
+<td>2024</td>
+<td>MMDiT、rectified flow、CLIP + T5、typography</td>
+<td>从 U-Net LDM 转向多模态 Transformer 和 flow。</td>
+</tr>
+<tr>
+<td>FLUX.1 Kontext</td>
+<td>2025</td>
+<td>unified generation and editing、flow matching、KontextBench</td>
+<td>把生成和编辑统一到一个模型范式，强调参考一致性。</td>
+</tr>
+<tr>
+<td>GPT-4o Image</td>
+<td>2025</td>
+<td>native multimodal generation、text rendering、multi-turn editing</td>
+<td>图像生成成为多模态 LM 原生能力。</td>
+</tr>
+<tr>
+<td>Gemini 2.5 Flash Image / Nano Banana</td>
+<td>2025</td>
+<td>multi-image fusion、character consistency、local edit、world knowledge</td>
+<td>编辑、参考一致和世界知识结合。</td>
+</tr>
+<tr>
+<td>Nano Banana Pro</td>
+<td>2025</td>
+<td>Gemini 3 Pro Image、4K、layout、richer text</td>
+<td>更强文字、信息图和专业设计场景。</td>
+</tr>
+<tr>
+<td>Qwen-Image</td>
+<td>2025</td>
+<td>Chinese text rendering、multi-task editing、Qwen2.5-VL + MMDiT</td>
+<td>中文文字渲染和编辑一致性是核心卖点。</td>
+</tr>
+<tr>
+<td>Seedream 4.0</td>
+<td>2025</td>
+<td>multimodal image generation、T2I + editing + multi-image composition、efficient DiT / VAE</td>
+<td>统一生成、编辑和多图组合，关注效率和工业化。</td>
+</tr>
+<tr>
+<td>Imagen 4</td>
+<td>2025</td>
+<td>safety filtering、SynthID、high fidelity</td>
+<td>Google 图像生成产品化和安全水印路线。</td>
+</tr>
+</tbody></table>
+<h3>图像模型的共同趋势</h3>
+<ol>
+<li>从 U-Net 到 DiT / MMDiT。</li>
+<li>从 noise prediction 到 v-prediction / flow matching / rectified flow。</li>
+<li>从单 prompt 生成到 reference-based multi-turn editing。</li>
+<li>从英文 prompt 到多语言、中文、复杂文字渲染。</li>
+<li>从“漂亮图”到“可用图”：商品、海报、UI、信息图、品牌一致性。</li>
+<li>从模型单点到工作流：安全、审核、版本、回归测试、成本。</li>
+</ol>
+<h2>文生视频与音视频主线</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模型/报告</th>
+<th>时间线</th>
+<th>关键词</th>
+<th>面试重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sora</td>
+<td>2024</td>
+<td>spacetime patches、DiT、variable duration / resolution / aspect ratio</td>
+<td>把视频和图像统一成可扩展时空 token。</td>
+</tr>
+<tr>
+<td>Sora 2</td>
+<td>2025</td>
+<td>audio、dialogue、better physics、cameo safety</td>
+<td>视频生成从画面扩展到音频和可控互动。</td>
+</tr>
+<tr>
+<td>Veo 3.1</td>
+<td>2025</td>
+<td>audio across features、Flow、Ingredients / Frames / Extend / Insert-remove</td>
+<td>产品化视频工作流和音画同步。</td>
+</tr>
+<tr>
+<td>Movie Gen</td>
+<td>2024</td>
+<td>1080p、audio、personalization、instruction-based editing</td>
+<td>Meta 的统一视频、音频、编辑、个性化路线。</td>
+</tr>
+<tr>
+<td>Runway Gen-4</td>
+<td>2025</td>
+<td>world consistency、reference-based characters / locations / objects</td>
+<td>生产工作流里的角色和场景一致性。</td>
+</tr>
+<tr>
+<td>HunyuanVideo</td>
+<td>2024</td>
+<td>open-source 13B video foundation model、data + architecture + infra</td>
+<td>开源视频大模型报告，披露工程细节更多。</td>
+</tr>
+<tr>
+<td>Open-Sora 2.0</td>
+<td>2025</td>
+<td>cost-efficient training、data curation、system optimization</td>
+<td>低预算训练高质量视频模型的工程路线。</td>
+</tr>
+<tr>
+<td>Seedance 1.0</td>
+<td>2025</td>
+<td>video captioning、multi-shot、T2V + I2V、video RLHF、distillation</td>
+<td>产业系统如何做数据、后训练和加速。</td>
+</tr>
+<tr>
+<td>Seedance 2.0</td>
+<td>2026</td>
+<td>text / image / audio / video inputs、audio-video joint generation</td>
+<td>多模态输入和音视频联合生成。</td>
+</tr>
+</tbody></table>
+<h3>视频模型的共同趋势</h3>
+<ol>
+<li>从短 clip 到多镜头、多分镜和更长时程。</li>
+<li>从 silent video 到 audio-video joint generation。</li>
+<li>从单次生成到编辑、扩展、插入、移除和首尾帧控制。</li>
+<li>从 text prompt 到多模态 reference：图像、视频、音频、角色资产。</li>
+<li>从纯质量评测到时序、物理、音画一致、安全和版权评测。</li>
+</ol>
+<h2>重点报告怎么读</h2>
+<h3>Stable Diffusion 3 / 3.5</h3>
+<p>你要抓：</p>
+<ul>
+<li>为什么引入 MMDiT。</li>
+<li>为什么使用多个 text encoder。</li>
+<li>rectified flow 相比传统 DDPM 训练的动机。</li>
+<li>typography 和 prompt adherence 为什么被单独强调。</li>
+<li>3.5 为什么强调可定制、开源和消费级硬件。</li>
+</ul>
+<p>可复述答案：</p>
+<blockquote>
+<p>SD3 系列代表 latent diffusion 从 U-Net + cross-attention 走向 MMDiT + flow 的范式变化。它的面试价值在于说明 text encoder、backbone、objective 和数据共同决定 prompt adherence 和文字渲染。</p>
+</blockquote>
+<h3>GPT-4o Image</h3>
+<p>你要抓：</p>
+<ul>
+<li>它把图像生成当成多模态模型能力，而不是外接图片模型。</li>
+<li>多轮上下文、文字渲染、in-context learning 和世界知识是重点。</li>
+<li>C2PA metadata、内部搜索和真实人物限制体现了产品级安全。</li>
+</ul>
+<p>可复述答案：</p>
+<blockquote>
+<p>GPT-4o Image 的关键不是“又一个文生图模型”，而是把语言理解、视觉理解和图像生成放到一个原生多模态交互里，所以多轮编辑、准确文字和复杂指令遵循更自然。</p>
+</blockquote>
+<h3>FLUX.1 Kontext</h3>
+<p>你要抓：</p>
+<ul>
+<li>generation 和 editing 统一。</li>
+<li>只用文本和图像上下文，尽量减少任务特化 pipeline。</li>
+<li>KontextBench 用来评估编辑能力，而不是只评估单图质量。</li>
+</ul>
+<p>可复述答案：</p>
+<blockquote>
+<p>Kontext 代表图像模型从 T2I 走向 instruction-based visual editing。评测也必须从 FID / CLIPScore 扩展到编辑前后的一致性、目标区域变化和非目标区域保持。</p>
+</blockquote>
+<h3>Qwen-Image / Seedream 4.0</h3>
+<p>你要抓：</p>
+<ul>
+<li>中文和复杂文字渲染。</li>
+<li>图像编辑一致性。</li>
+<li>多图参考和组合。</li>
+<li>高效 VAE / DiT 对生产成本的影响。</li>
+</ul>
+<p>可复述答案：</p>
+<blockquote>
+<p>中文图像生成不能只看 aesthetics。文字形态、排版、logo、商品一致性和多图编辑会成为核心体验，所以数据 pipeline、OCR 标注和编辑 benchmark 很关键。</p>
+</blockquote>
+<h3>Sora / Veo / Movie Gen / Seedance</h3>
+<p>你要抓：</p>
+<ul>
+<li>视频不是 <span class="math-text">T</span> 张独立图，而是时空生成。</li>
+<li>时空 patch、3D VAE、temporal attention、multi-shot planning 都是为一致性服务。</li>
+<li>视频 caption 要描述动作、镜头、场景转移和声音。</li>
+<li>音视频联合生成引入 lip-sync、音效、物理因果和声音安全。</li>
+<li>产品系统必须支持编辑、扩展、审核和 provenance。</li>
+</ul>
+<p>可复述答案：</p>
+<blockquote>
+<p>2026 的视频生成竞争不只是分辨率和时长，而是谁能把多模态参考、分镜控制、音画同步、角色一致性、安全水印和低延迟生成做成稳定工作流。</p>
+</blockquote>
+<h2>面试里如何谈“最新”</h2>
+<p>不要说“某模型永远最强”。更好的说法：</p>
+<blockquote>
+<p>截至 2026 年 6 月，公开材料里能看到几个清晰方向：图像侧是 DiT / MMDiT、flow matching、原生多模态编辑、文字渲染和多图一致性；视频侧是时空 token、音视频联合生成、多镜头控制、reference consistency、video RLHF 和安全 provenance。具体榜单会变，但这些方向是稳定的。</p>
+</blockquote>
+<p>这句话很稳，因为它不依赖单一 leaderboard。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://stability.ai/news-updates/stable-diffusion-3-research-paper">Stable Diffusion 3 Research Paper announcement</a></li>
+<li><a href="https://stability.ai/news-updates/introducing-stable-diffusion-3-5">Stable Diffusion 3.5 announcement</a></li>
+<li><a href="https://arxiv.org/abs/2506.15742">FLUX.1 Kontext</a></li>
+<li><a href="https://openai.com/index/introducing-4o-image-generation/">Introducing 4o Image Generation</a></li>
+<li><a href="https://developers.googleblog.com/en/introducing-gemini-2-5-flash-image/">Gemini 2.5 Flash Image</a></li>
+<li><a href="https://blog.google/innovation-and-ai/products/nano-banana-pro/">Nano Banana Pro</a></li>
+<li><a href="https://arxiv.org/abs/2508.02324">Qwen-Image Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2509.20427">Seedream 4.0</a></li>
+<li><a href="https://deepmind.google/models/imagen/">Imagen official page</a></li>
+<li><a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video generation models as world simulators</a></li>
+<li><a href="https://openai.com/index/sora-2/">Sora 2</a></li>
+<li><a href="https://deepmind.google/models/veo/">Veo official page</a></li>
+<li><a href="https://blog.google/innovation-and-ai/products/veo-updates-flow/">Veo 3.1 and Flow updates</a></li>
+<li><a href="https://ai.meta.com/research/movie-gen/">Movie Gen</a></li>
+<li><a href="https://runwayml.com/research/introducing-runway-gen-4">Introducing Runway Gen-4</a></li>
+<li><a href="https://arxiv.org/abs/2412.03603">HunyuanVideo</a></li>
+<li><a href="https://arxiv.org/abs/2503.09642">Open-Sora 2.0</a></li>
+<li><a href="https://arxiv.org/abs/2506.09113">Seedance 1.0</a></li>
+<li><a href="https://arxiv.org/abs/2604.14148">Seedance 2.0</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./07-evaluation-safety-projects.html">← 上一章</a><a href="./09-eval-harness-and-benchmarking.html">下一章 →</a></nav></main></body>
+</html>

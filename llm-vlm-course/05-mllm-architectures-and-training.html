@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 5 章：MLLM 架构、训练流程与代表模型</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-vlm-foundations-clip-vit.html">← 上一章</a><a href="./06-vlm-data-preprocessing-training.html">下一章 →</a></nav><h1>第 5 章：MLLM 架构、训练流程与代表模型</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MLLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>在 LLM 上接入视觉等模态的模型。</td>
+</tr>
+<tr>
+<td>BLIP-2</td>
+<td>Bootstrapping Language-Image Pre-training 2</td>
+<td>BLIP-2 模型</td>
+<td>用 Q-Former 桥接 frozen image encoder 和 frozen LLM。</td>
+</tr>
+<tr>
+<td>Flamingo</td>
+<td>Flamingo VLM</td>
+<td>Flamingo 视觉语言模型</td>
+<td>用 gated cross-attention 接入视觉信息。</td>
+</tr>
+<tr>
+<td>LLaVA</td>
+<td>Large Language and Vision Assistant</td>
+<td>大语言视觉助手</td>
+<td>CLIP vision encoder + projection + LLM 的开源 VLM 路线。</td>
+</tr>
+<tr>
+<td>Q-Former</td>
+<td>Querying Transformer</td>
+<td>查询 Transformer</td>
+<td>BLIP-2 中从视觉特征抽取 query 表示的模块。</td>
+</tr>
+<tr>
+<td>Projector</td>
+<td>Projection Layer</td>
+<td>投影层</td>
+<td>把视觉特征映射到 LLM hidden size。</td>
+</tr>
+<tr>
+<td><span class="math-text">E<sub><span class="math-text">v</span></sub></span></td>
+<td>Vision Encoder</td>
+<td>视觉编码器</td>
+<td>把图像编码成视觉特征。</td>
+</tr>
+<tr>
+<td><span class="math-text">E<sub><span class="math-text">t</span></sub></span></td>
+<td>Text Encoder</td>
+<td>文本编码器</td>
+<td>把文本编码成语言表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">H<sub><span class="math-text">v</span></sub></span></td>
+<td>Visual Hidden States</td>
+<td>视觉隐状态</td>
+<td>视觉 encoder 输出的 token 表示。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>掌握 VLM 接入 LLM 的主流方式。</li>
+<li>理解 BLIP-2、Flamingo、LLaVA 的架构差异。</li>
+<li>理解多模态预训练和 instruction tuning。</li>
+<li>能解释现代 VLM 的动态分辨率和视频理解趋势。</li>
+</ul>
+<h2>VLM 接入 LLM 的三种思路</h2>
+<h3>1. Late Fusion</h3>
+<p>先分别编码图像和文本，再在较高层融合。</p>
+<p>优点是模块清晰，缺点是细粒度交互可能不足。</p>
+<h3>2. Cross-Attention</h3>
+<p>语言 token 在若干层 cross-attend 到视觉 token。Flamingo 是代表路线。</p>
+<p>优点是视觉信息可在生成过程中被持续访问；缺点是架构改动较多。</p>
+<h3>3. Projector / Adapter</h3>
+<p>视觉 encoder 输出经过 projector 映射成 LLM 可读 token，再拼到文本 token 前后。LLaVA 是代表路线。</p>
+<p>优点是简单、工程友好；缺点是视觉-语言对齐很依赖训练数据和 projector 能力。</p>
+<h2>BLIP-2</h2>
+<p>BLIP-2 的核心思想：冻结强大的 image encoder 和 LLM，只训练轻量 Q-Former 来桥接模态。</p>
+<p>流程：</p>
+<div class="math-block"><span class="math-text">I → E<sub><span class="math-text">v</span></sub>(I) → QFormer(H<sub><span class="math-text">v</span></sub>) → LLM</span></div>
+
+<p>优点：</p>
+<ul>
+<li>训练成本低。</li>
+<li>利用已有视觉和语言模型能力。</li>
+<li>Q-Former 起到信息瓶颈和模态桥接作用。</li>
+</ul>
+<h2>Flamingo</h2>
+<p>Flamingo 支持 interleaved image-text 输入，即文本和多张图像交错出现。核心包括：</p>
+<ul>
+<li>frozen vision encoder。</li>
+<li>frozen language model。</li>
+<li>perceiver resampler。</li>
+<li>gated cross-attention。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Flamingo 的重点是让 LLM 在生成时通过 cross-attention 访问视觉特征，并能处理多图交错上下文，因此在 few-shot 多模态任务上很有代表性。</p>
+</blockquote>
+<h2>LLaVA</h2>
+<p>LLaVA 的典型结构：</p>
+<div class="math-block"><span class="math-text">Image → CLIP Encoder → Projector → LLM</span></div>
+
+<p>训练通常分两阶段：</p>
+<ol>
+<li>Pre-alignment：冻结大部分模块，只训练 projector，让视觉 token 对齐语言空间。</li>
+<li>Visual instruction tuning：用图文指令数据训练模型对话能力。</li>
+</ol>
+<p>优点：</p>
+<ul>
+<li>架构简单。</li>
+<li>复现成本相对低。</li>
+<li>很适合面试中说明 open-source MLLM pipeline。</li>
+</ul>
+<h2>Qwen2.5-VL 代表的新趋势</h2>
+<p>现代 VLM 不只做单图问答，还强调：</p>
+<ul>
+<li>dynamic resolution。</li>
+<li>document parsing。</li>
+<li>grounding with box/point。</li>
+<li>long-video understanding。</li>
+<li>agentic computer/mobile 操作。</li>
+<li>OCR、chart、table 的结构化抽取。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>早期 VLM 更像图像 caption/VQA 模型，现代 MLLM 更像通用视觉 agent：能读文档、看视频、定位对象、调用工具并完成任务。</p>
+</blockquote>
+<h2>训练数据</h2>
+<p>常见数据阶段：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>English</th>
+<th>中文</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image-Text Pretraining</td>
+<td>Image-Text Pretraining</td>
+<td>图文预训练</td>
+<td>学习基础图文对齐。</td>
+</tr>
+<tr>
+<td>Caption Data</td>
+<td>Caption Data</td>
+<td>图像描述数据</td>
+<td>学会描述视觉内容。</td>
+</tr>
+<tr>
+<td>VQA Data</td>
+<td>Visual QA Data</td>
+<td>视觉问答数据</td>
+<td>学会根据问题聚焦视觉信息。</td>
+</tr>
+<tr>
+<td>OCR/Doc Data</td>
+<td>OCR/Document Data</td>
+<td>OCR/文档数据</td>
+<td>学会读文字、表格、版面。</td>
+</tr>
+<tr>
+<td>Instruction Data</td>
+<td>Instruction Data</td>
+<td>指令数据</td>
+<td>学会对话格式和复杂任务。</td>
+</tr>
+<tr>
+<td>Preference Data</td>
+<td>Preference Data</td>
+<td>偏好数据</td>
+<td>改善回答质量、安全和风格。</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. BLIP-2 为什么要冻结 image encoder 和 LLM？</h3>
+<p>冻结可以显著降低训练成本，同时复用强视觉模型和强语言模型的能力。Q-Former 作为桥接模块学习如何把视觉信息转成 LLM 能理解的表示。</p>
+<h3>2. Flamingo 和 LLaVA 的主要区别？</h3>
+<p>Flamingo 通过 gated cross-attention 在语言模型层内接入视觉信息，支持 interleaved image-text few-shot。LLaVA 更简单，用 CLIP encoder 加 projector 把视觉 token 映射到 LLM 输入空间。</p>
+<h3>3. VLM 为什么需要 instruction tuning？</h3>
+<p>图文预训练让模型学会对齐视觉和文本，但不一定会遵循用户问题、输出格式或多轮对话。instruction tuning 让模型学会以助手形式完成多模态任务。</p>
+<h3>4. 高分辨率图像为什么难？</h3>
+<p>图像分辨率越高，patch token 越多，attention 成本越高。需要动态分辨率、裁剪、多尺度、窗口 attention 或视觉 token 压缩。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2204.14198">Flamingo: a Visual Language Model for Few-Shot Learning</a></li>
+<li><a href="https://arxiv.org/abs/2301.12597">BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2304.08485">Visual Instruction Tuning</a></li>
+<li><a href="https://arxiv.org/abs/2502.13923">Qwen2.5-VL Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2303.08774">GPT-4 Technical Report</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./04-vlm-foundations-clip-vit.html">← 上一章</a><a href="./06-vlm-data-preprocessing-training.html">下一章 →</a></nav></main></body>
+</html>

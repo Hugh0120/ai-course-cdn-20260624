@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav><h1>第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DP</td>
+<td>Dynamic Programming</td>
+<td>动态规划</td>
+<td>已知环境模型时，通过 Bellman backup 求解价值和策略。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(s&#39; ∣ s,a)</span></td>
+<td>Transition Probability</td>
+<td>状态转移概率</td>
+<td>从 <span class="math-text">s</span> 执行 <span class="math-text">a</span> 后到 <span class="math-text">s&#39;</span> 的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">R(s,a,s&#39;)</span></td>
+<td>Reward Function</td>
+<td>奖励函数</td>
+<td>从 <span class="math-text">s</span> 执行 <span class="math-text">a</span> 到 <span class="math-text">s&#39;</span> 时的奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">π</span> / <span class="math-text">π<sub><span class="math-text">new</span></sub></span></td>
+<td>Policy / New Policy</td>
+<td>策略 / 新策略</td>
+<td>当前被评估或改进的策略。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态 <span class="math-text">s</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态-动作对 <span class="math-text">(s,a)</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">k</span></sub>(s)</span></td>
+<td>Value Estimate at iteration <span class="math-text">k</span></td>
+<td>第 <span class="math-text">k</span> 次迭代的价值估计</td>
+<td>value iteration / policy evaluation 中的中间估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制未来 reward 权重。</td>
+</tr>
+<tr>
+<td>GPI</td>
+<td>Generalized Policy Iteration</td>
+<td>广义策略迭代</td>
+<td>policy evaluation 和 policy improvement 交替推进的通用框架。</td>
+</tr>
+<tr>
+<td>MDP</td>
+<td>Markov Decision Process</td>
+<td>马尔可夫决策过程</td>
+<td>本章 DP 要求解的对象。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>DP 是 RL 的理论原型之一。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>后续用采样近似 Bellman backup 的方法。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>用神经网络近似 Q-learning 的算法。</td>
+</tr>
+<tr>
+<td>SARSA</td>
+<td>State-Action-Reward-State-Action</td>
+<td>状态-动作-奖励-状态-动作</td>
+<td>on-policy TD control 算法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习在已知环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span> 的情况下，如何通过动态规划求解 MDP。</p>
+<p>你需要掌握：</p>
+<ul>
+<li>Policy Evaluation。</li>
+<li>Policy Improvement。</li>
+<li>Policy Iteration。</li>
+<li>Value Iteration。</li>
+<li>Generalized Policy Iteration。</li>
+<li>DP 方法的局限性。</li>
+</ul>
+<h2>动态规划适用前提</h2>
+<p>动态规划类方法通常假设环境模型已知：</p>
+<div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
+
+<p>也就是说，agent 知道每个动作会以什么概率转移到什么状态，并得到什么 reward。</p>
+<p>这在真实问题中经常不成立，但 DP 仍然重要，因为它给出了强化学习算法的理论原型。后面的 TD、Q-learning、DQN 都可以看成是在没有完整模型时，用采样近似 Bellman backup。</p>
+<h2>Policy Evaluation</h2>
+<p>Policy Evaluation 的目标：给定一个策略 <span class="math-text">π</span>，计算它的价值函数 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
+<p>Bellman expectation equation：</p>
+<div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
+
+<p>迭代更新：</p>
+<div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">k</span></sub>(s')]</span></div></div>
+
+<p>直觉：</p>
+<ol>
+<li>初始化所有状态价值。</li>
+<li>使用 Bellman expectation backup 更新每个状态。</li>
+<li>重复直到价值函数收敛。</li>
+</ol>
+<p>伪代码：</p>
+<pre><code class="language-text">initialize V(s) arbitrarily
+repeat:
+    delta = 0
+    for each state s:
+        v_old = V(s)
+        V(s) = sum_a pi(a|s) sum_s&#39; P(s&#39;|s,a)[r + gamma V(s&#39;)]
+        delta = max(delta, |v_old - V(s)|)
+until delta &lt; threshold
+</code></pre>
+<h2>Policy Improvement</h2>
+<p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 之后，可以通过贪心方式改进策略：</p>
+<div class="math-block multi"><div><span class="math-text">π<sub><span class="math-text">new</span></sub>(s) = argmax<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
+
+<p>直觉：</p>
+<p>如果在某个状态下，选择动作 <span class="math-text">a</span> 后的期望回报比当前策略更好，就应该把策略改成选择 <span class="math-text">a</span>。</p>
+<p>Policy Improvement Theorem：</p>
+<p>如果对所有状态都有：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s, π<sub><span class="math-text">new</span></sub>(s)) ≥ V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<p>那么新策略不差于旧策略：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π<sub><span class="math-text">new</span></sub></span></sub>(s) ≥ V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<h2>Policy Iteration</h2>
+<p>Policy Iteration 在两个步骤之间交替：</p>
+<ol>
+<li>Policy Evaluation：评估当前策略。</li>
+<li>Policy Improvement：根据价值函数改进策略。</li>
+</ol>
+<p>流程：</p>
+<pre><code class="language-text">initialize pi randomly
+repeat:
+    V_pi = policy_evaluation(pi)
+    pi_new = greedy_policy(V_pi)
+    if pi_new == pi:
+        stop
+    pi = pi_new
+</code></pre>
+<p>它最终会收敛到最优策略 <span class="math-text">π<sup><span class="math-text">*</span></sup></span>。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Policy Iteration 是 evaluation 和 improvement 的交替过程。先精确或近似评估当前策略，再对价值函数做贪心改进。这个过程可以看成广义策略迭代的一种具体形式。</p>
+</blockquote>
+<h2>Value Iteration</h2>
+<p>Value Iteration 直接使用 Bellman optimality backup：</p>
+<div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)</span></div><div><span class="math-text">= max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">k</span></sub>(s')]</span></div></div>
+
+<p>和 Policy Iteration 的区别：</p>
+<ul>
+<li>Policy Iteration 每轮先完整或近似评估一个策略，再改进策略。</li>
+<li>Value Iteration 把 evaluation 和 improvement 合在一次 backup 中。</li>
+<li>Value Iteration 每次更新都直接对动作取 max。</li>
+</ul>
+<p>最后从 <span class="math-text">V<sup><span class="math-text">*</span></sup></span> 导出策略：</p>
+<div class="math-block multi"><div><span class="math-text">π<sup><span class="math-text">*</span></sup>(s) = argmax<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sup><span class="math-text">*</span></sup>(s')]</span></div></div>
+
+<p>伪代码：</p>
+<pre><code class="language-text">initialize V(s) arbitrarily
+repeat:
+    delta = 0
+    for each state s:
+        v_old = V(s)
+        V(s) = max_a sum_s&#39; P(s&#39;|s,a)[r + gamma V(s&#39;)]
+        delta = max(delta, |v_old - V(s)|)
+until delta &lt; threshold
+derive pi from V
+</code></pre>
+<h2>Generalized Policy Iteration</h2>
+<p>Generalized Policy Iteration，简称 GPI，指的是 policy evaluation 和 policy improvement 相互作用的一大类方法。</p>
+<p>核心思想：</p>
+<ul>
+<li>evaluation 让 value function 更接近当前策略的真实价值。</li>
+<li>improvement 让 policy 根据当前 value function 变得更贪心。</li>
+<li>两者交替推进，最终趋向最优策略和最优价值函数。</li>
+</ul>
+<p>很多 RL 算法都可以放进这个框架：</p>
+<ul>
+<li>Policy Iteration：完整 evaluation + 贪心 improvement。</li>
+<li>Value Iteration：每一步都做截断 evaluation + improvement。</li>
+<li>SARSA：用采样做 on-policy evaluation 和 improvement。</li>
+<li>Q-learning：用采样逼近 optimal Bellman backup。</li>
+<li>Actor-Critic：critic 做 evaluation，actor 做 improvement。</li>
+</ul>
+<h2>DP 的局限性</h2>
+<p>动态规划方法有两个主要限制：</p>
+<ol>
+<li>需要已知完整环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span>。</li>
+<li>状态空间和动作空间大时计算成本很高。</li>
+</ol>
+<p>这也是为什么后续要学习 model-free RL：</p>
+<ul>
+<li>Monte Carlo 不需要环境模型，但要等 episode 结束。</li>
+<li>TD 不需要模型，也不需要等 episode 结束。</li>
+<li>Deep RL 用神经网络处理大规模状态空间。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. Policy Evaluation 是什么？</h3>
+<p>给定策略 <span class="math-text">π</span>，根据 Bellman expectation equation 计算该策略下每个状态的价值 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
+<h3>2. Policy Iteration 和 Value Iteration 的区别？</h3>
+<p>Policy Iteration 交替进行策略评估和策略改进。Value Iteration 直接使用 Bellman optimality backup，把评估和改进合并在一次 max backup 中。</p>
+<h3>3. 为什么 DP 方法在真实问题中受限？</h3>
+<p>因为它通常要求环境模型已知，即知道完整的状态转移概率和奖励函数。而真实环境中模型往往未知，且状态动作空间可能极大。</p>
+<h3>4. Value Iteration 为什么能得到最优策略？</h3>
+<p>它反复应用 Bellman optimality operator。在折扣 MDP 中，该 operator 是 contraction mapping，因此价值函数会收敛到唯一的最优价值函数 <span class="math-text">V<sup><span class="math-text"><em></span></sup></span>，再由 <span class="math-text">V<sup><span class="math-text"></em></span></sup></span> 导出最优策略。</p>
+<h3>5. GPI 是什么？</h3>
+<p>GPI 是 policy evaluation 和 policy improvement 交替推进的通用思想。很多强化学习算法都可以看成不同形式的 GPI。</p>
+<h2>本章练习</h2>
+<ol>
+<li>手写 Policy Evaluation 的 Bellman update。</li>
+<li>对比 Policy Iteration 和 Value Iteration 的伪代码。</li>
+<li>解释为什么 Value Iteration 中可以不完整评估一个策略。</li>
+<li>思考：如果状态空间有一亿个状态，表格型 DP 为什么不可行？</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav></main></body>
+</html>

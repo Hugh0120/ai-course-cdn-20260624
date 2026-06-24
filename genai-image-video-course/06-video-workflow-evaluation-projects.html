@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 6 章：文生视频工作流、控制、评测与项目实操</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-video-data-training-control.html">← 上一章</a><a href="./07-evaluation-safety-projects.html">下一章 →</a></nav><h1>第 6 章：文生视频工作流、控制、评测与项目实操</h1>
+<p>上一章讲视频模型怎么训练，这一章讲视频生成系统怎么用、怎么评测、怎么落地。文生视频的产品形态越来越不像“一条 prompt 生成一段视频”，而更像导演式工作流：分镜、参考图、首尾帧、镜头控制、局部编辑、音频、审核和版本管理。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T2V</td>
+<td>Text-to-Video</td>
+<td>文生视频</td>
+<td>根据文本生成视频。</td>
+</tr>
+<tr>
+<td>I2V</td>
+<td>Image-to-Video</td>
+<td>图生视频</td>
+<td>根据图片或关键帧生成视频。</td>
+</tr>
+<tr>
+<td>V2V</td>
+<td>Video-to-Video</td>
+<td>视频到视频</td>
+<td>基于输入视频做编辑或重生成。</td>
+</tr>
+<tr>
+<td>AV</td>
+<td>Audio-Video</td>
+<td>音视频</td>
+<td>联合处理画面和声音。</td>
+</tr>
+<tr>
+<td>FPS</td>
+<td>Frames Per Second</td>
+<td>每秒帧数</td>
+<td>视频时间分辨率。</td>
+</tr>
+<tr>
+<td>FVD</td>
+<td>Fréchet Video Distance</td>
+<td>Fréchet Video 距离</td>
+<td>视频生成分布级指标。</td>
+</tr>
+<tr>
+<td>VBench</td>
+<td>Video Benchmark</td>
+<td>视频生成基准</td>
+<td>多维度评估视频生成质量的 benchmark。</td>
+</tr>
+<tr>
+<td>CLIPScore</td>
+<td>CLIP Score</td>
+<td>CLIP 相似度得分</td>
+<td>衡量文本和视觉语义匹配。</td>
+</tr>
+<tr>
+<td>DINO</td>
+<td>Self-distillation with No Labels</td>
+<td>自监督视觉表征模型</td>
+<td>可用于参考一致性评测。</td>
+</tr>
+<tr>
+<td>LPIPS</td>
+<td>Learned Perceptual Image Patch Similarity</td>
+<td>学习感知图像块相似度</td>
+<td>评估感知差异和编辑保真。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>检查视频中文字是否稳定和正确。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>用于自动评测、caption、审核和 badcase 归因。</td>
+</tr>
+<tr>
+<td>C2PA</td>
+<td>Coalition for Content Provenance and Authenticity</td>
+<td>内容来源与真实性联盟</td>
+<td>标记内容来源和编辑历史的标准。</td>
+</tr>
+<tr>
+<td>SynthID</td>
+<td>SynthID Watermarking</td>
+<td>SynthID 水印</td>
+<td>Google 用于标记生成内容的水印技术。</td>
+</tr>
+<tr>
+<td>TTV</td>
+<td>Time to Video</td>
+<td>视频生成耗时</td>
+<td>从请求到视频可用的端到端延迟。</td>
+</tr>
+<tr>
+<td>KPI</td>
+<td>Key Performance Indicator</td>
+<td>关键业务指标</td>
+<td>业务效果指标，如通过率、点击率、转化率。</td>
+</tr>
+<tr>
+<td><span class="math-text">p</span></td>
+<td>Prompt</td>
+<td>提示词</td>
+<td>用户或系统给模型的生成指令。</td>
+</tr>
+<tr>
+<td><span class="math-text">r</span></td>
+<td>Reference</td>
+<td>参考资产</td>
+<td>参考图、角色、商品、首尾帧或视频片段。</td>
+</tr>
+<tr>
+<td><span class="math-text">s<sub><span class="math-text">i</span></sub></span></td>
+<td>Shot</td>
+<td>第 <span class="math-text">i</span> 个镜头</td>
+<td>分镜计划中的一个镜头。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>能把文生视频讲成可控创作 workflow，而不是单次生成。</li>
+<li>能设计视频生成 eval harness 和 badcase 归因体系。</li>
+<li>能说明首尾帧、参考图、mask、camera control、audio control 的作用。</li>
+<li>能把项目表达成“生成、评测、安全、成本、线上反馈”的闭环。</li>
+</ul>
+<h2>产品级视频生成 Workflow</h2>
+<p>一个通用 pipeline：</p>
+<pre><code class="language-text">用户需求 / brief
+-&gt; LLM 拆分 storyboard、shot list、camera plan
+-&gt; 生成或上传 reference：角色、商品、场景、首帧、尾帧
+-&gt; T2V / I2V 生成每个镜头
+-&gt; 一致性检查：人物、商品、场景、文字、品牌
+-&gt; 局部编辑：mask edit、object insert/remove、extend
+-&gt; 音频：对白、音效、环境声、音乐
+-&gt; 剪辑：排序、转场、字幕、调色、封面
+-&gt; 评测：自动指标、人评、业务审核、badcase 标签
+-&gt; 安全：身份同意、版权、watermark、C2PA、日志
+</code></pre>
+<p>面试表达：</p>
+<blockquote>
+<p>真实文生视频系统不是一次 prompt 出片，而是把视频拆成 shot-level generation 和 edit-level control。模型负责生成候选，系统负责规划、参考资产管理、一致性校验、评测、审核和回滚。</p>
+</blockquote>
+<h2>控制信号地图</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>控制信号</th>
+<th>English</th>
+<th>中文</th>
+<th>解决什么问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt</td>
+<td>Text Prompt</td>
+<td>文本提示</td>
+<td>主体、动作、风格、场景。</td>
+</tr>
+<tr>
+<td>First Frame</td>
+<td>First Frame</td>
+<td>首帧</td>
+<td>控制开头构图和主体。</td>
+</tr>
+<tr>
+<td>Last Frame</td>
+<td>Last Frame</td>
+<td>尾帧</td>
+<td>控制结束状态和转场目标。</td>
+</tr>
+<tr>
+<td>Reference Image</td>
+<td>Reference Image</td>
+<td>参考图</td>
+<td>保持人物、商品、风格一致。</td>
+</tr>
+<tr>
+<td>Multi-reference</td>
+<td>Multiple References</td>
+<td>多参考图</td>
+<td>组合角色、场景、商品、风格。</td>
+</tr>
+<tr>
+<td>Mask</td>
+<td>Mask</td>
+<td>蒙版</td>
+<td>局部编辑、插入、移除。</td>
+</tr>
+<tr>
+<td>Pose / Depth</td>
+<td>Pose or Depth Condition</td>
+<td>姿态或深度条件</td>
+<td>控制人物动作和空间结构。</td>
+</tr>
+<tr>
+<td>Camera Plan</td>
+<td>Camera Plan</td>
+<td>镜头计划</td>
+<td>pan、zoom、dolly、orbit 等镜头运动。</td>
+</tr>
+<tr>
+<td>Audio Prompt</td>
+<td>Audio Prompt</td>
+<td>音频提示</td>
+<td>音效、环境声、对白、音乐。</td>
+</tr>
+<tr>
+<td>Negative Prompt</td>
+<td>Negative Prompt</td>
+<td>负向提示</td>
+<td>避免不需要的物体、风格或风险。</td>
+</tr>
+</tbody></table>
+<p>这些控制信号可以组合，但组合越多，模型越容易出现冲突。比如首帧要求人物站着，prompt 要求人物从椅子上起身，尾帧又要求人物躺下，系统需要先做 prompt normalization 和冲突检查。</p>
+<h2>视频评测维度</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>English</th>
+<th>中文</th>
+<th>典型检查</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Visual Quality</td>
+<td>Visual Quality</td>
+<td>视觉质量</td>
+<td>清晰、构图、光照、美学。</td>
+</tr>
+<tr>
+<td>Prompt Adherence</td>
+<td>Prompt Adherence</td>
+<td>提示遵循</td>
+<td>主体、动作、风格、场景是否满足。</td>
+</tr>
+<tr>
+<td>Temporal Consistency</td>
+<td>Temporal Consistency</td>
+<td>时间一致性</td>
+<td>是否闪烁、漂移、跳变。</td>
+</tr>
+<tr>
+<td>Identity Consistency</td>
+<td>Identity Consistency</td>
+<td>身份一致性</td>
+<td>人物、商品、角色是否保持。</td>
+</tr>
+<tr>
+<td>Motion Naturalness</td>
+<td>Motion Naturalness</td>
+<td>运动自然度</td>
+<td>动作是否连贯、物理是否合理。</td>
+</tr>
+<tr>
+<td>Camera Coherence</td>
+<td>Camera Coherence</td>
+<td>镜头一致性</td>
+<td>镜头运动是否稳定、空间是否连贯。</td>
+</tr>
+<tr>
+<td>Text Stability</td>
+<td>Text Stability</td>
+<td>文字稳定性</td>
+<td>logo、字幕、标牌是否变形。</td>
+</tr>
+<tr>
+<td>Audio Sync</td>
+<td>Audio-Visual Synchronization</td>
+<td>音画同步</td>
+<td>口型、脚步、碰撞、环境声是否同步。</td>
+</tr>
+<tr>
+<td>Edit Faithfulness</td>
+<td>Edit Faithfulness</td>
+<td>编辑保真</td>
+<td>该改的改，不该改的保持。</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>Safety</td>
+<td>安全</td>
+<td>肖像、版权、暴力、成人、误导性内容。</td>
+</tr>
+</tbody></table>
+<h2>视频 Eval Harness</h2>
+<p>一个视频生成 harness 至少需要：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt Suite</td>
+<td>T2V、I2V、V2V、首尾帧、参考图、音频、编辑任务。</td>
+</tr>
+<tr>
+<td>Asset Registry</td>
+<td>参考图、mask、角色库、商品库、版权和授权信息。</td>
+</tr>
+<tr>
+<td>Run Config</td>
+<td>模型版本、seed、分辨率、fps、时长、sampler、guidance。</td>
+</tr>
+<tr>
+<td>Runner</td>
+<td>批量提交、失败重试、缓存、队列、成本记录。</td>
+</tr>
+<tr>
+<td>Auto Metrics</td>
+<td>FVD、CLIPScore、OCR、DINO/LPIPS、motion、safety classifier。</td>
+</tr>
+<tr>
+<td>VLM Judge</td>
+<td>多维打分、pairwise preference、badcase 解释。</td>
+</tr>
+<tr>
+<td>Human Review</td>
+<td>盲评、pairwise、业务审核、安全审核。</td>
+</tr>
+<tr>
+<td>Report</td>
+<td>分维度分数、置信区间、成本、延迟、失败样例。</td>
+</tr>
+</tbody></table>
+<p>注意：FVD 这种指标适合分布级比较，但不适合直接判断单条视频是否满足 prompt。产品评测必须有 prompt-level、人评和 badcase 维度。</p>
+<h2>Badcase 归因</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>失败类型</th>
+<th>English</th>
+<th>中文</th>
+<th>处理方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Flicker</td>
+<td>Temporal Flicker</td>
+<td>时间闪烁</td>
+<td>数据过滤、temporal loss、后处理。</td>
+</tr>
+<tr>
+<td>Identity Drift</td>
+<td>Identity Drift</td>
+<td>身份漂移</td>
+<td>reference consistency、角色 embedding、I2V。</td>
+</tr>
+<tr>
+<td>Object Disappearance</td>
+<td>Object Disappearance</td>
+<td>物体消失</td>
+<td>更强时序建模、分镜约束、检测回归。</td>
+</tr>
+<tr>
+<td>Physics Violation</td>
+<td>Physics Violation</td>
+<td>物理违背</td>
+<td>更好 motion 数据、偏好数据、world model 评测。</td>
+</tr>
+<tr>
+<td>Camera Conflict</td>
+<td>Camera Conflict</td>
+<td>镜头冲突</td>
+<td>prompt 规范化、camera plan 拆解。</td>
+</tr>
+<tr>
+<td>Audio Mismatch</td>
+<td>Audio-Visual Mismatch</td>
+<td>音画不匹配</td>
+<td>AV 数据、同步评测、后期对齐。</td>
+</tr>
+<tr>
+<td>Text Degradation</td>
+<td>Text Degradation</td>
+<td>文字退化</td>
+<td>OCR-aware 数据、短视频后处理、文字单独渲染。</td>
+</tr>
+<tr>
+<td>Over-editing</td>
+<td>Over-editing</td>
+<td>过度编辑</td>
+<td>mask、preserve loss、编辑数据改进。</td>
+</tr>
+<tr>
+<td>Safety Violation</td>
+<td>Safety Violation</td>
+<td>安全违规</td>
+<td>输入输出审核、拒绝策略、provenance。</td>
+</tr>
+</tbody></table>
+<h2>项目实操一：广告短视频生成</h2>
+<ol>
+<li>输入：商品图、卖点、品牌规范、目标人群。</li>
+<li>规划：LLM 生成 3-5 个 shot，包含镜头、字幕、CTA。</li>
+<li>生成：商品 I2V + 背景 T2V + 局部编辑。</li>
+<li>评测：商品一致性、文字正确率、品牌安全、转化素材人评。</li>
+<li>上线：素材审核、A/B 测试、CTR/CVR、成本监控。</li>
+</ol>
+<p>亮点表达：</p>
+<blockquote>
+<p>广告视频项目的核心不是“生成好看视频”，而是商品和品牌不能漂移，文字不能错，素材要可审核、可回滚，并且最终用 CTR/CVR 和人工审核通过率闭环。</p>
+</blockquote>
+<h2>项目实操二：影视分镜预览</h2>
+<ol>
+<li>输入：剧本片段、人物设定、场景设定。</li>
+<li>规划：拆分 shot list、camera plan、情绪、动作。</li>
+<li>资产：角色参考图、场景参考图、风格板。</li>
+<li>生成：每个 shot 用 I2V 或 T2V 生成多候选。</li>
+<li>评测：角色一致性、镜头连续性、动作自然度、导演偏好。</li>
+<li>后处理：剪辑、配音、临时音乐、字幕。</li>
+</ol>
+<p>这个项目特别适合说明“视频生成越来越 agentic”：LLM 做规划，图像模型做 keyframe，视频模型做 shot，VLM/judge 做评测和回归。</p>
+<h2>项目实操三：视频编辑和合规审核</h2>
+<p>输入现有视频，做 object remove、背景替换、风格化、logo 清理或字幕修改。</p>
+<p>关键评测：</p>
+<ul>
+<li>修改区域是否完成。</li>
+<li>未修改区域是否保持。</li>
+<li>人物身份是否保持。</li>
+<li>镜头运动是否保持。</li>
+<li>音频是否仍然同步。</li>
+<li>是否引入版权、肖像、误导性风险。</li>
+</ul>
+<p>面试时强调：编辑任务比生成任务更需要 preserve 约束和 before/after 评测。</p>
+<h2>面试高频问题</h2>
+<h3>1. 为什么文生视频产品要分镜？</h3>
+<p>长视频一次生成成本高、可控性差、失败难修。分镜可以把复杂需求拆成短镜头，每个镜头独立生成和评测，再通过剪辑保持叙事连续。</p>
+<h3>2. 首尾帧控制有什么用？</h3>
+<p>首帧保证起始构图和主体，尾帧约束最终状态。它比纯文本 prompt 更适合控制转场、角色位置和动作结果。</p>
+<h3>3. 自动指标为什么不够？</h3>
+<p>视频质量包含美学、语义、运动、物理、身份、安全和业务偏好。单个自动指标很难覆盖，必须结合多维指标、VLM judge、人评和业务指标。</p>
+<h3>4. 文生视频项目怎么证明上线价值？</h3>
+<p>离线看 prompt adherence、时序一致性、身份一致性、安全通过率；线上看生成成功率、TTV、人工审核通过率、CTR/CVR、用户留存和成本。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2311.17982">VBench: Comprehensive Benchmark Suite for Video Generative Models</a></li>
+<li><a href="https://arxiv.org/abs/2406.03520">VideoPhy: Evaluating Physical Commonsense for Video Generation</a></li>
+<li><a href="https://ai.meta.com/research/publications/movie-gen-a-cast-of-media-foundation-models/">Movie Gen: A Cast of Media Foundation Models</a></li>
+<li><a href="https://runwayml.com/research/introducing-runway-gen-4">Introducing Runway Gen-4</a></li>
+<li><a href="https://deepmind.google/models/veo/">Veo official page</a></li>
+<li><a href="https://blog.google/innovation-and-ai/products/veo-updates-flow/">Veo 3.1 and Flow updates</a></li>
+<li><a href="https://c2pa.org/specifications/specifications/2.1/index.html">C2PA Technical Specification</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./05-video-data-training-control.html">← 上一章</a><a href="./07-evaluation-safety-projects.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 9 章：TRPO（Trust Region Policy Optimization，信赖域策略优化）、PPO（Proximal Policy Optimization，近端策略优化）与策略更新约束</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav><h1>第 9 章：TRPO（Trust Region Policy Optimization，信赖域策略优化）、PPO（Proximal Policy Optimization，近端策略优化）与策略更新约束</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TRPO</td>
+<td>Trust Region Policy Optimization</td>
+<td>信赖域策略优化</td>
+<td>用 KL 约束限制策略更新幅度。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>用 clipping objective 近似限制策略更新幅度。</td>
+</tr>
+<tr>
+<td>KL</td>
+<td>Kullback-Leibler Divergence</td>
+<td>KL 散度</td>
+<td>衡量新旧策略分布差异。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span> / <span class="math-text">θ<sub><span class="math-text">old</span></sub></span></td>
+<td>New / Old Policy Parameters</td>
+<td>新 / 旧策略参数</td>
+<td>当前要优化的策略参数和采样数据时的旧参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)</span></td>
+<td>Probability Ratio</td>
+<td>概率比</td>
+<td>新策略和旧策略对同一动作的概率比。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td>Advantage Estimate</td>
+<td>优势估计</td>
+<td>判断当前动作应提高还是降低概率的信号。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)</span></td>
+<td>Clipped Objective</td>
+<td>截断目标函数</td>
+<td>PPO 用来限制策略更新的 surrogate objective。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε</span></td>
+<td>Clipping Range</td>
+<td>截断范围</td>
+<td>PPO 中控制 ratio 允许变化范围的超参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">policy</span></sub></span> / <span class="math-text">L<sub><span class="math-text">value</span></sub></span></td>
+<td>Policy Loss / Value Loss</td>
+<td>策略损失 / 价值损失</td>
+<td>PPO 总 loss 的两个主要部分。</td>
+</tr>
+<tr>
+<td><span class="math-text">H(π)</span></td>
+<td>Entropy</td>
+<td>熵</td>
+<td>鼓励策略保持探索的正则项。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Clipped Objective Label</td>
+<td>截断目标标记</td>
+<td><span class="math-text">L<sup><span class="math-text">CLIP</span></sup></span> 中的上标，表示 PPO 的 clipped surrogate objective。</td>
+</tr>
+<tr>
+<td>GAE</td>
+<td>Generalized Advantage Estimation</td>
+<td>广义优势估计</td>
+<td>PPO 中常用的 advantage 估计方法。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>PPO 对比中的 value-based deep RL 算法。</td>
+</tr>
+<tr>
+<td>RL / RLHF</td>
+<td>Reinforcement Learning / Reinforcement Learning from Human Feedback</td>
+<td>强化学习 / 基于人类反馈的强化学习</td>
+<td>PPO 既用于 RL，也常出现在 RLHF 流程中。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习现代 on-policy deep RL 中最常用的一类算法。你需要掌握：</p>
+<ul>
+<li>为什么 policy gradient 需要限制更新步长。</li>
+<li>importance sampling ratio。</li>
+<li>TRPO 的 trust region 思想。</li>
+<li>PPO clipping objective。</li>
+<li>PPO 的训练细节。</li>
+<li>PPO 的优缺点。</li>
+</ul>
+<h2>为什么要限制策略更新</h2>
+<p>Policy Gradient 直接更新策略参数：</p>
+<div class="math-block"><span class="math-text">θ ← θ + α ∇ J(θ)</span></div>
+
+<p>但策略优化很敏感。如果一次更新太大，新的 policy 和采样数据对应的旧 policy 差异过大，可能导致性能崩掉。</p>
+<p>原因：</p>
+<ul>
+<li>on-policy 数据只对采样它的旧策略可靠。</li>
+<li>策略变化太大时，旧数据不能准确估计新策略表现。</li>
+<li>neural policy 的参数小变化可能导致动作分布大变化。</li>
+</ul>
+<p>因此 TRPO/PPO 都试图限制新旧策略距离。</p>
+<h2>Importance Sampling Ratio</h2>
+<p>PPO/TRPO 常用 ratio：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它表示在同一个 <span class="math-text">(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span> 上，新策略相对于旧策略的概率变化。</p>
+<p>Policy objective 可写成：</p>
+<div class="math-block"><span class="math-text">L(θ) = 𝔼[r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>]</span></div>
+
+<p>如果 <span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span>，希望增加该动作概率，即增大 ratio。<br>如果 <span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span>，希望降低该动作概率，即减小 ratio。</p>
+<h2>Ratio 从哪里来</h2>
+<p>PPO 的数据是旧策略 <span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub></span> 采样出来的，但我们想评估新策略 <span class="math-text">π<sub><span class="math-text">θ</span></sub></span>。如果完全重新采样，成本很高；如果直接把旧数据当新数据，又会有分布偏差。</p>
+<p>importance sampling 的基本想法是：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">θ</span></sub></span></sub>[f(a)]
+=𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">old</span></sub></span></sub>[π<sub><span class="math-text">θ</span></sub>(a∣ s) / π<sub><span class="math-text">old</span></sub>(a∣ s)f(a)]</span></div>
+
+<p>所以出现 ratio：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它把“旧策略采到的动作”校正成“新策略下这个动作有多可能”。但 ratio 如果太大或太小，说明新旧策略差异太大，旧数据对新策略的估计就不可靠。这就是后面 clipping 的动机。</p>
+<h2>TRPO</h2>
+<p>TRPO 是 Trust Region Policy Optimization。</p>
+<p>它希望在提升 surrogate objective 的同时，限制新旧策略的 KL divergence：</p>
+<div class="math-block multi"><div><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼[r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>]</span></div><div><span class="math-text">subject to  𝔼[KL(π<sub><span class="math-text">old</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>)  ∥  π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))] ≤ δ</span></div></div>
+
+<p>核心思想：</p>
+<blockquote>
+<p>每次策略更新不能离旧策略太远，保证更新在 trust region 内。</p>
+</blockquote>
+<p>优点：</p>
+<ul>
+<li>理论上更稳定。</li>
+<li>避免灾难性大步更新。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>实现复杂。</li>
+<li>需要二阶近似、conjugate gradient、line search。</li>
+<li>工程成本较高。</li>
+</ul>
+<h2>PPO</h2>
+<p>PPO 是 Proximal Policy Optimization。它保留了限制策略更新幅度的思想，但实现更简单。</p>
+<p>PPO clipped objective：</p>
+<div class="math-block multi"><div><span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)</span></div><div><span class="math-text">= 𝔼[min(r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>,</span></div><div><span class="math-text">clip(r<sub><span class="math-text">t</span></sub>(θ), 1 - ε, 1 + ε) A<sub><span class="math-text">t</span></sub>)]</span></div></div>
+
+<p>其中：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p><span class="math-text">ε</span> 常用 <span class="math-text">0.1</span> 或 <span class="math-text">0.2</span>。</p>
+<h2>PPO Clipping 直觉</h2>
+<p>当 <span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span>：</p>
+<ul>
+<li>增大动作概率是好事。</li>
+<li>但 ratio 超过 <span class="math-text">1 + ε</span> 后，收益被截断。</li>
+<li>防止过度增加该动作概率。</li>
+</ul>
+<p>当 <span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span>：</p>
+<ul>
+<li>降低动作概率是好事。</li>
+<li>但 ratio 低于 <span class="math-text">1 - ε</span> 后，收益被截断。</li>
+<li>防止过度降低该动作概率。</li>
+</ul>
+<p>一句话：</p>
+<blockquote>
+<p>PPO clipping 允许策略朝 advantage 指示的方向更新，但限制更新幅度，避免新旧策略差异过大。</p>
+</blockquote>
+<h2>Clipping 分情况推理</h2>
+<p>PPO 的 min 不是为了让公式复杂，而是为了“好方向可以走，但不要走太猛”。</p>
+<h3>情况 1：<span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span></h3>
+<p>动作比平均水平好，应该提高它的概率。未截断目标是：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub></span></div>
+
+<p>当 <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 从 1 增大时，目标变大，表示鼓励新策略更常选这个动作。但如果 <span class="math-text">r<sub><span class="math-text">t</span></sub> &gt; 1+ε</span>，说明概率已经提高太多。此时 clipped 项固定在：</p>
+<div class="math-block"><span class="math-text">(1+ε)A<sub><span class="math-text">t</span></sub></span></div>
+
+<p>再提高概率也不会得到更多收益，梯度被压住。</p>
+<h3>情况 2：<span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span></h3>
+<p>动作比平均水平差，应该降低它的概率。因为 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 是负数，减小 <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 会让 <span class="math-text">r<sub><span class="math-text">t</span></sub>A<sub><span class="math-text">t</span></sub></span> 变大，看起来是好事。但如果 <span class="math-text">r<sub><span class="math-text">t</span></sub> &lt; 1-ε</span>，说明概率已经降低太多。clipped 项固定在：</p>
+<div class="math-block"><span class="math-text">(1-ε)A<sub><span class="math-text">t</span></sub></span></div>
+
+<p>PPO 取 min，会阻止继续通过过度降低概率来“刷目标”。</p>
+<p>因此 clipped objective 同时限制两种过度更新：</p>
+<ul>
+<li>好动作概率不能一下子加太多。</li>
+<li>坏动作概率不能一下子降太多。</li>
+</ul>
+<p>这就是 PPO 比普通 policy gradient 更稳的核心。</p>
+<h2>PPO Loss 组成</h2>
+<p>常见 PPO 总 loss：</p>
+<div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> - c<sub><span class="math-text">e</span></sub> Entropy</span></div>
+
+<p>如果按最小化写：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - 𝔼[min(r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(r<sub><span class="math-text">t</span></sub>, 1 - ε, 1 + ε) A<sub><span class="math-text">t</span></sub>)]</span></div>
+
+<p>Value loss：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = 𝔼[(V(s<sub><span class="math-text">t</span></sub>) - R<sub><span class="math-text">t</span></sub>)<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>Entropy bonus：</p>
+<div class="math-block"><span class="math-text">Entropy = 𝔼[H(π(·∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
+
+<p>实际实现中还可能有：</p>
+<ul>
+<li>advantage normalization。</li>
+<li>value clipping。</li>
+<li>gradient clipping。</li>
+<li>target KL early stopping。</li>
+<li>learning rate annealing。</li>
+</ul>
+<h2>PPO 训练流程</h2>
+<pre><code class="language-text">for each iteration:
+    collect rollout using pi_old
+    compute returns and advantages, often with GAE
+    for several epochs:
+        shuffle rollout data
+        split into minibatches
+        update policy with clipped objective
+        update value function
+    set pi_old &lt;- current policy
+</code></pre>
+<p>注意：</p>
+<p>PPO 是 on-policy，但它会对同一批 rollout 做多个 epoch 的 minibatch 更新。clipping 机制就是为了让这种有限复用不至于让策略偏离太远。</p>
+<h2>PPO 一轮训练的推理顺序</h2>
+<p>从实现角度，PPO 一轮迭代可以按下面理解：</p>
+<ol>
+<li>用当前策略采样 rollout，此时这份数据绑定的是 <span class="math-text">π<sub><span class="math-text">old</span></sub></span>。</li>
+<li>用 reward 和 critic 计算 return。</li>
+<li>用 GAE 计算 advantage，得到每个动作“比平均水平好多少”。</li>
+<li>保存旧策略对已采样动作的 log probability。</li>
+<li>更新时重新计算新策略 log probability。</li>
+<li>用新旧 log probability 的差得到 ratio。</li>
+<li>用 clipped objective 更新 actor。</li>
+<li>用 return target 更新 critic。</li>
+<li>用 entropy bonus 防止策略过早塌缩。</li>
+</ol>
+<p>这里最关键的是第 4 到第 7 步：PPO 不是只看当前策略输出，而是一直比较“新策略相对采样时旧策略改了多少”。</p>
+<h2>PPO 为什么常用</h2>
+<p>优点：</p>
+<ul>
+<li>实现比 TRPO 简单。</li>
+<li>稳定性好。</li>
+<li>对超参数相对不那么敏感。</li>
+<li>离散和连续动作都能用。</li>
+<li>成为很多 RLHF 早期流程中的常见选择。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>on-policy，sample efficiency 不如 off-policy 方法。</li>
+<li>需要大量环境交互。</li>
+<li>对 reward scaling、advantage normalization 仍然敏感。</li>
+<li>clipping 不是严格 trust region，仍可能出现不稳定。</li>
+</ul>
+<h2>PPO vs DQN</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>DQN</th>
+<th>PPO</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型</td>
+<td>value-based</td>
+<td>policy-based / actor-critic</td>
+</tr>
+<tr>
+<td>动作空间</td>
+<td>离散</td>
+<td>离散和连续</td>
+</tr>
+<tr>
+<td>策略</td>
+<td>由 Q argmax 导出</td>
+<td>直接学习 policy</td>
+</tr>
+<tr>
+<td>数据使用</td>
+<td>off-policy</td>
+<td>on-policy</td>
+</tr>
+<tr>
+<td>样本效率</td>
+<td>较高</td>
+<td>较低</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>需要 replay 和 target network</td>
+<td>clipping + GAE 较稳定</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. PPO 解决了什么问题？</h3>
+<p>PPO 解决普通 policy gradient 更新过大导致策略崩掉的问题。它通过 clipping objective 限制新旧策略概率比的变化，使策略更新更稳定。</p>
+<h3>2. PPO 的 ratio 是什么？</h3>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它衡量新策略相对于采样数据的旧策略，对同一动作概率改变了多少。</p>
+<h3>3. PPO clipping objective 的直觉？</h3>
+<p>如果 advantage 为正，允许提高动作概率，但超过 <span class="math-text">1 + ε</span> 后不再给额外收益。如果 advantage 为负，允许降低动作概率，但低于 <span class="math-text">1 - ε</span> 后不再给额外收益。</p>
+<h3>4. PPO 和 TRPO 的区别？</h3>
+<p>TRPO 通过 KL constraint 显式限制策略更新，理论更严谨但实现复杂。PPO 用 clipping 或 KL penalty 近似 trust region 思想，实现简单，工程上更常用。</p>
+<h3>5. PPO 是 on-policy 还是 off-policy？</h3>
+<p>PPO 通常是 on-policy。虽然它会对同一批 rollout 做多个 epoch 更新，但数据仍来自当前旧策略，且通过 ratio 和 clipping 控制偏移。</p>
+<h2>本章练习</h2>
+<ol>
+<li>手写 PPO clipped objective。</li>
+<li>分别解释 <span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span> 和 <span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span> 时 clipping 的效果。</li>
+<li>对比 TRPO 和 PPO。</li>
+<li>说明 PPO 中 GAE、entropy bonus、advantage normalization 的作用。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav></main></body>
+</html>

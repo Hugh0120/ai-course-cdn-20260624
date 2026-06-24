@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav><h1>第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>通过交互或数据学习策略以最大化长期 reward。</td>
+</tr>
+<tr>
+<td>Offline RL</td>
+<td>Offline Reinforcement Learning</td>
+<td>离线强化学习</td>
+<td>只用固定数据集学习策略，不继续和环境交互。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好训练 reward model，再优化 policy。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(s&#39; ∣ s,a)</span></td>
+<td>Transition Probability</td>
+<td>状态转移概率</td>
+<td>环境 dynamics 的概率形式。</td>
+</tr>
+<tr>
+<td><span class="math-text">R(s,a)</span></td>
+<td>Reward Function</td>
+<td>奖励函数</td>
+<td>环境或 reward model 给出的奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">D</span></td>
+<td>Dataset</td>
+<td>数据集</td>
+<td>offline RL 或 imitation learning 使用的固定样本集合。</td>
+</tr>
+<tr>
+<td><span class="math-text">f<sub><span class="math-text">φ</span></sub>(s,a)</span></td>
+<td>Dynamics Model</td>
+<td>动力学模型</td>
+<td>参数 <span class="math-text">φ</span> 下预测下一状态的模型。</td>
+</tr>
+<tr>
+<td>BC</td>
+<td>Behavior Cloning</td>
+<td>行为克隆</td>
+<td>把专家示范当监督学习来模仿。</td>
+</tr>
+<tr>
+<td>IRL</td>
+<td>Inverse Reinforcement Learning</td>
+<td>逆强化学习</td>
+<td>从专家行为反推出 reward function。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>RLHF 中用人工示范数据微调语言模型。</td>
+</tr>
+<tr>
+<td>RM</td>
+<td>Reward Model</td>
+<td>奖励模型</td>
+<td>根据偏好数据预测 response 质量的模型。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>不显式跑 PPO 的偏好优化方法。</td>
+</tr>
+<tr>
+<td>KL</td>
+<td>Kullback-Leibler Divergence</td>
+<td>KL 散度</td>
+<td>RLHF 中常用来限制 policy 偏离 reference model。</td>
+</tr>
+<tr>
+<td>DQN / PPO / SAC</td>
+<td>Deep Q-Network / Proximal Policy Optimization / Soft Actor-Critic</td>
+<td>深度 Q 网络 / 近端策略优化 / 软 Actor-Critic</td>
+<td>文中作为 model-free 或 RLHF 优化阶段的代表算法。</td>
+</tr>
+<tr>
+<td>BCQ</td>
+<td>Batch-Constrained deep Q-learning</td>
+<td>批约束深度 Q 学习</td>
+<td>offline RL 代表算法之一。</td>
+</tr>
+<tr>
+<td>BEAR</td>
+<td>Bootstrapping Error Accumulation Reduction</td>
+<td>bootstrap 误差累积降低</td>
+<td>offline RL 代表算法之一。</td>
+</tr>
+<tr>
+<td>CQL</td>
+<td>Conservative Q-Learning</td>
+<td>保守 Q 学习</td>
+<td>通过保守估计 Q 值处理 OOD action 的 offline RL 方法。</td>
+</tr>
+<tr>
+<td>IQL</td>
+<td>Implicit Q-Learning</td>
+<td>隐式 Q 学习</td>
+<td>不显式查询 OOD action 的 offline RL 方法。</td>
+</tr>
+<tr>
+<td>OOD</td>
+<td>Out-of-Distribution</td>
+<td>分布外</td>
+<td>数据集中缺少覆盖的状态或动作。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章补充面试中越来越常见的进阶主题。你需要掌握：</p>
+<ul>
+<li>model-free vs model-based RL。</li>
+<li>offline RL 的核心难点。</li>
+<li>imitation learning 和 behavior cloning。</li>
+<li>inverse reinforcement learning。</li>
+<li>RLHF 的基本流程。</li>
+</ul>
+<h2>Model-free vs Model-based</h2>
+<p>Model-free RL 不显式学习环境模型，直接学习 value 或 policy：</p>
+<ul>
+<li>Q-learning。</li>
+<li>DQN。</li>
+<li>PPO。</li>
+<li>SAC。</li>
+</ul>
+<p>Model-based RL 显式学习或使用环境模型：</p>
+<div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a)</span></div>
+
+<p>然后基于模型进行 planning 或生成模拟数据。</p>
+<h2>Model-based RL 的流程</h2>
+<p>典型流程：</p>
+<ol>
+<li>收集环境交互数据。</li>
+<li>学习 dynamics model：</li>
+</ol>
+<div class="math-block"><span class="math-text">s<sub><span class="math-text">t+1</span></sub> ≈ f<sub><span class="math-text">p</span></sub>hi(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span></div>
+
+<ol start="3">
+<li>用模型进行 planning 或 rollout。</li>
+<li>根据真实环境反馈继续修正模型。</li>
+</ol>
+<p>优点：</p>
+<ul>
+<li>sample efficiency 可能更高。</li>
+<li>可以通过模型进行规划。</li>
+<li>在真实交互昂贵的场景中有吸引力。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>模型误差会累积。</li>
+<li>长 horizon rollout 容易偏离真实环境。</li>
+<li>高维复杂环境中 dynamics 很难学准。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Model-based RL 的核心优势是样本效率，但主要问题是 model bias。学到的 dynamics model 有误差，规划或 rollout 会放大这些误差，尤其在长时序任务中更明显。</p>
+</blockquote>
+<h2>Offline RL</h2>
+<p>Offline RL，也叫 batch RL，目标是在不继续和环境交互的情况下，只用固定数据集学习策略。</p>
+<p>数据集：</p>
+<div class="math-block"><span class="math-text">D = {(s, a, r, s')}</span></div>
+
+<p>这些数据来自某个 behavior policy，可能是人类、旧系统或混合策略。</p>
+<p>与 online RL 的区别：</p>
+<ul>
+<li>online RL 可以探索并收集新数据。</li>
+<li>offline RL 只能使用已有数据。</li>
+</ul>
+<h2>Offline RL 的难点</h2>
+<p>核心问题：distribution shift。</p>
+<p>学习到的新策略可能选择数据集中很少出现甚至没出现过的动作。此时 Q 函数对这些 out-of-distribution actions 的估计不可靠。</p>
+<p>如果 Q 函数错误高估了某些 OOD 动作，policy improvement 会进一步偏向这些动作，导致性能崩溃。</p>
+<p>这也叫 extrapolation error。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Offline RL 难在不能通过真实环境纠错。策略可能选择数据分布之外的动作，而 critic 对这些动作的 Q 值没有可靠监督，容易产生过估计并被 policy 利用。</p>
+</blockquote>
+<h2>Offline RL 的常见思路</h2>
+<p>常见方法会让策略不要偏离数据分布太远，或让 Q 值对 OOD 动作更保守。</p>
+<p>几类思路：</p>
+<ul>
+<li>Behavior regularization：限制 learned policy 接近 behavior policy。</li>
+<li>Conservative value estimation：压低 OOD action 的 Q 值。</li>
+<li>Importance weighting：修正策略分布差异。</li>
+<li>Sequence modeling：把决策问题转成条件序列建模，例如 Decision Transformer。</li>
+</ul>
+<p>代表算法了解即可：</p>
+<ul>
+<li>BCQ。</li>
+<li>BEAR。</li>
+<li>CQL。</li>
+<li>IQL。</li>
+<li>Decision Transformer。</li>
+</ul>
+<h2>Imitation Learning</h2>
+<p>Imitation Learning 从专家数据中学习策略。</p>
+<p>专家数据：</p>
+<div class="math-block"><span class="math-text">(s, a<sub><span class="math-text">expert</span></sub>)</span></div>
+
+<p>目标：让 agent 模仿专家动作。</p>
+<h2>Behavior Cloning</h2>
+<p>Behavior Cloning，简称 BC，是最简单的 imitation learning。</p>
+<p>把专家数据当监督学习：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">expert</span></sub> ∣ s)</span></div>
+
+<p>或者最小化：</p>
+<div class="math-block"><span class="math-text">L(θ) = - log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">expert</span></sub> ∣ s)</span></div>
+
+<p>优点：</p>
+<ul>
+<li>简单。</li>
+<li>稳定。</li>
+<li>不需要 reward。</li>
+<li>训练像监督学习。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>distribution shift。</li>
+<li>compounding error。</li>
+<li>遇到专家数据中没覆盖的状态时容易出错。</li>
+</ul>
+<p>为什么会 compounding error？</p>
+<p>训练时模型只见过专家状态分布。部署时一旦模型犯小错，进入专家没覆盖的状态，就更容易继续犯错，误差逐步累积。</p>
+<h2>DAgger</h2>
+<p>DAgger 是 Dataset Aggregation。</p>
+<p>核心思路：</p>
+<ol>
+<li>用当前策略和环境交互。</li>
+<li>让专家给当前策略访问到的状态标注正确动作。</li>
+<li>把新数据加入数据集。</li>
+<li>重新训练策略。</li>
+</ol>
+<p>DAgger 通过收集 learner 自己会遇到的状态，缓解 behavior cloning 的分布偏移。</p>
+<h2>Inverse Reinforcement Learning</h2>
+<p>IRL 的目标不是直接模仿动作，而是从专家行为中反推 reward function。</p>
+<p>直觉：</p>
+<p>专家之所以这么行动，是因为它在优化某个隐藏 reward。IRL 希望恢复这个 reward，然后再用 RL 学策略。</p>
+<p>适合场景：</p>
+<ul>
+<li>专家动作可观察。</li>
+<li>reward 很难手工设计。</li>
+<li>希望学到可迁移的偏好或目标。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>问题不适定：多个 reward 都可能解释同一行为。</li>
+<li>计算复杂。</li>
+<li>实践中常被更直接的 imitation 或 preference learning 替代。</li>
+</ul>
+<h2>RLHF</h2>
+<p>RLHF 是 Reinforcement Learning from Human Feedback，常用于大语言模型对齐。</p>
+<p>典型流程：</p>
+<ol>
+<li>Pretraining：在大规模语料上预训练基础模型。</li>
+<li>SFT：用人工示范数据做 supervised fine-tuning。</li>
+<li>Reward Model：收集人类偏好比较，训练 reward model。</li>
+<li>RL Optimization：用 PPO 等算法优化 policy，使其获得更高 reward model 分数。</li>
+</ol>
+<p>偏好数据形式：</p>
+<div class="math-block"><span class="math-text">(prompt, response<sub><span class="math-text">chosen</span></sub>, response<sub><span class="math-text">rejected</span></sub>)</span></div>
+
+<p>Reward model 学习：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">chosen</span></sub> &gt; r<sub><span class="math-text">rejected</span></sub></span></div>
+
+<p>常见 pairwise loss：</p>
+<div class="math-block"><span class="math-text">L = - log σ(r<sub><span class="math-text">chosen</span></sub> - r<sub><span class="math-text">rejected</span></sub>)</span></div>
+
+<h2>RLHF 中的 PPO</h2>
+<p>在 RLHF 中，policy 是语言模型。动作是 token，trajectory 是生成序列。</p>
+<p>优化目标通常包含：</p>
+<ul>
+<li>reward model 分数。</li>
+<li>KL penalty，限制新模型不要偏离 reference model 太远。</li>
+</ul>
+<p>形式：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">total</span></sub> = r<sub><span class="math-text">RM</span></sub> - β KL(π  ∥  π<sub><span class="math-text">ref</span></sub>)</span></div>
+
+<p>为什么需要 KL penalty？</p>
+<ul>
+<li>防止模型为了骗 reward model 而偏离语言质量。</li>
+<li>保持和 SFT/reference model 的行为接近。</li>
+<li>提高训练稳定性。</li>
+</ul>
+<h2>RLHF 的常见问题</h2>
+<ul>
+<li>Reward hacking：模型找到 reward model 漏洞。</li>
+<li>Preference data 噪声。</li>
+<li>Reward model 泛化问题。</li>
+<li>PPO 训练不稳定。</li>
+<li>对齐目标难以完全由标注偏好表达。</li>
+</ul>
+<p>近年也常见不用 RL 的偏好优化方法，例如 DPO。面试中可以简单提到：</p>
+<blockquote>
+<p>DPO 直接从偏好数据推导监督式目标，避免显式训练 reward model 后再跑 PPO，工程上更简单。</p>
+</blockquote>
+<h2>本章面试高频问题</h2>
+<h3>1. Model-free 和 model-based RL 区别？</h3>
+<p>Model-free 不显式学习环境模型，直接学习 policy 或 value。Model-based 学习或使用环境 dynamics 和 reward model，并基于模型 planning 或生成数据。</p>
+<h3>2. Model-based RL 的主要问题是什么？</h3>
+<p>模型误差。学到的 dynamics model 不可能完全准确，长 horizon planning 会累积误差，导致策略利用模型漏洞而在真实环境中表现差。</p>
+<h3>3. Offline RL 为什么难？</h3>
+<p>因为只能使用固定数据集，不能通过环境探索纠错。策略可能选择数据分布之外的动作，而 Q 函数对这些动作估计不可靠，容易产生 extrapolation error。</p>
+<h3>4. Behavior Cloning 的问题？</h3>
+<p>BC 把模仿学习当监督学习，简单稳定，但有 distribution shift 和 compounding error。模型部署后遇到专家数据没覆盖的状态，错误会逐步累积。</p>
+<h3>5. RLHF 的基本流程？</h3>
+<p>先预训练语言模型，再用示范数据 SFT，然后用人类偏好训练 reward model，最后用 PPO 等 RL 算法在 KL 约束下优化模型输出。</p>
+<h2>本章练习</h2>
+<ol>
+<li>用一句话区分 online RL 和 offline RL。</li>
+<li>解释 offline RL 中的 extrapolation error。</li>
+<li>对比 Behavior Cloning 和 RL。</li>
+<li>画出 RLHF 的四阶段流程。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 9 章：Eval Harness、Benchmarking、人评与自动评测</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-sota-tech-reports-2026.html">← 上一章</a><a href="./10-training-safety-productization.html">下一章 →</a></nav><h1>第 9 章：Eval Harness、Benchmarking、人评与自动评测</h1>
+<p>生成模型评测最容易陷入“我觉得好看”。面试里你要主动引入 eval harness：固定输入、固定配置、固定指标、固定人评协议、固定版本记录，让每次模型或 prompt 改动都可复现、可对比、可回归。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Harness</td>
+<td>Evaluation Harness</td>
+<td>评测工具链</td>
+<td>统一管理数据、配置、运行、打分、报告和回归的评测系统。</td>
+</tr>
+<tr>
+<td>FID</td>
+<td>Fréchet Inception Distance</td>
+<td>Fréchet Inception 距离</td>
+<td>图像生成分布级质量指标。</td>
+</tr>
+<tr>
+<td>FVD</td>
+<td>Fréchet Video Distance</td>
+<td>Fréchet Video 距离</td>
+<td>视频生成分布级质量指标。</td>
+</tr>
+<tr>
+<td>IS</td>
+<td>Inception Score</td>
+<td>Inception 分数</td>
+<td>早期图像生成质量和多样性指标。</td>
+</tr>
+<tr>
+<td>CLIPScore</td>
+<td>CLIP Score</td>
+<td>CLIP 相似度得分</td>
+<td>用 CLIP 衡量图文匹配。</td>
+</tr>
+<tr>
+<td>VQA</td>
+<td>Visual Question Answering</td>
+<td>视觉问答</td>
+<td>用问答形式判断图像或视频是否满足条件。</td>
+</tr>
+<tr>
+<td>VQAScore</td>
+<td>Visual Question Answering Score</td>
+<td>视觉问答得分</td>
+<td>用 VQA 判断 prompt 中属性是否满足。</td>
+</tr>
+<tr>
+<td>HPS</td>
+<td>Human Preference Score</td>
+<td>人类偏好得分</td>
+<td>基于人类偏好训练的自动指标。</td>
+</tr>
+<tr>
+<td>PickScore</td>
+<td>PickScore</td>
+<td>偏好选择得分</td>
+<td>用偏好数据训练出的图像偏好模型。</td>
+</tr>
+<tr>
+<td>ImageReward</td>
+<td>ImageReward</td>
+<td>图像奖励模型</td>
+<td>用人类反馈训练的图像生成 reward。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>用于评测图像或视频中的文字是否正确。</td>
+</tr>
+<tr>
+<td>DINO</td>
+<td>Self-distillation with No Labels</td>
+<td>自监督视觉表征模型</td>
+<td>常用于 reference similarity 或视觉一致性评测。</td>
+</tr>
+<tr>
+<td>LPIPS</td>
+<td>Learned Perceptual Image Patch Similarity</td>
+<td>学习感知图像块相似度</td>
+<td>衡量图像感知差异，常用于编辑保真评测。</td>
+</tr>
+<tr>
+<td>MLLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>可作为自动评委，但需要校准。</td>
+</tr>
+<tr>
+<td>ELO</td>
+<td>Elo Rating System</td>
+<td>Elo 评分系统</td>
+<td>pairwise preference 常用排名方法。</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>Confidence Interval</td>
+<td>置信区间</td>
+<td>衡量评测结果不确定性。</td>
+</tr>
+</tbody></table>
+<h2>什么是 Eval Harness</h2>
+<p>一个最小可用 harness 至少包括：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt Suite</td>
+<td>固定 prompt、参考图、mask、首尾帧、音频、负向提示。</td>
+</tr>
+<tr>
+<td>Run Config</td>
+<td>固定模型版本、seed、sampler、steps、CFG scale、分辨率、后处理。</td>
+</tr>
+<tr>
+<td>Inference Runner</td>
+<td>统一生成任务提交、重试、缓存、日志。</td>
+</tr>
+<tr>
+<td>Auto Metrics</td>
+<td>自动指标、VLM judge、OCR、检测器、embedding similarity。</td>
+</tr>
+<tr>
+<td>Human Eval</td>
+<td>人评界面、pairwise 比较、blind review、审核一致性。</td>
+</tr>
+<tr>
+<td>Report</td>
+<td>输出表格、失败样例、置信区间、版本差异。</td>
+</tr>
+<tr>
+<td>Regression Set</td>
+<td>每次升级必跑的 badcase 和核心场景。</td>
+</tr>
+</tbody></table>
+<p>一句话：</p>
+<blockquote>
+<p>Harness 不是一个指标，而是一整套让生成模型评测可复现的实验系统。</p>
+</blockquote>
+<h2>Prompt Suite 怎么设计</h2>
+<p>文生图 prompt suite 至少覆盖：</p>
+<ul>
+<li>单主体。</li>
+<li>多主体。</li>
+<li>复杂属性组合。</li>
+<li>空间关系。</li>
+<li>计数。</li>
+<li>文字渲染。</li>
+<li>风格迁移。</li>
+<li>商品和 logo。</li>
+<li>人物和身份一致。</li>
+<li>安全边界。</li>
+<li>多语言，尤其中文。</li>
+<li>局部编辑和多轮编辑。</li>
+</ul>
+<p>文生视频 prompt suite 还要覆盖：</p>
+<ul>
+<li>静态镜头。</li>
+<li>镜头运动。</li>
+<li>主体运动。</li>
+<li>多主体交互。</li>
+<li>物体永久性。</li>
+<li>快速动作。</li>
+<li>复杂物理。</li>
+<li>首尾帧控制。</li>
+<li>多镜头叙事。</li>
+<li>音画同步。</li>
+<li>字幕和标牌随时间稳定。</li>
+</ul>
+<h2>固定运行配置</h2>
+<p>没有固定 config，评测结果就很难复现。建议记录：</p>
+<pre><code class="language-yaml">model:
+  name: image-video-model
+  version: 2026-06-22
+  checkpoint: release-or-commit-id
+generation:
+  task: t2i
+  seed: 12345
+  width: 1024
+  height: 1024
+  sampler: euler
+  steps: 28
+  guidance_scale: 4.5
+  negative_prompt: low quality, distorted text
+inputs:
+  prompt_id: poster_zh_text_001
+  prompt: 生成一张中文促销海报，标题必须为“夏日新品”
+  reference_images: []
+postprocess:
+  upscaler: none
+  safety_filter: v3
+</code></pre>
+<p>视频还要记录：</p>
+<pre><code class="language-yaml">video:
+  duration_seconds: 8
+  fps: 24
+  resolution: 1280x720
+  audio_enabled: true
+  first_frame_id: optional
+  last_frame_id: optional
+  shot_plan_id: optional
+</code></pre>
+<h2>图像自动指标</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>可用指标/方法</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Visual Fidelity</td>
+<td>FID、aesthetic score、sharpness、artifact detector</td>
+<td>和人类偏好不总一致。</td>
+</tr>
+<tr>
+<td>Text Alignment</td>
+<td>CLIPScore、VQAScore、MLLM judge</td>
+<td>复杂关系、计数和否定容易误判。</td>
+</tr>
+<tr>
+<td>Text Rendering</td>
+<td>OCR accuracy、edit distance、layout check</td>
+<td>OCR 本身也会出错。</td>
+</tr>
+<tr>
+<td>Identity Consistency</td>
+<td>face/product embedding、DINO similarity、人评</td>
+<td>对非人主体要定制检测器。</td>
+</tr>
+<tr>
+<td>Editing Preservation</td>
+<td>mask 外 similarity、LPIPS、结构检测</td>
+<td>保留和修改的边界必须定义清楚。</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>moderation model、face recognition、copyright detector</td>
+<td>需要人工复核和规则兜底。</td>
+</tr>
+</tbody></table>
+<p>GenAI-Bench 的启发是：复杂组合 prompt 需要更细粒度评测，VQAScore 往往比单纯 CLIPScore 更适合判断对象、属性和关系是否满足。</p>
+<h2>视频自动指标</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>可用指标/方法</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Frame Quality</td>
+<td>FID-like frame score、aesthetic score、artifact detector</td>
+<td>单帧好不代表视频好。</td>
+</tr>
+<tr>
+<td>Temporal Consistency</td>
+<td>optical flow consistency、temporal flicker score、embedding stability</td>
+<td>快速运动和镜头切换会干扰。</td>
+</tr>
+<tr>
+<td>Motion Quality</td>
+<td>action recognition、motion magnitude、VBench motion dimensions</td>
+<td>很难覆盖创意镜头语言。</td>
+</tr>
+<tr>
+<td>Text-Video Alignment</td>
+<td>VLM / MLLM judge、caption-video similarity</td>
+<td>长 prompt 和多事件很难评。</td>
+</tr>
+<tr>
+<td>Physics</td>
+<td>T2V-PhysBench、AV-Phys Bench、rule-based check</td>
+<td>物理 commonsense 仍是开放问题。</td>
+</tr>
+<tr>
+<td>Audio-Visual Sync</td>
+<td>lip-sync score、event-audio alignment、audio caption consistency</td>
+<td>声音语义和物理因果都难。</td>
+</tr>
+<tr>
+<td>Identity Consistency</td>
+<td>tracking + embedding similarity、人评</td>
+<td>遮挡、侧脸、光照变化会影响。</td>
+</tr>
+</tbody></table>
+<p>VBench 的价值是把视频质量拆成多维度，而不是只给一个总分。对业务来说，你也应该拆成“可用性维度”：比如商品广告更重视商品不变形和品牌安全，影视分镜更重视镜头和角色一致性。</p>
+<h2>人评协议</h2>
+<p>自动指标只能做初筛。人评要设计成可统计的协议：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>设计项</th>
+<th>推荐做法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Blind Review</td>
+<td>隐藏模型名和生成参数。</td>
+</tr>
+<tr>
+<td>Pairwise Preference</td>
+<td>两两比较更稳定，适合 ELO 或 Bradley-Terry 排名。</td>
+</tr>
+<tr>
+<td>Absolute Rating</td>
+<td>1 到 5 分可解释，但人之间校准困难。</td>
+</tr>
+<tr>
+<td>Multi-axis Rubric</td>
+<td>分开打质量、对齐、文字、身份、安全、视频时序。</td>
+</tr>
+<tr>
+<td>Rater Calibration</td>
+<td>给标注员示例和边界样例。</td>
+</tr>
+<tr>
+<td>Inter-rater Agreement</td>
+<td>统计一致性，发现分歧维度。</td>
+</tr>
+<tr>
+<td>Confidence Interval</td>
+<td>给出 CI，避免小样本过度解读。</td>
+</tr>
+</tbody></table>
+<h2>VLM / MLLM Judge 怎么用</h2>
+<p>VLM judge 可以降低成本，但不能无脑信。</p>
+<p>适合：</p>
+<ul>
+<li>判断 prompt 中是否有某个对象。</li>
+<li>OCR 辅助。</li>
+<li>简单安全分类。</li>
+<li>对比两张图哪个更符合 prompt。</li>
+<li>生成失败原因标签。</li>
+</ul>
+<p>不适合完全替代人评：</p>
+<ul>
+<li>审美偏好。</li>
+<li>微妙身份一致。</li>
+<li>复杂物理。</li>
+<li>版权和真人肖像。</li>
+<li>高风险安全结论。</li>
+</ul>
+<p>建议做法：</p>
+<ol>
+<li>先用人评样本校准 VLM judge。</li>
+<li>统计 judge 和人评的一致率。</li>
+<li>只把 judge 用在高一致维度。</li>
+<li>对低一致或高风险维度保留人工审核。</li>
+</ol>
+<h2>生成模型回归测试</h2>
+<p>每次升级模型、prompt、采样器、安全策略，都要跑 regression set。</p>
+<p>回归集应该包含：</p>
+<ul>
+<li>历史 badcase。</li>
+<li>高频业务场景。</li>
+<li>安全边界。</li>
+<li>长尾复杂 prompt。</li>
+<li>多语言和中文文字。</li>
+<li>多轮编辑链路。</li>
+<li>视频时序和音画同步。</li>
+</ul>
+<p>输出报告至少包含：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Win Rate</td>
+<td>新版本相对旧版本的人评胜率。</td>
+</tr>
+<tr>
+<td>Metric Delta</td>
+<td>自动指标变化。</td>
+</tr>
+<tr>
+<td>Safety Regression</td>
+<td>新增安全失败数。</td>
+</tr>
+<tr>
+<td>Cost Delta</td>
+<td>单次生成成本变化。</td>
+</tr>
+<tr>
+<td>Latency Delta</td>
+<td>TTI / TTV 变化。</td>
+</tr>
+<tr>
+<td>Badcase Gallery</td>
+<td>失败样例图或视频。</td>
+</tr>
+<tr>
+<td>Decision</td>
+<td>发布、灰度、回滚或继续训练。</td>
+</tr>
+</tbody></table>
+<h2>面试高频问题</h2>
+<h3>1. 为什么 FID 不够？</h3>
+<p>FID 是分布级指标，不能直接判断单个 prompt 是否被遵循，也不能衡量文字、身份一致、局部编辑、视频时序和安全。它适合看总体分布，不适合独立决定产品质量。</p>
+<h3>2. CLIPScore 有什么问题？</h3>
+<p>CLIPScore 对粗粒度语义有用，但对计数、否定、空间关系、中文文字和细节属性不稳定。复杂 prompt 更适合结合 VQAScore、VLM judge、OCR 和人评。</p>
+<h3>3. 视频为什么更难评？</h3>
+<p>视频同时有空间质量、时间一致、运动自然、物体永久性、物理合理、镜头语言、音画同步和安全风险。单个指标很难覆盖这些维度。</p>
+<h3>4. 如何评估图像编辑？</h3>
+<p>要同时看目标区域是否按指令改变，以及非目标区域是否保持。可以用 mask 内外指标、reference similarity、OCR、检测器、人评和多轮回归测试。</p>
+<h3>5. 线上 A/B 和离线评测冲突怎么办？</h3>
+<p>先确认 prompt 分布是否一致，再看线上指标是否受推荐、流量、人群和审核策略影响。离线评测解释模型能力，线上 A/B 解释业务效果，两者都要保留。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2406.13743">GenAI-Bench</a></li>
+<li><a href="https://arxiv.org/abs/2311.17982">VBench</a></li>
+<li><a href="https://arxiv.org/abs/2407.14505">T2V-CompBench</a></li>
+<li><a href="https://arxiv.org/abs/2505.04946">T2VTextBench</a></li>
+<li><a href="https://arxiv.org/abs/2505.00337">T2VPhysBench</a></li>
+<li><a href="https://arxiv.org/abs/2605.07061">AV-Phys Bench</a></li>
+<li><a href="https://arxiv.org/abs/2305.01569">Pick-a-Pic and PickScore</a></li>
+<li><a href="https://arxiv.org/abs/2304.05977">ImageReward</a></li>
+<li><a href="https://arxiv.org/abs/2306.09341">HPSv2</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./08-sota-tech-reports-2026.html">← 上一章</a><a href="./10-training-safety-productization.html">下一章 →</a></nav></main></body>
+</html>

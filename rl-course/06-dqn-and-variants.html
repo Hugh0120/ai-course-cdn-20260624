@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 6 章：DQN（Deep Q-Network，深度 Q 网络）与经典改进</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-function-approximation-deadly-triad.html">← 上一章</a><a href="./07-policy-gradient.html">下一章 →</a></nav><h1>第 6 章：DQN（Deep Q-Network，深度 Q 网络）与经典改进</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>用神经网络近似动作价值函数 <span class="math-text">Q(s,a)</span>。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>状态 <span class="math-text">s</span> 下动作 <span class="math-text">a</span> 的长期价值；<span class="math-text">Q</span> 表示 action quality。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>TD Target / Bellman Target</td>
+<td>TD 目标 / Bellman 目标</td>
+<td>用于监督当前 Q 网络的目标值。</td>
+</tr>
+<tr>
+<td><span class="math-text">L(θ)</span></td>
+<td>Loss Function</td>
+<td>损失函数</td>
+<td>网络参数 <span class="math-text">θ</span> 的训练损失。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span></td>
+<td>Online Network Parameters</td>
+<td>在线网络参数</td>
+<td>当前正在训练的 Q 网络参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></td>
+<td>Target Network Parameters</td>
+<td>目标网络参数</td>
+<td>滞后更新的 target network 参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">p<sub><span class="math-text">i</span></sub></span></td>
+<td>Priority</td>
+<td>优先级</td>
+<td>Prioritized Replay 中第 <span class="math-text">i</span> 条样本的采样优先级。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(i)</span></td>
+<td>Sampling Probability</td>
+<td>采样概率</td>
+<td>replay buffer 中样本 <span class="math-text">i</span> 被采样的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">N</span></td>
+<td>Buffer Size / Sample Count</td>
+<td>buffer 大小 / 样本数</td>
+<td>importance sampling weight 中的数据规模。</td>
+</tr>
+<tr>
+<td><span class="math-text">w<sub><span class="math-text">i</span></sub></span></td>
+<td>Importance Sampling Weight</td>
+<td>重要性采样权重</td>
+<td>修正非均匀采样 bias 的权重。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span> / <span class="math-text">β</span></td>
+<td>Priority Exponent / IS Correction Exponent</td>
+<td>优先级指数 / 重要性采样修正指数</td>
+<td>Prioritized Replay 中控制采样偏斜和 bias 修正的参数。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>DQN 使用 TD/Bellman target 训练 Q 网络。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>DQN 是 deep RL 的经典 value-based 算法。</td>
+</tr>
+<tr>
+<td>SGD</td>
+<td>Stochastic Gradient Descent</td>
+<td>随机梯度下降</td>
+<td>用 mini-batch 优化神经网络的训练方法。</td>
+</tr>
+<tr>
+<td>IS</td>
+<td>Importance Sampling</td>
+<td>重要性采样</td>
+<td>Prioritized Replay 中用于修正非均匀采样 bias。</td>
+</tr>
+<tr>
+<td>DDPG / TD3 / SAC / PPO</td>
+<td>Deep Deterministic Policy Gradient / Twin Delayed DDPG / Soft Actor-Critic / Proximal Policy Optimization</td>
+<td>深度确定性策略梯度 / 双延迟 DDPG / 软 Actor-Critic / 近端策略优化</td>
+<td>连续控制或策略优化章节会出现的算法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习 value-based deep RL 的代表算法 DQN。你需要掌握：</p>
+<ul>
+<li>DQN 的基本结构。</li>
+<li>experience replay。</li>
+<li>target network。</li>
+<li>Double DQN。</li>
+<li>Dueling DQN。</li>
+<li>Prioritized Experience Replay。</li>
+<li>DQN 的适用场景和局限。</li>
+</ul>
+<h2>DQN 解决什么问题</h2>
+<p>Q-learning 的表格更新是：</p>
+<div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>
+
+<p>当状态空间巨大时，无法维护 Q-table。DQN 用神经网络近似 Q 函数：</p>
+<div class="math-block"><span class="math-text">Q(s, a; θ)</span></div>
+
+<p>如果动作空间是离散的，网络通常输入 <span class="math-text">s</span>，输出每个 action 的 Q 值：</p>
+<div class="math-block"><span class="math-text">network(s) → [Q(s, a<sub><span class="math-text">1</span></sub>), Q(s, a<sub><span class="math-text">2</span></sub>), …, Q(s, a<sub><span class="math-text">n</span></sub>)]</span></div>
+
+<h2>DQN Loss</h2>
+<p>DQN 的 target：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>如果 <span class="math-text">s&#39;</span> 是终止状态：</p>
+<div class="math-block"><span class="math-text">y = r</span></div>
+
+<p>损失函数：</p>
+<div class="math-block"><span class="math-text">L(θ) = 𝔼[(y - Q(s, a; θ))<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>其中：</p>
+<ul>
+<li><span class="math-text">θ</span> 是 online network 参数。</li>
+<li><span class="math-text">θ<sup><span class="math-text">-</span></sup></span> 是 target network 参数。</li>
+</ul>
+<p>实际实现中常用 Huber loss：</p>
+<div class="math-block"><span class="math-text">L = Huber(y - Q(s, a; θ))</span></div>
+
+<p>Huber loss 对异常 TD error 更稳。</p>
+<h2>从 Q-learning 到 DQN Loss 的推理过程</h2>
+<p>Tabular Q-learning 的更新是：</p>
+<div class="math-block"><span class="math-text">Q(s,a)← Q(s,a)+α[y-Q(s,a)]</span></div>
+
+<p>其中：</p>
+<div class="math-block"><span class="math-text">y=r+γmax<sub><span class="math-text">a'</span></sub>Q(s',a')</span></div>
+
+<p>如果用神经网络 <span class="math-text">Q(s,a;θ)</span> 代替表格，就不能直接“修改表格里的一个格子”。我们能做的是让网络当前输出靠近 target <span class="math-text">y</span>。</p>
+<p>于是 RL 更新变成一个监督学习式回归问题：</p>
+<pre><code class="language-text">input:  (s, a)
+label:  y = r + gamma max Q_target(s&#39;, a&#39;)
+predict: Q(s, a; theta)
+loss:   (y - Q(s, a; theta))^2
+</code></pre>
+<p>这一步很关键：DQN 不是突然换了目标，它仍然在逼近 Bellman optimality backup，只是把 tabular update 改成了 neural network regression。</p>
+<p>为什么 target 用 <span class="math-text">θ<sup><span class="math-text">-</span></sup></span> 而不是当前 <span class="math-text">θ</span>？</p>
+<ul>
+<li>如果 label 和 prediction 都由同一个快速变化的网络产生，训练目标会一直漂。</li>
+<li>target network 让 <span class="math-text">y</span> 在一段时间内相对稳定。</li>
+<li>online network 只负责追这个相对固定的 Bellman target。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DQN 的 loss 可以看成把 Q-learning 的 TD target 当成监督信号。Replay buffer 解决样本相关性，target network 解决 bootstrap target 随参数同步漂移的问题。</p>
+</blockquote>
+<h2>DQN 训练流程</h2>
+<pre><code class="language-text">initialize online network Q(theta)
+initialize target network Q(theta-) = Q(theta)
+initialize replay buffer
+
+for each step:
+    choose action using epsilon-greedy
+    execute action, observe r, s&#39;, done
+    store (s, a, r, s&#39;, done) in replay buffer
+
+    sample minibatch from replay buffer
+    y = r + gamma (1 - done) max_a&#39; Q(s&#39;, a&#39;; theta-)
+    minimize [y - Q(s, a; theta)]^2
+
+    periodically update target network
+</code></pre>
+<h2>Experience Replay</h2>
+<p>Replay buffer 存储 transition：</p>
+<pre><code class="language-text">(s, a, r, s&#39;, done)
+</code></pre>
+<p>作用：</p>
+<ul>
+<li>打破连续样本之间的相关性。</li>
+<li>复用历史样本，提高 sample efficiency。</li>
+<li>平滑训练数据分布。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DQN 中连续交互得到的样本高度相关，不适合直接做 SGD。Replay buffer 通过随机采样历史 transition，降低样本相关性，同时让每条经验被多次利用。</p>
+</blockquote>
+<h2>Target Network</h2>
+<p>如果 target 使用 online network：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div>
+
+<p>那么 <span class="math-text">θ</span> 每次更新都会改变 target，训练会追逐一个移动目标。</p>
+<p>DQN 使用 target network：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p><span class="math-text">θ<sup><span class="math-text">-</span></sup></span> 每隔固定步数从 <span class="math-text">θ</span> 同步一次，或使用软更新。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Target network 让 bootstrap target 在一段时间内保持稳定，降低训练目标和预测网络同步变化带来的震荡。</p>
+</blockquote>
+<h2>Double DQN</h2>
+<p>DQN 中的 target：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>同一个 max 操作既选择动作又评估动作，容易产生 overestimation bias。</p>
+<p>Double DQN 将动作选择和动作评估拆开：</p>
+<div class="math-block multi"><div><span class="math-text">a<sup><span class="math-text">*</span></sup> = argmax<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div><div><span class="math-text">y = r + γ Q(s', a<sup><span class="math-text">*</span></sup>; θ<sup><span class="math-text">-</span></sup>)</span></div></div>
+
+<p>其中：</p>
+<ul>
+<li>online network 负责选择动作。</li>
+<li>target network 负责评估该动作。</li>
+</ul>
+<p>这样可以缓解 Q 值过估计。</p>
+<h2>Double DQN 为什么能缓解过估计</h2>
+<p>DQN 的问题来自 max operator。假设每个动作的 Q 估计都有噪声：</p>
+<pre><code class="language-text">estimated Q = true Q + noise
+</code></pre>
+<p>当我们取 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span> 时，更容易选中“被正噪声高估”的动作。即使每个动作估计平均无偏，最大值也会偏高。</p>
+<p>普通 DQN 同一个 target network 同时做两件事：</p>
+<ol>
+<li>选择哪个动作最大。</li>
+<li>评估这个动作的价值。</li>
+</ol>
+<p>Double DQN 把这两步拆开：</p>
+<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>=argmax<sub><span class="math-text">a'</span></sub>Q(s',a';θ)</span></div>
+
+<div class="math-block"><span class="math-text">y=r+γ Q(s',a<sup><span class="math-text">*</span></sup>;θ<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>这样选择动作时的噪声和评估动作时的噪声不完全相同，正噪声被重复放大的程度下降，因此 overestimation bias 更小。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Double DQN 的核心是 decouple action selection and action evaluation。DQN 的 max operator 容易选择被噪声高估的动作，Double DQN 用 online network 选动作，用 target network 估值，从而降低 overestimation bias。</p>
+</blockquote>
+<h2>Dueling DQN</h2>
+<p>Dueling DQN 将 Q 函数分解为状态价值和动作优势：</p>
+<div class="math-block"><span class="math-text">Q(s, a) = V(s) + A(s, a)</span></div>
+
+<p>实际为了可辨识性，常用：</p>
+<div class="math-block"><span class="math-text">Q(s, a) = V(s) + A(s, a) - 1 / ∣𝒜∣∑<sub><span class="math-text">a'</span></sub> A(s, a')</span></div>
+
+<p>直觉：</p>
+<p>有些状态下，知道状态本身好不好比区分每个动作更重要。Dueling 结构让网络分别学习：</p>
+<ul>
+<li><span class="math-text">V(s)</span>：这个状态整体价值如何。</li>
+<li><span class="math-text">A(s,a)</span>：某个动作相对其他动作好多少。</li>
+</ul>
+<p>适合动作之间差异不总是明显的场景。</p>
+<h2>Prioritized Experience Replay</h2>
+<p>普通 replay buffer 均匀采样 transition。<br>Prioritized Replay 更倾向采样 TD error 大的样本。</p>
+<p>优先级：</p>
+<div class="math-block"><span class="math-text">p<sub><span class="math-text">i</span></sub> = ∣δ<sub><span class="math-text">i</span></sub>∣ + ε</span></div>
+
+<p>采样概率：</p>
+<div class="math-block"><span class="math-text">P(i) = p<sub><span class="math-text">i</span></sub><sup><span class="math-text">α</span></sup> / ∑<sub><span class="math-text">k</span></sub> p<sub><span class="math-text">k</span></sub><sup><span class="math-text">α</span></sup></span></div>
+
+<p>为了修正非均匀采样带来的 bias，使用 importance sampling weight：</p>
+<div class="math-block"><span class="math-text">w<sub><span class="math-text">i</span></sub> = (1 / (N P(i)))<sup><span class="math-text">β</span></sup></span></div>
+
+<p>直觉：</p>
+<p>TD error 大的样本说明当前模型学得不好，更值得训练。</p>
+<h2>Rainbow DQN</h2>
+<p>Rainbow DQN 组合了多个 DQN 改进：</p>
+<ul>
+<li>Double DQN。</li>
+<li>Dueling Network。</li>
+<li>Prioritized Replay。</li>
+<li>Multi-step Learning。</li>
+<li>Distributional RL。</li>
+<li>NoisyNet。</li>
+</ul>
+<p>面试中通常了解组件即可，不一定要求完整推导。</p>
+<h2>DQN 的适用场景</h2>
+<p>适合：</p>
+<ul>
+<li>离散动作空间。</li>
+<li>可以通过 Q 值枚举动作。</li>
+<li>游戏、简单控制、离散决策。</li>
+</ul>
+<p>不适合：</p>
+<ul>
+<li>高维连续动作空间。</li>
+<li>需要直接输出连续控制量的任务。</li>
+<li>极端稀疏奖励且探索困难的任务。</li>
+</ul>
+<p>连续控制通常用 DDPG、TD3、SAC、PPO 等算法。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. DQN 相比 Q-learning 改了什么？</h3>
+<p>DQN 用神经网络近似 Q 函数，使 Q-learning 可以处理高维状态输入，例如图像。为了稳定训练，引入了 experience replay 和 target network。</p>
+<h3>2. DQN 为什么需要 replay buffer？</h3>
+<p>为了打破连续样本相关性，提高样本利用率，并使 mini-batch 训练更接近监督学习中的随机采样。</p>
+<h3>3. DQN 为什么需要 target network？</h3>
+<p>为了稳定 bootstrap target。如果 target 和 online prediction 使用同一网络，模型每次更新都会改变训练目标，容易震荡或发散。</p>
+<h3>4. Double DQN 解决什么问题？</h3>
+<p>解决 DQN 中 max operator 带来的 overestimation bias。它用 online network 选择动作，用 target network 评估动作，从而降低过估计。</p>
+<h3>5. Dueling DQN 的核心思想是什么？</h3>
+<p>将 Q 分解为状态价值 <span class="math-text">V(s)</span> 和动作优势 <span class="math-text">A(s,a)</span>，让网络更好地学习状态本身价值和动作相对价值。</p>
+<h2>本章练习</h2>
+<ol>
+<li>手写 DQN target 和 loss。</li>
+<li>解释 Double DQN 的 target 和 DQN target 的区别。</li>
+<li>画出 Dueling DQN 的网络结构。</li>
+<li>阅读一个 CleanRL DQN 实现，标出 replay buffer、target network、epsilon schedule 的位置。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./05-function-approximation-deadly-triad.html">← 上一章</a><a href="./07-policy-gradient.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · LLM / VLM 进阶面试课程 Roadmap</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><span>← 上一章</span><a href="./01-transformer-tokenization-pretraining.html">下一章 →</a></nav><h1>LLM / VLM 进阶面试课程 Roadmap</h1>
+<p>这套笔记面向 AI（Artificial Intelligence，人工智能）算法工程师的 LLM（Large Language Model，大语言模型）与 VLM（Vision-Language Model，视觉语言模型）面试准备。当前版本按 2026-06-23 的技术格局重写：不只讲 Transformer 和 RAG（Retrieval-Augmented Generation，检索增强生成），还覆盖 reasoning model、post-training、RLVR（Reinforcement Learning with Verifiable Rewards，可验证奖励强化学习）、agentic tool use、long-horizon coding agent、eval harness、VLM 数据和评测实操、SOTA（State of the Art，当前最优）技术报告阅读和系统安全。</p>
+<h2>全局符号和缩写说明</h2>
+<p>阅读约定：大写字母通常表示矩阵、随机变量、模块、数据集或模型族；小写字母通常表示样本、token、向量或标量。第一次遇到公式前，先把常用符号列清楚。</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AI</td>
+<td>Artificial Intelligence</td>
+<td>人工智能</td>
+<td>本课程讨论的总领域。</td>
+</tr>
+<tr>
+<td>LM</td>
+<td>Language Model</td>
+<td>语言模型</td>
+<td>语言建模系统的通称，LLM 是大规模 LM。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>以大规模文本预训练为核心的生成式语言模型。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理图像/视频和文本的多模态模型。</td>
+</tr>
+<tr>
+<td>MLLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>把视觉、文本、音频等模态接入 LLM 的模型族。</td>
+</tr>
+<tr>
+<td>NLP</td>
+<td>Natural Language Processing</td>
+<td>自然语言处理</td>
+<td>语言理解与生成任务领域。</td>
+</tr>
+<tr>
+<td>CV</td>
+<td>Computer Vision</td>
+<td>计算机视觉</td>
+<td>图像、视频理解与生成任务领域。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>模型、工具、服务之间交互的接口。</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>Database</td>
+<td>数据库</td>
+<td>存储结构化或半结构化数据的系统。</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>JavaScript Object Notation</td>
+<td>JavaScript 对象表示法</td>
+<td>工具调用和结构化输出常用格式。</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>Portable Document Format</td>
+<td>可移植文档格式</td>
+<td>文档理解和企业知识库中常见文件格式。</td>
+</tr>
+<tr>
+<td>GUI</td>
+<td>Graphical User Interface</td>
+<td>图形用户界面</td>
+<td>computer-use agent 操作的桌面或网页界面。</td>
+</tr>
+<tr>
+<td>Transformer</td>
+<td>Transformer Architecture</td>
+<td>Transformer 架构</td>
+<td>基于 attention 的主流序列建模架构。</td>
+</tr>
+<tr>
+<td>BPE</td>
+<td>Byte Pair Encoding</td>
+<td>字节对编码</td>
+<td>常见 subword tokenization 方法。</td>
+</tr>
+<tr>
+<td>Attention</td>
+<td>Attention Mechanism</td>
+<td>注意力机制</td>
+<td>用 query-key-value 计算 token 间依赖的机制。</td>
+</tr>
+<tr>
+<td>MHA</td>
+<td>Multi-Head Attention</td>
+<td>多头注意力</td>
+<td>在多个子空间并行计算 attention 的模块。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q</span> / <span class="math-text">K</span> / <span class="math-text">V</span></td>
+<td>Query / Key / Value</td>
+<td>查询 / 键 / 值</td>
+<td>attention 中的三个投影矩阵或向量，不等同于 RL 里的 <span class="math-text">Q</span> value。</td>
+</tr>
+<tr>
+<td><span class="math-text">X</span></td>
+<td>Input Sequence</td>
+<td>输入序列</td>
+<td>token embedding 组成的输入矩阵。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">i</span></sub></span></td>
+<td>Token Embedding</td>
+<td>第 <span class="math-text">i</span> 个 token 向量</td>
+<td>序列中某个 token 的向量表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">h<sub><span class="math-text">i</span></sub></span></td>
+<td>Hidden State</td>
+<td>隐状态</td>
+<td>Transformer 某层输出的第 <span class="math-text">i</span> 个 token 表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span></td>
+<td>Model Parameters</td>
+<td>模型参数</td>
+<td>神经网络中被训练的参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">L(θ)</span></td>
+<td>Loss Function</td>
+<td>损失函数</td>
+<td>训练时最小化的目标。</td>
+</tr>
+<tr>
+<td>CE</td>
+<td>Cross Entropy</td>
+<td>交叉熵</td>
+<td>自回归语言模型常用训练损失。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用指令-答案数据继续训练模型。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用偏好数据训练 reward model，再优化策略。</td>
+</tr>
+<tr>
+<td>RM</td>
+<td>Reward Model</td>
+<td>奖励模型</td>
+<td>对回答、步骤或轨迹打分的模型。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>RLHF 早期常用的策略优化算法。</td>
+</tr>
+<tr>
+<td>KL</td>
+<td>Kullback-Leibler Divergence</td>
+<td>KL 散度</td>
+<td>衡量当前策略偏离参考策略的程度。</td>
+</tr>
+<tr>
+<td>RLAIF</td>
+<td>Reinforcement Learning from AI Feedback</td>
+<td>基于 AI 反馈的强化学习</td>
+<td>用 AI 反馈训练 preference/reward signal。</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>用可自动验证的 reward 训练推理、代码、工具任务。</td>
+</tr>
+<tr>
+<td>GRPO</td>
+<td>Group Relative Policy Optimization</td>
+<td>组相对策略优化</td>
+<td>DeepSeekMath / DeepSeek-R1 系列使用的 PPO 变体，不显式训练 value model。</td>
+</tr>
+<tr>
+<td>PRM</td>
+<td>Process Reward Model</td>
+<td>过程奖励模型</td>
+<td>给推理中间步骤打分的 reward model。</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>Outcome Reward Model</td>
+<td>结果奖励模型</td>
+<td>只根据最终答案或任务结果打分的 reward model。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>不显式训练 reward model 的偏好对齐方法。</td>
+</tr>
+<tr>
+<td>CoT</td>
+<td>Chain-of-Thought</td>
+<td>思维链</td>
+<td>模型内部或外显的中间推理过程。</td>
+</tr>
+<tr>
+<td>RAG</td>
+<td>Retrieval-Augmented Generation</td>
+<td>检索增强生成</td>
+<td>先检索外部知识，再让模型基于上下文生成。</td>
+</tr>
+<tr>
+<td>IR</td>
+<td>Information Retrieval</td>
+<td>信息检索</td>
+<td>RAG 背后的检索领域。</td>
+</tr>
+<tr>
+<td>BM25</td>
+<td>Best Matching 25</td>
+<td>BM25 排序函数</td>
+<td>经典关键词检索打分方法。</td>
+</tr>
+<tr>
+<td>Vector DB</td>
+<td>Vector Database</td>
+<td>向量数据库</td>
+<td>存储 embedding 并支持相似度检索的数据库。</td>
+</tr>
+<tr>
+<td>Hybrid Search</td>
+<td>Hybrid Search</td>
+<td>混合检索</td>
+<td>组合 BM25、dense retrieval、metadata filter 等信号。</td>
+</tr>
+<tr>
+<td>GraphRAG</td>
+<td>Graph Retrieval-Augmented Generation</td>
+<td>图检索增强生成</td>
+<td>用实体关系、图结构和社区摘要增强检索。</td>
+</tr>
+<tr>
+<td>Agentic RAG</td>
+<td>Agentic Retrieval-Augmented Generation</td>
+<td>智能体式 RAG</td>
+<td>让 agent 动态规划、检索、验证和补查证据。</td>
+</tr>
+<tr>
+<td>RAGAS</td>
+<td>RAG Assessment</td>
+<td>RAG 评估工具</td>
+<td>常用于 RAG faithfulness、context relevance 等自动评测。</td>
+</tr>
+<tr>
+<td>MTEB</td>
+<td>Massive Text Embedding Benchmark</td>
+<td>大规模文本向量评测</td>
+<td>embedding 模型常用评测基准。</td>
+</tr>
+<tr>
+<td>HELM</td>
+<td>Holistic Evaluation of Language Models</td>
+<td>语言模型整体评测</td>
+<td>综合评估模型准确性、鲁棒性、公平性等维度。</td>
+</tr>
+<tr>
+<td>Eval</td>
+<td>Evaluation</td>
+<td>评测</td>
+<td>对模型或系统能力、风险和成本的测量。</td>
+</tr>
+<tr>
+<td>Harness</td>
+<td>Harness</td>
+<td>评测/执行框架</td>
+<td>管理数据、prompt、模型调用、工具、环境、打分和记录的系统层。</td>
+</tr>
+<tr>
+<td>Eval Harness</td>
+<td>Evaluation Harness</td>
+<td>评测框架</td>
+<td>把 benchmark 跑成可复现实验的执行框架。</td>
+</tr>
+<tr>
+<td>Agent Harness</td>
+<td>Agent Harness</td>
+<td>智能体执行框架</td>
+<td>管理 agent 上下文、工具、状态、权限、trace 和恢复的系统层。</td>
+</tr>
+<tr>
+<td>Benchmark</td>
+<td>Benchmark</td>
+<td>基准测试</td>
+<td>固定任务集合和指标，用于比较模型或系统。</td>
+</tr>
+<tr>
+<td>Oracle</td>
+<td>Oracle</td>
+<td>标准判定器</td>
+<td>能可靠判断答案或最终状态是否正确的程序/标注。</td>
+</tr>
+<tr>
+<td>Judge</td>
+<td>Judge</td>
+<td>裁判模型/评审者</td>
+<td>用模型或人类判断开放式输出质量。</td>
+</tr>
+<tr>
+<td>Trace</td>
+<td>Trace</td>
+<td>轨迹日志</td>
+<td>记录 prompt、tool call、observation、输出和分数。</td>
+</tr>
+<tr>
+<td>pass@k</td>
+<td>Pass at k</td>
+<td>k 次通过率</td>
+<td>采样 k 次至少一次成功的概率指标。</td>
+</tr>
+<tr>
+<td>Contamination</td>
+<td>Data Contamination</td>
+<td>数据污染</td>
+<td>测试集进入训练数据或 prompt 导致分数虚高。</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>Agent</td>
+<td>智能体</td>
+<td>能规划、调用工具、观察结果并继续行动的系统。</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>Model Context Protocol</td>
+<td>模型上下文协议</td>
+<td>将工具、资源和上下文暴露给 agent 的协议范式。</td>
+</tr>
+<tr>
+<td>MCTS</td>
+<td>Monte Carlo Tree Search</td>
+<td>蒙特卡洛树搜索</td>
+<td>用搜索树探索候选推理或行动路径的方法。</td>
+</tr>
+<tr>
+<td>SWE</td>
+<td>Software Engineering</td>
+<td>软件工程</td>
+<td>代码生成、修复、测试、仓库级任务等场景。</td>
+</tr>
+<tr>
+<td>SWE-bench</td>
+<td>Software Engineering Benchmark</td>
+<td>软件工程基准</td>
+<td>用真实 GitHub issue 测试代码 agent 的 benchmark。</td>
+</tr>
+<tr>
+<td>Terminal-Bench</td>
+<td>Terminal Benchmark</td>
+<td>终端任务基准</td>
+<td>测试模型在 shell/terminal 中完成多步任务的能力。</td>
+</tr>
+<tr>
+<td>BrowseComp</td>
+<td>Browsing Competition Benchmark</td>
+<td>浏览检索基准</td>
+<td>测试 browsing agent 查找隐蔽信息的能力。</td>
+</tr>
+<tr>
+<td>TAU-bench</td>
+<td>Tool-Agent-User Benchmark</td>
+<td>工具-智能体-用户交互基准</td>
+<td>测试 agent 与用户、API、业务规则交互的稳定性。</td>
+</tr>
+<tr>
+<td>OSWorld</td>
+<td>Operating System World Benchmark</td>
+<td>操作系统世界基准</td>
+<td>测试 GUI/computer-use agent 的 benchmark。</td>
+</tr>
+<tr>
+<td>MoE</td>
+<td>Mixture of Experts</td>
+<td>混合专家模型</td>
+<td>每个 token 只激活部分专家参数，提高容量/成本比。</td>
+</tr>
+<tr>
+<td>PEFT</td>
+<td>Parameter-Efficient Fine-Tuning</td>
+<td>参数高效微调</td>
+<td>只训练少量参数的微调方法。</td>
+</tr>
+<tr>
+<td>LoRA</td>
+<td>Low-Rank Adaptation</td>
+<td>低秩适配</td>
+<td>在权重更新中注入低秩矩阵的 PEFT 方法。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Contrastive Language-Image Pre-training</td>
+<td>对比式图文预训练</td>
+<td>学习图像和文本共享语义空间的经典方法。</td>
+</tr>
+<tr>
+<td>ViT</td>
+<td>Vision Transformer</td>
+<td>视觉 Transformer</td>
+<td>把图像切成 patch token 后用 Transformer 编码。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>从图像中识别文字。</td>
+</tr>
+<tr>
+<td>VQA</td>
+<td>Visual Question Answering</td>
+<td>视觉问答</td>
+<td>给定图像和问题，输出答案。</td>
+</tr>
+<tr>
+<td>MMLU</td>
+<td>Massive Multitask Language Understanding</td>
+<td>大规模多任务语言理解基准</td>
+<td>LLM 知识与推理评测基准。</td>
+</tr>
+<tr>
+<td>AIME</td>
+<td>American Invitational Mathematics Examination</td>
+<td>美国邀请数学竞赛</td>
+<td>reasoning model 常用数学评测之一。</td>
+</tr>
+<tr>
+<td>GPQA</td>
+<td>Graduate-Level Google-Proof Q&amp;A</td>
+<td>研究生级抗搜索问答</td>
+<td>面向高难科学知识和推理的评测。</td>
+</tr>
+<tr>
+<td>ARC</td>
+<td>Agentic, Reasoning, Coding</td>
+<td>智能体、推理、编程</td>
+<td>GLM 系列报告中强调的三类核心能力。</td>
+</tr>
+<tr>
+<td>DSA</td>
+<td>DeepSeek Sparse Attention</td>
+<td>DeepSeek 稀疏注意力</td>
+<td>GLM-5 报告采用的长上下文高效注意力路线。</td>
+</tr>
+<tr>
+<td>MTP</td>
+<td>Multi-Token Prediction</td>
+<td>多 token 预测</td>
+<td>用于提升解码吞吐或 speculative decoding 的机制。</td>
+</tr>
+<tr>
+<td>RLCS</td>
+<td>Reinforcement Learning with Curriculum Sampling</td>
+<td>课程采样强化学习</td>
+<td>GLM-4.5V 报告中用于多模态推理训练的 RL 方法。</td>
+</tr>
+<tr>
+<td>STEM</td>
+<td>Science, Technology, Engineering, Mathematics</td>
+<td>科学、技术、工程、数学</td>
+<td>多模态和推理模型常见高难评测领域。</td>
+</tr>
+<tr>
+<td>MMMU</td>
+<td>Massive Multi-discipline Multimodal Understanding</td>
+<td>大规模多学科多模态理解基准</td>
+<td>VLM 专家级多模态理解评测基准。</td>
+</tr>
+<tr>
+<td>GPT</td>
+<td>Generative Pre-trained Transformer</td>
+<td>生成式预训练 Transformer</td>
+<td>OpenAI GPT 系列模型名称中的缩写。</td>
+</tr>
+<tr>
+<td>GLM</td>
+<td>General Language Model</td>
+<td>通用语言模型</td>
+<td>智谱 / Z.ai GLM 系列模型名称中的缩写。</td>
+</tr>
+</tbody></table>
+<h2>学习路线</h2>
+<table class="roadmap-table">
+<thead>
+<tr>
+<th>章节</th>
+<th>主题</th>
+<th>面试重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 章</td>
+<td>Transformer、tokenization、自回归预训练</td>
+<td>attention 公式、causal mask、next-token prediction。</td>
+</tr>
+<tr>
+<td>第 2 章</td>
+<td>Scaling、post-training、alignment</td>
+<td>SFT、RLHF、RLAIF、DPO、RLVR、GRPO、安全对齐。</td>
+</tr>
+<tr>
+<td>第 3 章</td>
+<td>Prompt、agent loop、tool use、system eval</td>
+<td>prompt 边界、ReAct、function calling、系统评测分层。</td>
+</tr>
+<tr>
+<td>第 4 章</td>
+<td>VLM 基础、ViT、CLIP 与图文对齐</td>
+<td>ViT、CLIP contrastive learning、VQA/OCR。</td>
+</tr>
+<tr>
+<td>第 5 章</td>
+<td>MLLM 架构与训练</td>
+<td>BLIP-2、Flamingo、LLaVA、Qwen2.5-VL。</td>
+</tr>
+<tr>
+<td>第 6 章</td>
+<td>VLM 数据构造、预处理与训练实操</td>
+<td>OCR、文档、图表、视频、UI 数据 schema、dynamic resolution、SFT/preference/RLVR。</td>
+</tr>
+<tr>
+<td>第 7 章</td>
+<td>VLM 评测 Harness、Benchmark 与项目实操</td>
+<td>DocVQA、ChartQA、Video-MME、GUI、VLM judge、badcase 归因。</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>进阶面试速查与项目表达</td>
+<td>高频问答、RAG/coding agent/VLM 项目讲法。</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>Reasoning model、RLVR 与过程监督</td>
+<td>test-time compute、PRM/ORM、verifier、GRPO。</td>
+</tr>
+<tr>
+<td>第 10 章</td>
+<td>Agentic systems 与 coding agent</td>
+<td>computer use、多工具、多 agent、长期任务评测。</td>
+</tr>
+<tr>
+<td>第 11 章</td>
+<td>2026 SOTA 技术报告阅读</td>
+<td>GPT-5.5、Claude Opus 4.7、Gemini 2.5、DeepSeek-R1、Qwen3、Kimi K2、GLM-5.2。</td>
+</tr>
+<tr>
+<td>第 12 章</td>
+<td>RAG 系统、Agentic RAG 与评测</td>
+<td>hybrid retrieval、GraphRAG、RAGAS、citation verification、权限。</td>
+</tr>
+<tr>
+<td>第 13 章</td>
+<td>Eval Harness、Benchmark 与可复现评测</td>
+<td>LM Evaluation Harness、Agent Harness、RAG Harness、protocol、trace。</td>
+</tr>
+<tr>
+<td>References</td>
+<td>论文、官方技术报告、benchmark 链接</td>
+<td>用于深入阅读和面试前补引用。</td>
+</tr>
+</tbody></table>
+<h2>推荐学习顺序</h2>
+<ol>
+<li>先学第 1 章，能手写 attention 公式和 next-token prediction。</li>
+<li>第 2 章理解现代 LLM 的 post-training pipeline：SFT、preference、RL、safety tuning。</li>
+<li>第 9 章重点攻 reasoning model：为什么 test-time compute、PRM/ORM、RLVR、GRPO 成为 2025-2026 主线。</li>
+<li>第 12 章单独攻 RAG：hybrid retrieval、GraphRAG、Agentic RAG、RAG eval 和权限。</li>
+<li>第 10 和第 13 章用于工程面试：agentic coding、harness、benchmark protocol、trace、可复现评测。</li>
+<li>第 11 章读 SOTA 技术报告，学会横向比较闭源/开源模型，而不是背模型名字。</li>
+<li>第 4-7 章转向 VLM/MLLM：图文对齐、视觉 token 接入 LLM、多模态指令微调、数据构造、评测 harness。</li>
+<li>第 8 章用于面试前压缩复习。</li>
+</ol>
+<h2>面试目标</h2>
+<p>学完后你应该能清楚回答：</p>
+<ul>
+<li>Transformer attention 为什么是 <span class="math-text">QK<sup><span class="math-text">⊤</span></sup> / √(d<sub><span class="math-text">k</span></sub>)</span>。</li>
+<li>pretraining、SFT、RLHF、RLAIF、DPO、RLVR 的关系。</li>
+<li>RLVR、GRPO、PRM、ORM 和传统 RLHF 的区别。</li>
+<li>reasoning model 为什么用更多 inference compute 能提升复杂任务表现。</li>
+<li>agentic tool use 和普通 function calling 的差异。</li>
+<li>coding agent 如何评估：SWE-bench、Terminal-Bench、TAU-bench、BrowseComp、open-world eval。</li>
+<li>harness、benchmark、scaffold、leaderboard 的区别。</li>
+<li>LoRA 和 QLoRA 为什么省显存。</li>
+<li>RAG 为什么能缓解幻觉，以及 hybrid retrieval、GraphRAG、Agentic RAG、RAGAS 的取舍。</li>
+<li>GPT-5.5、Claude Opus 4.7、Gemini 2.5、DeepSeek-R1、Qwen3、Kimi K2、GLM-5.2 各自技术报告的关键点。</li>
+<li>CLIP 为什么能 zero-shot transfer。</li>
+<li>BLIP-2 / Flamingo / LLaVA 的核心架构差异。</li>
+<li>VLM 数据如何构造：OCR、文档、图表、视频、UI、grounding、preference/RLVR。</li>
+<li>如何设计 VLM eval harness，并做 OCR、文档、图表、视频、GUI 和安全 badcase 归因。</li>
+<li>VLM 在 OCR、chart、document、spatial reasoning 上为什么容易出错。</li>
+<li>如何设计一个 LLM/VLM 项目并说明指标、数据、评测和风险。</li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><span>← 上一章</span><a href="./01-transformer-tokenization-pretraining.html">下一章 →</a></nav></main></body>
+</html>

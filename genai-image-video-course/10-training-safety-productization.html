@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 10 章：训练、对齐、安全、Provenance 与产品化</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-eval-harness-and-benchmarking.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav><h1>第 10 章：训练、对齐、安全、Provenance 与产品化</h1>
+<p>最后一章回答真实工作里的问题：模型怎么训，怎么对齐，怎么防滥用，怎么上线。面试官越资深，越会从“模型原理”追到“你怎么把它做成可靠系统”。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用高质量指令、编辑或安全数据微调模型。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好训练 reward 并优化模型。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>不显式训练 reward model 的偏好优化方法。</td>
+</tr>
+<tr>
+<td>RM</td>
+<td>Reward Model</td>
+<td>奖励模型</td>
+<td>预测人类偏好的模型。</td>
+</tr>
+<tr>
+<td>RLAIF</td>
+<td>Reinforcement Learning from AI Feedback</td>
+<td>基于 AI 反馈的强化学习</td>
+<td>用 AI judge 生成偏好或奖励信号。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>用于 caption、审核、评测和自动标注。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>用于文字数据构造、评测和审核。</td>
+</tr>
+<tr>
+<td>PII</td>
+<td>Personally Identifiable Information</td>
+<td>个人可识别信息</td>
+<td>可能指向个人身份的敏感信息。</td>
+</tr>
+<tr>
+<td>IP</td>
+<td>Intellectual Property</td>
+<td>知识产权</td>
+<td>版权、商标、角色、品牌资产等。</td>
+</tr>
+<tr>
+<td>C2PA</td>
+<td>Coalition for Content Provenance and Authenticity</td>
+<td>内容来源与真实性联盟</td>
+<td>用 Content Credentials 表示内容来源和编辑历史。</td>
+</tr>
+<tr>
+<td>DRM</td>
+<td>Digital Rights Management</td>
+<td>数字版权管理</td>
+<td>管理数字内容访问和使用权限的机制。</td>
+</tr>
+<tr>
+<td>SLA</td>
+<td>Service Level Agreement</td>
+<td>服务等级协议</td>
+<td>产品服务可用性、延迟和稳定性要求。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>产品调用生成、审核、评测和素材服务的接口。</td>
+</tr>
+</tbody></table>
+<h2>训练 Pipeline 总览</h2>
+<p>一个产业级文生图/视频训练 pipeline 通常长这样：</p>
+<pre><code class="language-text">数据采集
+→ 去重、质量过滤、安全过滤、版权/隐私过滤
+→ captioning / recaptioning / OCR / audio caption
+→ tokenizer / VAE / 3D VAE 训练或复用
+→ base model pretraining
+→ task-specific SFT
+→ preference data / reward model / RLHF 或 DPO
+→ distillation / acceleration
+→ safety tuning
+→ eval harness
+→ 灰度发布和线上反馈回流
+</code></pre>
+<p>面试里你可以强调：</p>
+<blockquote>
+<p>文生图/视频的效果不是单纯由 backbone 决定。数据质量、caption、tokenizer、后训练、采样器、评测和安全共同决定最终产品体验。</p>
+</blockquote>
+<h2>数据与 Captioning</h2>
+<p>训练数据的关键问题：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>问题</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Low-quality Data</td>
+<td>模糊、水印、压缩、低审美会直接影响生成质量。</td>
+</tr>
+<tr>
+<td>Bad Captions</td>
+<td>caption 不描述动作、文字、布局，模型就学不到 prompt 对齐。</td>
+</tr>
+<tr>
+<td>Duplicates</td>
+<td>数据重复会导致 memorization 和版权风险。</td>
+</tr>
+<tr>
+<td>Unsafe Content</td>
+<td>色情、暴力、仇恨、未成年人、隐私内容会污染模型。</td>
+</tr>
+<tr>
+<td>Copyright Risk</td>
+<td>未授权 IP、角色、品牌、影视片段会带来法律和产品风险。</td>
+</tr>
+<tr>
+<td>OCR Noise</td>
+<td>文字识别错会伤害文字渲染能力。</td>
+</tr>
+<tr>
+<td>Temporal Noise</td>
+<td>视频剪辑跳变、字幕、水印、转场会伤害时序建模。</td>
+</tr>
+</tbody></table>
+<p>recaptioning 很重要。DALL-E 3、Sora、Seedance 等公开材料都强调过更高质量 caption 或 recaption 对 prompt adherence 的价值。</p>
+<p>高质量 caption 应该包括：</p>
+<ul>
+<li>主体、属性、数量。</li>
+<li>空间关系和构图。</li>
+<li>风格、材质、光照、镜头。</li>
+<li>图像中文字。</li>
+<li>视频动作、镜头运动、时间变化。</li>
+<li>音频事件和声源。</li>
+<li>安全敏感标签。</li>
+</ul>
+<h2>Base Training、SFT 与 Preference Optimization</h2>
+<p>训练阶段可以拆成：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>English</th>
+<th>中文</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pretraining</td>
+<td>Pretraining</td>
+<td>预训练</td>
+<td>学通用视觉分布、语言条件和运动。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>学指令、编辑、产品风格和安全边界。</td>
+</tr>
+<tr>
+<td>Preference Training</td>
+<td>Preference Training</td>
+<td>偏好训练</td>
+<td>让输出更符合人类偏好和业务目标。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用 reward 优化质量、对齐和安全。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>更简单地利用 preference pair。</td>
+</tr>
+<tr>
+<td>Distillation</td>
+<td>Distillation</td>
+<td>蒸馏</td>
+<td>降低采样步数和推理成本。</td>
+</tr>
+</tbody></table>
+<p>视频报告里常见的 video-specific RLHF 特别值得关注。它说明视频不是只靠预训练，还要通过多维 reward 改善运动、时序、prompt adherence 和审美。</p>
+<h2>Reward 该怎么设计</h2>
+<p>图像 reward 可以拆成：</p>
+<ul>
+<li>prompt adherence。</li>
+<li>visual fidelity。</li>
+<li>aesthetics。</li>
+<li>text rendering。</li>
+<li>identity consistency。</li>
+<li>editing preservation。</li>
+<li>safety compliance。</li>
+</ul>
+<p>视频 reward 还要加：</p>
+<ul>
+<li>temporal consistency。</li>
+<li>motion naturalness。</li>
+<li>physics plausibility。</li>
+<li>camera coherence。</li>
+<li>audio-visual sync。</li>
+<li>multi-shot narrative consistency。</li>
+</ul>
+<p>不要用单一 reward。单指标优化容易 reward hacking，比如 CLIPScore 变高但图像变丑，或者视频看起来清晰但动作僵硬。</p>
+<h2>安全策略分层</h2>
+<p>一个稳的安全系统通常分层：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>层级</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Policy</td>
+<td>定义允许和禁止的内容，包括真人肖像、未成年人、色情暴力、政治误导、IP。</td>
+</tr>
+<tr>
+<td>Input Moderation</td>
+<td>prompt、参考图、参考视频、音频上传时审核。</td>
+</tr>
+<tr>
+<td>Generation Constraint</td>
+<td>模型侧拒绝、负向条件、安全 LoRA、过滤敏感身份。</td>
+</tr>
+<tr>
+<td>Output Moderation</td>
+<td>图像、视频、音频、OCR、face、logo、IP 检测。</td>
+</tr>
+<tr>
+<td>Provenance</td>
+<td>C2PA、SynthID、watermark、metadata。</td>
+</tr>
+<tr>
+<td>Human Review</td>
+<td>高风险内容进入人工审核。</td>
+</tr>
+<tr>
+<td>Logging</td>
+<td>记录请求、版本、审核结果、申诉和处置。</td>
+</tr>
+<tr>
+<td>Red Team</td>
+<td>持续构造绕过样例，更新策略和模型。</td>
+</tr>
+</tbody></table>
+<h2>Provenance：C2PA、SynthID 与 Watermark</h2>
+<p>C2PA 的核心是给内容附加可验证的来源和编辑记录。它更像“内容营养标签”，告诉用户这个内容从哪里来、被怎样处理过。</p>
+<p>SynthID 的核心是不可见水印和检测能力。Google 公开材料强调 SynthID 可用于图像、音频、文本、视频，并设计为对裁剪、滤镜、压缩等变换有一定鲁棒性。</p>
+<p>注意它们不是万能安全：</p>
+<ul>
+<li>元数据可能被剥离。</li>
+<li>水印可能被攻击或转码削弱。</li>
+<li>检测有误报和漏报。</li>
+<li>对恶意截屏、重拍、二次生成要有额外策略。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Provenance 是安全链路的一层，不是全部。真正可靠的系统需要输入审核、输出审核、行为风控、模型对齐、水印、日志、人工复核和申诉机制一起工作。</p>
+</blockquote>
+<h2>真人肖像、版权和 IP</h2>
+<p>文生图/视频最敏感的三类风险：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>风险</th>
+<th>例子</th>
+<th>防线</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Likeness</td>
+<td>未授权生成真实人物或公众人物</td>
+<td>face detection、identity allowlist/denylist、consent workflow。</td>
+</tr>
+<tr>
+<td>Copyright</td>
+<td>生成受保护角色、影视风格或片段</td>
+<td>IP detector、prompt policy、训练数据过滤、人工审核。</td>
+</tr>
+<tr>
+<td>Trademark</td>
+<td>logo、商品包装、品牌资产错误使用</td>
+<td>logo detector、品牌规则、客户素材授权管理。</td>
+</tr>
+</tbody></table>
+<p>产品策略上要区分：</p>
+<ul>
+<li>用户上传自己有权使用的素材。</li>
+<li>用户请求生成公众人物或受保护角色。</li>
+<li>用户生成商业投放素材。</li>
+<li>用户只做个人娱乐。</li>
+</ul>
+<p>风险等级不同，审核强度也不同。</p>
+<h2>Serving 与成本</h2>
+<p>上线时要关心：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>常见策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Latency</td>
+<td>preview model、低清预览、异步队列、分阶段生成。</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>模型路由、缓存、distillation、批处理、失败提前终止。</td>
+</tr>
+<tr>
+<td>Reliability</td>
+<td>超时重试、任务状态机、幂等、断点续跑。</td>
+</tr>
+<tr>
+<td>Quality</td>
+<td>自动筛选多个候选、VLM 审核、人工兜底。</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>记录 prompt、seed、版本、耗时、审核结果、失败标签。</td>
+</tr>
+<tr>
+<td>Rollback</td>
+<td>模型版本、prompt template、安全策略都要可回滚。</td>
+</tr>
+</tbody></table>
+<p>视频尤其适合异步任务：</p>
+<pre><code class="language-text">submit job
+→ validate inputs
+→ generate storyboard
+→ generate previews
+→ user selects
+→ high-quality render
+→ safety review
+→ deliver and archive provenance
+</code></pre>
+<h2>产品化架构</h2>
+<p>一个推荐架构：</p>
+<pre><code class="language-text">API Gateway
+→ Input Moderation
+→ Prompt / Storyboard Planner
+→ Asset Manager
+→ Model Router
+→ Generation Workers
+→ Auto Evaluation
+→ Safety Review
+→ Post-processing
+→ Storage + C2PA / Watermark
+→ User Feedback + Badcase Store
+</code></pre>
+<p>其中 Asset Manager 很重要：它管理用户上传的参考图、角色图、品牌 logo、mask、首尾帧、视频片段、音频素材和授权状态。</p>
+<h2>面试高频问题</h2>
+<h3>1. 训练数据怎么过滤？</h3>
+<p>先做去重、质量过滤、安全过滤、版权和隐私过滤，再做 caption / OCR / VLM 标注。视频还要过滤剪辑跳变、水印、字幕覆盖、低帧率、运动模糊和错误音频。</p>
+<h3>2. 为什么需要 recaptioning？</h3>
+<p>原始 alt-text 通常太短、噪声大，不描述布局、动作、文字和关系。recaptioning 能把训练信号和用户 prompt 更好对齐，提高 prompt adherence。</p>
+<h3>3. 图像生成也能做 RLHF 吗？</h3>
+<p>可以。常见做法是收集 pairwise preference，训练 reward model，然后优化模型或采样策略。视频还可以设计针对 motion、temporal consistency、prompt adherence 的 reward。</p>
+<h3>4. 安全水印能解决 deepfake 吗？</h3>
+<p>不能单独解决。水印和 provenance 有帮助，但还需要真人肖像策略、上传审核、输出审核、行为风控、平台治理和人工复核。</p>
+<h3>5. 线上模型升级如何避免退化？</h3>
+<p>先跑离线 regression harness，再小流量灰度，对比质量、人评、安全失败率、延迟、成本和业务指标。发现安全或质量退化时能按模型版本和策略版本回滚。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://cdn.openai.com/papers/DALL_E_3_System_Card.pdf">DALL-E 3 System Card</a></li>
+<li><a href="https://openai.com/index/introducing-4o-image-generation/">Introducing 4o Image Generation</a></li>
+<li><a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video generation models as world simulators</a></li>
+<li><a href="https://openai.com/index/sora-2/">Sora 2</a></li>
+<li><a href="https://deepmind.google/models/veo/">Veo official page</a></li>
+<li><a href="https://deepmind.google/models/synthid/">SynthID</a></li>
+<li><a href="https://c2pa.org/">C2PA</a></li>
+<li><a href="https://arxiv.org/abs/2506.09113">Seedance 1.0</a></li>
+<li><a href="https://arxiv.org/abs/2604.14148">Seedance 2.0</a></li>
+<li><a href="https://arxiv.org/abs/2508.02324">Qwen-Image Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2509.20427">Seedream 4.0</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./09-eval-harness-and-benchmarking.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 7 章：面试速查、项目表达与常见追问</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-video-workflow-evaluation-projects.html">← 上一章</a><a href="./08-sota-tech-reports-2026.html">下一章 →</a></nav><h1>第 7 章：面试速查、项目表达与常见追问</h1>
+<p>这一章不是替代后面的评测和安全章节，而是给你一个面试现场可直接复述的框架。文生图/文生视频项目不要讲成“调 prompt 调出来了”，而要讲成：任务定义、数据、模型、控制、评测、安全、成本、线上闭环。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>KPI</td>
+<td>Key Performance Indicator</td>
+<td>关键业务指标</td>
+<td>项目最终服务的业务目标，如通过率、转化率、成本。</td>
+</tr>
+<tr>
+<td>CTR</td>
+<td>Click-Through Rate</td>
+<td>点击率</td>
+<td>创意素材或广告常见线上指标。</td>
+</tr>
+<tr>
+<td>CVR</td>
+<td>Conversion Rate</td>
+<td>转化率</td>
+<td>点击后购买、注册、提交等转化比例。</td>
+</tr>
+<tr>
+<td>A/B</td>
+<td>A/B Testing</td>
+<td>A/B 测试</td>
+<td>比较不同策略或素材效果的线上实验。</td>
+</tr>
+<tr>
+<td>SLA</td>
+<td>Service Level Agreement</td>
+<td>服务等级协议</td>
+<td>延迟、稳定性、可用性等服务承诺。</td>
+</tr>
+<tr>
+<td>TTI</td>
+<td>Time to Image</td>
+<td>图像生成耗时</td>
+<td>从请求到图像可用的端到端延迟。</td>
+</tr>
+<tr>
+<td>TTV</td>
+<td>Time to Video</td>
+<td>视频生成耗时</td>
+<td>从请求到视频可用的端到端延迟。</td>
+</tr>
+<tr>
+<td>QA</td>
+<td>Quality Assurance</td>
+<td>质量保证</td>
+<td>人工或自动质量检查流程。</td>
+</tr>
+<tr>
+<td>ROI</td>
+<td>Region of Interest</td>
+<td>感兴趣区域</td>
+<td>局部编辑、商品主体、人物脸部等重点区域。</td>
+</tr>
+</tbody></table>
+<h2>30 分钟复习路线</h2>
+<ol>
+<li>5 分钟：DDPM forward / reverse / denoising loss。</li>
+<li>5 分钟：CFG、sampling、guidance scale、少步采样。</li>
+<li>5 分钟：LDM、VAE、Stable Diffusion、DiT、MMDiT。</li>
+<li>5 分钟：flow matching、rectified flow、SD3 / FLUX。</li>
+<li>5 分钟：ControlNet、IP-Adapter、LoRA、reference consistency。</li>
+<li>5 分钟：Sora / Veo / Movie Gen / Seedance，重点讲时序一致性和评测。</li>
+</ol>
+<h2>一分钟回答模板</h2>
+<p>如果面试官问“你怎么理解文生图/文生视频系统”，你可以这样答：</p>
+<blockquote>
+<p>我会把它拆成生成路径、条件注入、数据和评测四层。底层是 diffusion 或 flow matching，从噪声到数据分布；架构上从 U-Net 发展到 DiT / MMDiT，多模态条件通过 text encoder、cross-attention、reference image 或统一 token 注入；工程上要处理 caption、数据过滤、采样器、编辑控制、成本和延迟；最后必须有 eval harness，把 prompt adherence、视觉质量、身份一致性、文字渲染、视频时序、物理合理性和安全都拆开评测。</p>
+</blockquote>
+<p>这段回答的好处是：它不是背模型名，而是能自然展开到任何追问。</p>
+<h2>高频知识点速查</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th>问题</th>
+<th>短答</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>为什么 diffusion 训练稳定？</td>
+<td>它把生成任务转成监督式去噪，不需要 GAN 式对抗训练。</td>
+</tr>
+<tr>
+<td>为什么采样慢？</td>
+<td>从噪声到数据需要多步迭代，少步采样会放大误差。</td>
+</tr>
+<tr>
+<td>为什么用 latent diffusion？</td>
+<td>在 VAE latent 中生成能大幅降低计算量，但会带来细节和文字 bottleneck。</td>
+</tr>
+<tr>
+<td>CFG 的副作用是什么？</td>
+<td>scale 太高会过饱和、僵硬、细节崩坏，太低则 prompt adherence 差。</td>
+</tr>
+<tr>
+<td>DiT 为什么重要？</td>
+<td>Transformer backbone 更符合 scaling 经验，也方便扩展到视频时空 token。</td>
+</tr>
+<tr>
+<td>MMDiT 的价值是什么？</td>
+<td>文本和图像 token 用不同路径建模再交互，更适合复杂多模态条件。</td>
+</tr>
+<tr>
+<td>flow matching 为什么火？</td>
+<td>直接学习生成路径速度场，适合更直路径和少步采样。</td>
+</tr>
+<tr>
+<td>文生视频最大的难点？</td>
+<td>单帧质量之外，还要保证时间一致、运动自然、物理合理、角色和场景不漂移。</td>
+</tr>
+<tr>
+<td>图像编辑最难点？</td>
+<td>既要改目标区域，又要保持不该改的主体、文字、风格和布局。</td>
+</tr>
+<tr>
+<td>为什么要 eval harness？</td>
+<td>生成质量主观且不稳定，必须固定 prompt、seed、版本、指标和人评流程才能比较。</td>
+</tr>
+</tbody></table>
+<h2>项目表达模板</h2>
+<p>讲项目时按这个顺序：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>面试官想听什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Problem</td>
+<td>解决什么业务问题，输入输出是什么，为什么不能只靠人工或模板。</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>训练或评测数据怎么来，如何过滤低质、侵权、隐私、脏标注。</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>用 T2I / I2I / T2V / I2V 哪种模型，是否需要 LoRA、ControlNet、VLM 审核。</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>如何保证商品、人物、文字、品牌、构图、视频时序一致。</td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td>离线指标、人评、线上 A/B、失败样例库怎么设计。</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>真人肖像、版权、色情暴力、未成年人、政治误导、watermark 怎么处理。</td>
+</tr>
+<tr>
+<td>Serving</td>
+<td>延迟、成本、并发、缓存、降级、重试、可观测性怎么做。</td>
+</tr>
+<tr>
+<td>Iteration</td>
+<td>用户反馈、badcase、线上数据如何回流。</td>
+</tr>
+</tbody></table>
+<h2>项目 1：商品图生成和编辑</h2>
+<p>任务：</p>
+<ul>
+<li>输入商品图、品牌规范、营销文案。</li>
+<li>输出不同场景、不同风格、不同尺寸的商品营销图。</li>
+<li>支持背景替换、局部修复、文案排版、风格统一。</li>
+</ul>
+<p>方案：</p>
+<ol>
+<li>用 segmentation 或检测得到商品主体和 ROI。</li>
+<li>I2I / inpainting 生成背景和局部区域。</li>
+<li>用 ControlNet 或 layout condition 保持构图。</li>
+<li>用 OCR 检查文案，文字复杂时用渲染引擎后贴。</li>
+<li>用 VLM 做商品一致性、品牌合规和安全审核。</li>
+</ol>
+<p>指标：</p>
+<ul>
+<li>商品一致性。</li>
+<li>背景质量。</li>
+<li>文案文字正确率。</li>
+<li>品牌规范通过率。</li>
+<li>人工审核通过率。</li>
+<li>TTI 和单位生成成本。</li>
+</ul>
+<p>面试亮点：</p>
+<blockquote>
+<p>我不会只用 CLIPScore 看图文相似，而会单独评估商品主体是否变形、logo 是否正确、文案 OCR 是否准确、背景是否违规，以及人工审核通过率和线上 CTR。</p>
+</blockquote>
+<h2>项目 2：短视频广告生成</h2>
+<p>任务：</p>
+<ul>
+<li>输入商品图、卖点、目标人群、时长。</li>
+<li>输出 5 到 15 秒短视频或分镜草稿。</li>
+</ul>
+<p>方案：</p>
+<ol>
+<li>LLM 生成 storyboard、shot list、camera movement。</li>
+<li>T2I / I2I 生成关键帧。</li>
+<li>I2V / T2V 生成每个镜头。</li>
+<li>用 reference image 保持商品和角色一致。</li>
+<li>生成或添加配音、字幕、音效。</li>
+<li>VLM / OCR / audio checker 做一致性和安全审核。</li>
+</ol>
+<p>难点：</p>
+<ul>
+<li>主体一致性。</li>
+<li>多镜头叙事连续。</li>
+<li>字幕和 logo 稳定。</li>
+<li>音画同步。</li>
+<li>版权和真人肖像安全。</li>
+<li>TTV 成本高，失败重试贵。</li>
+</ul>
+<h2>项目 3：创意素材 A/B 生成</h2>
+<p>任务：</p>
+<ul>
+<li>批量生成不同风格、构图、文案、卖点的创意素材。</li>
+<li>根据人工偏好、历史表现和线上 A/B 选择投放。</li>
+</ul>
+<p>技术亮点：</p>
+<ul>
+<li>prompt 参数化和版本管理。</li>
+<li>seed、sampler、model version 固化。</li>
+<li>自动打分 + 人工复核 + 线上反馈闭环。</li>
+<li>维护 badcase 集和 regression set。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>我会把生成系统做成实验平台，而不是一次性脚本。每次模型、prompt、采样器或审核规则变化，都能在同一套 prompt suite 和人评协议上复测。</p>
+</blockquote>
+<h2>常见追问</h2>
+<h3>1. 文生图如何提升文字渲染？</h3>
+<p>数据上需要高质量 OCR 标注、复杂排版样本和合成文字数据；模型上需要更强语言理解和视觉 tokenizer；评测上要单独做 OCR accuracy；产品上可以把长文本交给排版引擎而不是完全依赖生成模型。</p>
+<h3>2. 视频生成怎么保持角色一致？</h3>
+<p>用参考图、identity embedding、多帧一致性约束、tracking-based conditioning、首尾帧控制、镜头级回归测试和人工审核。长视频通常要拆分镜头并保持资产库，而不是一次生成到底。</p>
+<h3>3. 如何降低生成成本？</h3>
+<p>降低采样步数、使用 distilled model、缓存中间结果、分级模型路由、先低清预览再高清重绘、失败检测提前终止、批处理和异步队列。</p>
+<h3>4. 如何处理 badcase？</h3>
+<p>把 badcase 结构化：prompt、输入图、模型版本、seed、sampler、失败标签、自动指标、人评结论、修复策略。然后放进 regression harness，每次升级都跑。</p>
+<h3>5. 为什么不能只看 leaderboards？</h3>
+<p>leaderboard prompt 分布可能和业务不一致，而且很多指标不能覆盖文字、品牌、真人肖像、局部编辑、长视频时序和安全风险。业务系统必须有自己的评测集。</p>
+<h2>最后检查清单</h2>
+<ul>
+<li>能写出 <span class="math-text">x<sub><span class="math-text">t</span></sub> = √(ᾱ<sub><span class="math-text">t</span></sub>)x<sub><span class="math-text">0</span></sub> + √(1-ᾱ<sub><span class="math-text">t</span></sub>)ε</span>。</li>
+<li>能解释为什么训练可以预测 <span class="math-text">ε</span>、<span class="math-text">x<sub><span class="math-text">0</span></sub></span> 或 <span class="math-text">v</span>。</li>
+<li>能解释 CFG 的公式和副作用。</li>
+<li>能讲清 latent diffusion 的优势和代价。</li>
+<li>能讲清 DiT / MMDiT 和 U-Net 的差异。</li>
+<li>能讲清 flow matching 和 rectified flow 的动机。</li>
+<li>能讲清文生视频的 temporal consistency、identity drift、physics plausibility。</li>
+<li>能设计一个图像/视频生成项目的 eval harness 和安全策略。</li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./06-video-workflow-evaluation-projects.html">← 上一章</a><a href="./08-sota-tech-reports-2026.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-dynamic-programming.html">← 上一章</a><a href="./04-exploration-bandit.html">下一章 →</a></nav><h1>第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MC</td>
+<td>Monte Carlo</td>
+<td>蒙特卡洛</td>
+<td>用完整 episode 的真实 return 估计价值。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>用 bootstrap target 在线更新价值估计。</td>
+</tr>
+<tr>
+<td>SARSA</td>
+<td>State-Action-Reward-State-Action</td>
+<td>状态-动作-奖励-状态-动作</td>
+<td>更新公式使用的五元组名称。</td>
+</tr>
+<tr>
+<td><span class="math-text">S<sub><span class="math-text">t</span></sub></span> / <span class="math-text">A<sub><span class="math-text">t</span></sub></span> / <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></td>
+<td>State / Action / Reward</td>
+<td>状态 / 动作 / 奖励</td>
+<td>一步交互中的随机变量。</td>
+</tr>
+<tr>
+<td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>Return</td>
+<td>回报 / 累计折扣奖励</td>
+<td>从时刻 <span class="math-text">t</span> 到 episode 结束的累计收益。</td>
+</tr>
+<tr>
+<td><span class="math-text">V(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>状态 <span class="math-text">s</span> 的长期价值估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>状态 <span class="math-text">s</span> 下动作 <span class="math-text">a</span> 的长期价值估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">δ<sub><span class="math-text">t</span></sub></span></td>
+<td>TD Error</td>
+<td>时序差分误差</td>
+<td>bootstrap target 和当前估计之间的差。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span></td>
+<td>Learning Rate</td>
+<td>学习率</td>
+<td>控制每次更新幅度。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制未来 reward 权重。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>本章讨论 model-free RL 的估值和控制方法。</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>REINFORCE algorithm</td>
+<td>REINFORCE 算法</td>
+<td>on-policy Monte Carlo policy gradient 算法。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>off-policy value-based deep RL 算法。</td>
+</tr>
+<tr>
+<td>DDPG</td>
+<td>Deep Deterministic Policy Gradient</td>
+<td>深度确定性策略梯度</td>
+<td>连续动作空间的 off-policy actor-critic 算法。</td>
+</tr>
+<tr>
+<td>TD3</td>
+<td>Twin Delayed DDPG</td>
+<td>双延迟 DDPG</td>
+<td>DDPG 的稳定化改进。</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>Soft Actor-Critic</td>
+<td>软 Actor-Critic</td>
+<td>最大熵 off-policy actor-critic 算法。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>on-policy actor-critic 算法。</td>
+</tr>
+<tr>
+<td>A2C</td>
+<td>Advantage Actor-Critic</td>
+<td>优势 Actor-Critic</td>
+<td>on-policy actor-critic 算法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章进入 model-free RL。你需要掌握：</p>
+<ul>
+<li>Monte Carlo 方法。</li>
+<li>Temporal Difference Learning。</li>
+<li>MC 和 TD 的 bias/variance 区别。</li>
+<li>SARSA。</li>
+<li>Q-learning。</li>
+<li>on-policy 与 off-policy。</li>
+</ul>
+<h2>Model-free 的含义</h2>
+<p>Model-free 指的是不需要显式知道环境转移模型：</p>
+<div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
+
+<p>Agent 只通过和环境交互得到样本：</p>
+<pre><code class="language-text">(s, a, r, s&#39;)
+</code></pre>
+<p>然后用这些样本估计价值函数或优化策略。</p>
+<h2>Monte Carlo 方法</h2>
+<p>Monte Carlo 方法用完整 episode 的实际 return 来估计价值。</p>
+<p>对于状态价值：</p>
+<pre><code class="language-text">V(s) &lt;- average of returns observed after visiting s
+</code></pre>
+<p>增量形式：</p>
+<div class="math-block"><span class="math-text">V(s) ← V(s) + α [G<sub><span class="math-text">t</span></sub> - V(s)]</span></div>
+
+<p>其中 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 是从时间 <span class="math-text">t</span> 到 episode 结束的真实累计 return。</p>
+<p>特点：</p>
+<ul>
+<li>不需要环境模型。</li>
+<li>不需要 bootstrap。</li>
+<li>必须等 episode 结束才能计算 return。</li>
+<li>方差通常较大。</li>
+<li>估计是无偏的，前提是采样足够充分。</li>
+</ul>
+<p>First-visit MC：</p>
+<p>每个 episode 中，一个状态第一次出现时才用它更新。</p>
+<p>Every-visit MC：</p>
+<p>每个 episode 中，一个状态每次出现都可以用来更新。</p>
+<h2>MC 的推理过程</h2>
+<p>MC 的出发点是价值函数定义：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>这个式子里真正难的是期望。MC 的想法很朴素：</p>
+<ol>
+<li>我不知道这个期望的解析值。</li>
+<li>但我可以多跑很多条 episode。</li>
+<li>每次访问状态 <span class="math-text">s</span> 后，都能观察到一个真实 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
+<li>多个 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的平均值，就近似这个期望。</li>
+</ol>
+<p>所以 tabular MC 更新写成：</p>
+<div class="math-block"><span class="math-text">V(s) ← V(s)+α[G<sub><span class="math-text">t</span></sub>-V(s)]</span></div>
+
+<p>这里 <span class="math-text">G<sub><span class="math-text">t</span></sub>-V(s)</span> 可以理解为“这次真实观察到的长期回报”和“当前估计”的差。更新不是一次替换成 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>，而是用学习率 <span class="math-text">α</span> 做平滑平均。</p>
+<p>为什么 MC 方差大？</p>
+<ul>
+<li>同一个状态后面可能经历很长的随机轨迹。</li>
+<li>后续每一步动作、转移、reward 都会影响 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
+<li>轨迹越长、随机性越强，return 波动越大。</li>
+</ul>
+<p>但 MC 的好处是 target 不依赖当前价值函数估计，所以 bootstrap bias 小。</p>
+<h2>TD Learning</h2>
+<p>Temporal Difference Learning 结合了 Monte Carlo 和 Dynamic Programming 的思想。</p>
+<p>TD(0) 更新：</p>
+<div class="math-block"><span class="math-text">V(S<sub><span class="math-text">t</span></sub>) ← V(S<sub><span class="math-text">t</span></sub>) + α [R<sub><span class="math-text">t+1</span></sub> + γ V(S<sub><span class="math-text">t+1</span></sub>) - V(S<sub><span class="math-text">t</span></sub>)]</span></div>
+
+<p>TD target：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub> + γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>TD error：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ V(S<sub><span class="math-text">t+1</span></sub>) - V(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>特点：</p>
+<ul>
+<li>不需要环境模型。</li>
+<li>不需要等 episode 结束。</li>
+<li>使用 bootstrap，用当前估计 <span class="math-text">V(S<sub><span class="math-text">t+1</span></sub>)</span> 更新当前估计。</li>
+<li>通常方差低于 MC，但可能有 bias。</li>
+</ul>
+<h2>TD 的推理过程</h2>
+<p>TD 从 Bellman expectation 的紧凑形式来：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>如果我们有环境模型，可以像 DP 一样对所有 <span class="math-text">s&#39;</span> 求期望。但 model-free 场景下，我们只有一次采样：</p>
+<pre><code class="language-text">(S_t, A_t, R_{t+1}, S_{t+1})
+</code></pre>
+<p>于是把期望里的随机变量用这一次样本替代，得到一步 bootstrap target：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>再用“target 减当前估计”构造误差：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>最后更新：</p>
+<div class="math-block"><span class="math-text">V(S<sub><span class="math-text">t</span></sub>)← V(S<sub><span class="math-text">t</span></sub>)+αδ<sub><span class="math-text">t</span></sub></span></div>
+
+<p>这就是 TD 的核心推理：</p>
+<blockquote>
+<p>Bellman 方程给了期望 target；model-free 不能精确求期望，就用采样 transition 做随机近似；为了不等 episode 结束，用下一状态当前价值估计 bootstrap。</p>
+</blockquote>
+<h2>MC vs TD</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>Monte Carlo</th>
+<th>TD</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是否需要模型</td>
+<td>不需要</td>
+<td>不需要</td>
+</tr>
+<tr>
+<td>是否需要完整 episode</td>
+<td>需要</td>
+<td>不需要</td>
+</tr>
+<tr>
+<td>是否 bootstrap</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>目标</td>
+<td>真实 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td><span class="math-text">r + γ V(s&#39;)</span></td>
+</tr>
+<tr>
+<td>方差</td>
+<td>较高</td>
+<td>较低</td>
+</tr>
+<tr>
+<td>偏差</td>
+<td>较低</td>
+<td>有 bootstrap bias</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>episodic task</td>
+<td>episodic 或 continuing task</td>
+</tr>
+</tbody></table>
+<p>面试表达：</p>
+<blockquote>
+<p>MC 用完整轨迹的真实 return 做 target，不 bootstrap，所以 bias 小但 variance 大。TD 用一步 reward 加下一状态的估计值做 target，能在线更新，variance 小，但因为 target 依赖当前估计，所以会引入 bias。</p>
+</blockquote>
+<h2>SARSA</h2>
+<p>SARSA 是 on-policy TD control 方法。名字来自一次更新用到的五元组：</p>
+<div class="math-block"><span class="math-text">(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub>, A<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>更新公式：</p>
+<div class="math-block multi"><div><span class="math-text">Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>) ← Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+ α [R<sub><span class="math-text">t+1</span></sub> + γ Q(S<sub><span class="math-text">t+1</span></sub>, A<sub><span class="math-text">t+1</span></sub>) - Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)]</span></div></div>
+
+<p>关键点：</p>
+<ul>
+<li><span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 是当前行为策略实际选择的动作。</li>
+<li>如果行为策略是 epsilon-greedy，那么 SARSA 的 target 也包含探索动作的影响。</li>
+<li>因此 SARSA 是 on-policy。</li>
+</ul>
+<p>直觉：</p>
+<p>SARSA 学的是“我按照当前这套带探索的策略行动，长期回报会是多少”。</p>
+<h2>SARSA 的 target 为什么是 <span class="math-text">Q(s&#39;,a&#39;)</span></h2>
+<p>对 action-value 来说，Bellman expectation 可以理解成：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ Q<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)]</span></div>
+
+<p>SARSA 在采样时真的执行了下一步动作 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span>。如果当前行为策略是 epsilon-greedy，那么 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 可能是 greedy action，也可能是探索动作。</p>
+<p>所以 SARSA 的 target 是：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ Q(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>它把“探索可能造成的后果”也学进去。这就是为什么在 cliff walking 里 SARSA 更保守：它知道自己未来还可能因为 epsilon 探索而掉下去。</p>
+<h2>Q-learning</h2>
+<p>Q-learning 是 off-policy TD control 方法。</p>
+<p>更新公式：</p>
+<div class="math-block multi"><div><span class="math-text">Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>) ← Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+ α [R<sub><span class="math-text">t+1</span></sub> + γ max<sub><span class="math-text">a</span></sub> Q(S<sub><span class="math-text">t+1</span></sub>, a) - Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)]</span></div></div>
+
+<p>关键点：</p>
+<ul>
+<li>行为时可以用 epsilon-greedy 探索。</li>
+<li>更新 target 时直接用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>。</li>
+<li>学习目标是 greedy policy 的价值，而不完全等于行为策略。</li>
+<li>因此 Q-learning 是 off-policy。</li>
+</ul>
+<p>直觉：</p>
+<p>Q-learning 学的是“如果未来都选当前估计下最优的动作，长期回报会是多少”。</p>
+<h2>Q-learning 的 target 为什么用 max</h2>
+<p>Q-learning 对应的是 Bellman optimality 思路：</p>
+<div class="math-block"><span class="math-text">Q<sup><span class="math-text">*</span></sup>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ max<sub><span class="math-text">a'</span></sub>Q<sup><span class="math-text">*</span></sup>(S<sub><span class="math-text">t+1</span></sub>,a')]</span></div>
+
+<p>model-free 场景下，把期望用一次 transition 近似，就得到 target：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ max<sub><span class="math-text">a'</span></sub>Q(S<sub><span class="math-text">t+1</span></sub>,a')</span></div>
+
+<p>这里要分清两件事：</p>
+<ul>
+<li>行为时：可以用 epsilon-greedy 收集数据，保留探索。</li>
+<li>学习时：target 假设未来执行 greedy action。</li>
+</ul>
+<p>所以 Q-learning 是 off-policy。它不是在评估“实际带探索的行为策略”，而是在用探索数据学习一个 greedy target policy 的价值。</p>
+<p>面试里可以这样推：</p>
+<blockquote>
+<p>SARSA 从 Bellman expectation 来，下一动作就是行为策略实际采样的 <span class="math-text">a&#39;</span>；Q-learning 从 Bellman optimality 来，下一动作取当前 Q 最大的动作。因此 SARSA on-policy，Q-learning off-policy。</p>
+</blockquote>
+<h2>SARSA vs Q-learning</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>SARSA</th>
+<th>Q-learning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>策略类型</td>
+<td>on-policy</td>
+<td>off-policy</td>
+</tr>
+<tr>
+<td>target</td>
+<td><span class="math-text">r + γ Q(s&#39;, a&#39;)</span></td>
+<td><span class="math-text">r + γ max<sub><span class="math-text">a</span></sub> Q(s&#39;, a)</span></td>
+</tr>
+<tr>
+<td>是否考虑探索动作影响</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>风格</td>
+<td>更保守</td>
+<td>更贪心</td>
+</tr>
+<tr>
+<td>学习目标</td>
+<td>当前行为策略</td>
+<td>最优 greedy 策略</td>
+</tr>
+</tbody></table>
+<p>经典 cliff walking 例子：</p>
+<ul>
+<li>SARSA 会考虑 epsilon-greedy 探索可能掉下悬崖，因此倾向选择更安全路径。</li>
+<li>Q-learning 更新时假设未来总能选最优动作，因此更倾向学习贴近悬崖的最短路径。</li>
+</ul>
+<h2>On-policy vs Off-policy</h2>
+<p>On-policy：</p>
+<p>学习和评估的是当前实际采样的行为策略。</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">behavior</span></sub> = π<sub><span class="math-text">target</span></sub></span></div>
+
+<p>例如：</p>
+<ul>
+<li>SARSA</li>
+<li>REINFORCE</li>
+<li>A2C</li>
+<li>PPO</li>
+</ul>
+<p>Off-policy：</p>
+<p>用一种行为策略收集数据，但学习另一种目标策略。</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">behavior</span></sub> ≠ π<sub><span class="math-text">target</span></sub></span></div>
+
+<p>例如：</p>
+<ul>
+<li>Q-learning</li>
+<li>DQN</li>
+<li>DDPG</li>
+<li>TD3</li>
+<li>SAC</li>
+</ul>
+<p>off-policy 的优势：</p>
+<ul>
+<li>可以复用历史数据。</li>
+<li>sample efficiency 通常更高。</li>
+<li>可以从 replay buffer 学习。</li>
+</ul>
+<p>off-policy 的难点：</p>
+<ul>
+<li>分布不匹配。</li>
+<li>重要性采样或 value correction 可能带来高方差。</li>
+<li>结合函数逼近和 bootstrap 时可能不稳定。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. MC 和 TD 的区别？</h3>
+<p>MC 用完整 episode 的真实 return 更新，不 bootstrap，bias 小但 variance 大。TD 用 <span class="math-text">r + γ V(s&#39;)</span> 这种一步 bootstrap target 更新，可以在线学习，variance 小但有 bias。</p>
+<h3>2. SARSA 和 Q-learning 的区别？</h3>
+<p>SARSA 是 on-policy，target 使用实际采样到的下一个动作 <span class="math-text">a&#39;</span>。Q-learning 是 off-policy，target 使用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>，学习 greedy target policy。</p>
+<h3>3. 为什么 Q-learning 是 off-policy？</h3>
+<p>因为采样数据可以来自 epsilon-greedy 行为策略，但更新目标是假设下一步选择 greedy action 的价值，即 target policy 和 behavior policy 不同。</p>
+<h3>4. TD error 是什么？</h3>
+<p>TD error 是当前价值估计和 bootstrap target 之间的差：</p>
+<div class="math-block"><span class="math-text">δ = r + γ V(s') - V(s)</span></div>
+
+<p>它衡量当前估计需要被修正的方向和大小。</p>
+<h3>5. 为什么 TD 可以不等 episode 结束？</h3>
+<p>因为 TD target 只需要一步 reward 和下一状态的当前价值估计，不需要完整轨迹 return。</p>
+<h2>本章练习</h2>
+<ol>
+<li>手写 SARSA 和 Q-learning 的更新公式。</li>
+<li>解释为什么 SARSA 在 cliff walking 中更保守。</li>
+<li>写一个 tabular Q-learning 的伪代码。</li>
+<li>用 bias/variance 角度比较 MC 和 TD。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./02-dynamic-programming.html">← 上一章</a><a href="./04-exploration-bandit.html">下一章 →</a></nav></main></body>
+</html>

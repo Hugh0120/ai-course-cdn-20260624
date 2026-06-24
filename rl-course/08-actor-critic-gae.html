@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 8 章：Actor-Critic、A2C（Advantage Actor-Critic，优势 Actor-Critic）、A3C（Asynchronous Advantage Actor-Critic，异步优势 Actor-Critic）与 GAE（Generalized Advantage Estimation，广义优势估计）</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav><h1>第 8 章：Actor-Critic、A2C（Advantage Actor-Critic，优势 Actor-Critic）、A3C（Asynchronous Advantage Actor-Critic，异步优势 Actor-Critic）与 GAE（Generalized Advantage Estimation，广义优势估计）</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A2C</td>
+<td>Advantage Actor-Critic</td>
+<td>优势 Actor-Critic</td>
+<td>同步采样和更新的 actor-critic 方法。</td>
+</tr>
+<tr>
+<td>A3C</td>
+<td>Asynchronous Advantage Actor-Critic</td>
+<td>异步优势 Actor-Critic</td>
+<td>多 worker 异步更新的 actor-critic 方法。</td>
+</tr>
+<tr>
+<td>GAE</td>
+<td>Generalized Advantage Estimation</td>
+<td>广义优势估计</td>
+<td>用 <span class="math-text">λ</span> 在 TD 和 MC advantage 之间折中。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></td>
+<td>Actor Policy</td>
+<td>Actor 策略</td>
+<td>actor 网络输出的动作分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span></td>
+<td>Critic Value Function</td>
+<td>Critic 状态价值函数</td>
+<td>critic 网络对状态价值的估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
+<td>Critic Action-value Function</td>
+<td>Critic 动作价值函数</td>
+<td>critic 网络对状态-动作价值的估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">J(θ)</span></td>
+<td>Policy Objective</td>
+<td>策略目标函数</td>
+<td>actor 要最大化的目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">δ<sub><span class="math-text">t</span></sub></span></td>
+<td>TD Error</td>
+<td>时序差分误差</td>
+<td>可作为一步 advantage 估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td>Advantage Estimate</td>
+<td>优势估计</td>
+<td>策略更新时衡量动作好坏的信号。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">policy</span></sub></span> / <span class="math-text">L<sub><span class="math-text">value</span></sub></span></td>
+<td>Policy Loss / Value Loss</td>
+<td>策略损失 / 价值损失</td>
+<td>actor 和 critic 的训练损失。</td>
+</tr>
+<tr>
+<td><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></td>
+<td>n-step Return</td>
+<td>n 步回报</td>
+<td>n-step bootstrap target。</td>
+</tr>
+<tr>
+<td><span class="math-text">λ</span></td>
+<td>GAE Lambda</td>
+<td>GAE 衰减参数</td>
+<td>控制 bias 和 variance 的折中。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>critic 常用 TD error 做估计。</td>
+</tr>
+<tr>
+<td>MC</td>
+<td>Monte Carlo</td>
+<td>蒙特卡洛</td>
+<td>GAE 的另一端近似完整 return。</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>REINFORCE algorithm</td>
+<td>REINFORCE 算法</td>
+<td>Actor-Critic 要改进的高方差 policy gradient 基线。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>常结合 GAE 使用的策略优化算法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章学习 Actor-Critic 框架。你需要掌握：</p>
+<ul>
+<li>actor 和 critic 的职责。</li>
+<li>Actor-Critic 如何结合 policy gradient 和 value learning。</li>
+<li>TD error 如何作为 advantage 估计。</li>
+<li>A2C 和 A3C。</li>
+<li>Generalized Advantage Estimation。</li>
+</ul>
+<h2>Actor-Critic 基本思想</h2>
+<p>Actor-Critic 有两个部分：</p>
+<ul>
+<li>Actor：策略网络 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，负责选动作。</li>
+<li>Critic：价值网络 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span> 或 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>，负责评估动作或状态。</li>
+</ul>
+<p>Actor 用 critic 提供的学习信号更新策略：</p>
+<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A(s,a)]</span></div></div>
+
+<p>Critic 学习价值函数：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">w</span></sub>(s) ≈ V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<p>直觉：</p>
+<blockquote>
+<p>Actor 负责做决策，critic 负责评价决策质量。Critic 降低了纯 Monte Carlo policy gradient 的方差，让策略更新更稳定。</p>
+</blockquote>
+<h2>TD Error 作为 Advantage</h2>
+<p>TD error：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它可以看成一步 advantage 的估计：</p>
+<div class="math-block"><span class="math-text">A(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>) ≈ δ<sub><span class="math-text">t</span></sub></span></div>
+
+<p>直觉：</p>
+<ul>
+<li>如果实际 reward 加下一状态价值高于当前价值估计，说明这个动作比预期好。</li>
+<li>如果低于当前价值估计，说明这个动作比预期差。</li>
+</ul>
+<p>Actor 更新：</p>
+<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) δ<sub><span class="math-text">t</span></sub></span></div>
+
+<p>Critic 更新：</p>
+<div class="math-block"><span class="math-text">w ← w - β ∇ (r<sub><span class="math-text">t</span></sub> + γ V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t+1</span></sub>) - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+
+<h2>为什么 TD Error 可以近似 Advantage</h2>
+<p>Advantage 的定义是：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>而动作价值可以拆成“一步 reward + 下一状态价值”：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=𝔼[r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)]</span></div>
+
+<p>把它代入 advantage：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=𝔼[r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)]</span></div>
+
+<p>如果用一次采样近似这个期望，就得到：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V(s<sub><span class="math-text">t+1</span></sub>)-V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>所以 TD error 不是随便定义的误差，它正是“一步采样下的 advantage 估计”。</p>
+<p>面试里可以这样讲：</p>
+<blockquote>
+<p>如果执行动作后得到的 reward 加下一状态价值超过当前状态价值，说明这个动作比平均动作好，advantage 为正；反之说明动作低于预期，advantage 为负。</p>
+</blockquote>
+<h2>Actor-Critic vs REINFORCE</h2>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>REINFORCE</th>
+<th>Actor-Critic</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>策略更新信号</td>
+<td>Monte Carlo return</td>
+<td>critic 估计的 advantage</td>
+</tr>
+<tr>
+<td>是否 bootstrap</td>
+<td>否</td>
+<td>通常是</td>
+</tr>
+<tr>
+<td>方差</td>
+<td>高</td>
+<td>较低</td>
+</tr>
+<tr>
+<td>bias</td>
+<td>较低</td>
+<td>有 critic bias</td>
+</tr>
+<tr>
+<td>是否能在线更新</td>
+<td>通常需要 episode 结束</td>
+<td>可以在线或 n-step 更新</td>
+</tr>
+<tr>
+<td>sample efficiency</td>
+<td>较低</td>
+<td>更高</td>
+</tr>
+</tbody></table>
+<p>面试表达：</p>
+<blockquote>
+<p>Actor-Critic 用 critic 估计 value 或 advantage，降低 policy gradient 的方差，并允许 TD 式在线更新。但 critic 是函数逼近模型，因此会引入估计 bias。</p>
+</blockquote>
+<h2>A2C</h2>
+<p>A2C 是 Advantage Actor-Critic。</p>
+<p>目标通常包含三部分：</p>
+<ol>
+<li>Policy loss。</li>
+<li>Value loss。</li>
+<li>Entropy bonus。</li>
+</ol>
+<p>Policy loss：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) A<sub><span class="math-text">t</span></sub></span></div>
+
+<p>Value loss：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (R<sub><span class="math-text">t</span></sub> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+
+<p>Entropy bonus：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub> = - β H(π<sub><span class="math-text">θ</span></sub>(· ∣ s<sub><span class="math-text">t</span></sub>))</span></div>
+
+<p>整体最小化：</p>
+<div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> + L<sub><span class="math-text">entropy</span></sub></span></div>
+
+<p>注意符号：很多实现中是最小化 loss，因此 policy gradient 的最大化目标会写成负号。</p>
+<h2>A3C</h2>
+<p>A3C 是 Asynchronous Advantage Actor-Critic。</p>
+<p>核心思想：</p>
+<ul>
+<li>多个 worker 并行和环境交互。</li>
+<li>每个 worker 异步更新共享全局网络。</li>
+<li>不同 worker 产生的数据降低样本相关性。</li>
+</ul>
+<p>A3C 在 replay buffer 不常用的 on-policy 场景中，通过并行采样改善数据多样性。</p>
+<p>A2C 可以看作 A3C 的同步版本：</p>
+<ul>
+<li>A3C：asynchronous。</li>
+<li>A2C：synchronous，多个环境同步采样后统一更新。</li>
+</ul>
+<h2>N-step Return</h2>
+<p>一步 TD target：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>n-step return：</p>
+<div class="math-block multi"><div><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup> = r<sub><span class="math-text">t</span></sub> + γ r<sub><span class="math-text">t+1</span></sub> + ... + γ<sup><span class="math-text">n-1</span></sup> r<sub><span class="math-text">t+n-1</span></sub></span></div><div><span class="math-text">+ γ<sup><span class="math-text">n</span></sup> V(s<sub><span class="math-text">t+n</span></sub>)</span></div></div>
+
+<p>n-step return 在 MC 和 TD 之间折中：</p>
+<ul>
+<li><span class="math-text">n</span> 小：bias 较大，variance 较小。</li>
+<li><span class="math-text">n</span> 大：bias 较小，variance 较大。</li>
+</ul>
+<h2>Generalized Advantage Estimation</h2>
+<p>GAE 用一个参数 <span class="math-text">λ</span> 在不同步数的 advantage 估计之间折中。</p>
+<p>TD residual：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>GAE：</p>
+<div class="math-block multi"><div><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ, λ)</span></sup></span></div><div><span class="math-text">= ∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup> (γ λ)<sup><span class="math-text">l</span></sup> δ<sub><span class="math-text">t+l</span></sub></span></div></div>
+
+<p>直觉：</p>
+<ul>
+<li><span class="math-text">λ = 0</span>：接近一步 TD，bias 大、variance 小。</li>
+<li><span class="math-text">λ = 1</span>：接近 Monte Carlo，bias 小、variance 大。</li>
+<li>实践中常用 <span class="math-text">λ = 0.95</span>。</li>
+</ul>
+<p>PPO 中经常使用 GAE 估计 advantage。</p>
+<h2>GAE 的推理过程</h2>
+<p>一步 TD error 方差小，但依赖 critic，bias 可能大。完整 Monte Carlo return bias 小，但方差大。GAE 的想法是：不要只选一个步数，而是把不同步数的 TD residual 加权平均。</p>
+<p>从一步 TD residual 开始：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V(s<sub><span class="math-text">t+1</span></sub>)-V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>如果下一步也持续“比预期好”，那么 <span class="math-text">δ<sub><span class="math-text">t+1</span></sub></span> 也应该影响当前动作的评价，只是影响要打折：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> + γλδ<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>继续往后累加，就得到：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>=δ<sub><span class="math-text">t</span></sub>+γλδ<sub><span class="math-text">t+1</span></sub>+(γλ)<sup><span class="math-text">2</span></sup>δ<sub><span class="math-text">t+2</span></sub>+...</span></div>
+
+<p>也就是：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div>
+
+<p>这里 <span class="math-text">γ</span> 是时间折扣，<span class="math-text">λ</span> 是“愿意看多远的误差信号”：</p>
+<ul>
+<li><span class="math-text">λ</span> 小：更相信短期 bootstrap，更新稳但 bias 大。</li>
+<li><span class="math-text">λ</span> 大：更接近长回报，bias 小但 variance 大。</li>
+</ul>
+<p>实践里 PPO 常用 <span class="math-text">λ=0.95</span>，是因为它通常在稳定性和学习信号之间比较均衡。</p>
+<h2>Shared Network vs Separate Network</h2>
+<p>Actor 和 critic 可以：</p>
+<ul>
+<li>共享一部分 backbone，分别输出 policy head 和 value head。</li>
+<li>完全分离成两个网络。</li>
+</ul>
+<p>共享 backbone 的优点：</p>
+<ul>
+<li>参数更少。</li>
+<li>表征可以复用。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>policy loss 和 value loss 的梯度可能相互干扰。</li>
+<li>需要调节 value loss coefficient。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. Actor-Critic 中 actor 和 critic 分别做什么？</h3>
+<p>Actor 学习策略并负责选动作。Critic 学习价值函数，用来评价 actor 的动作，并为 policy gradient 提供低方差的 advantage 估计。</p>
+<h3>2. Actor-Critic 相比 REINFORCE 的优势？</h3>
+<p>Actor-Critic 用 critic 的 value estimate 替代完整 Monte Carlo return，降低方差，并支持在线或 n-step 更新，sample efficiency 更高。</p>
+<h3>3. TD error 为什么可以作为 advantage？</h3>
+<p>TD error 衡量执行动作后的一步结果是否比当前价值估计更好。如果 <span class="math-text">r + γ V(s&#39;) &gt; V(s)</span>，说明动作带来的结果超出预期，可以增加其概率。</p>
+<h3>4. A2C 和 A3C 的区别？</h3>
+<p>A3C 使用多个 worker 异步更新全局网络。A2C 是同步版本，多个环境同步采样后统一更新，工程上更稳定、易并行。</p>
+<h3>5. GAE 解决什么问题？</h3>
+<p>GAE 在 bias 和 variance 之间做平滑折中，通过 <span class="math-text">λ</span> 控制 advantage 估计更接近一步 TD 还是 Monte Carlo return。</p>
+<h2>本章练习</h2>
+<ol>
+<li>写出 Actor-Critic 的 actor loss 和 critic loss。</li>
+<li>解释 TD error 和 advantage 的关系。</li>
+<li>推导 n-step return。</li>
+<li>说明 GAE 中 <span class="math-text">λ</span> 的作用。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav></main></body>
+</html>

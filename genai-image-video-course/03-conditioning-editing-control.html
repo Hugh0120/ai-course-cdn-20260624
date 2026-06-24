@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 3 章：Conditioning、Editing、Control 与 Reference Consistency</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-text-to-image-architectures.html">← 上一章</a><a href="./04-video-generation.html">下一章 →</a></nav><h1>第 3 章：Conditioning、Editing、Control 与 Reference Consistency</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CFG</td>
+<td>Classifier-Free Guidance</td>
+<td>无分类器引导</td>
+<td>用 conditional/unconditional 预测差控制生成。</td>
+</tr>
+<tr>
+<td>TI2I</td>
+<td>Text-Image-to-Image</td>
+<td>文图到图</td>
+<td>用文本和参考图共同生成或编辑图像。</td>
+</tr>
+<tr>
+<td>Inpainting</td>
+<td>Inpainting</td>
+<td>局部重绘</td>
+<td>给定 mask，只生成缺失或指定区域。</td>
+</tr>
+<tr>
+<td>Outpainting</td>
+<td>Outpainting</td>
+<td>外扩绘制</td>
+<td>在原图边界外继续生成内容。</td>
+</tr>
+<tr>
+<td>ControlNet</td>
+<td>ControlNet</td>
+<td>控制网络</td>
+<td>给 diffusion 接入边缘、深度、pose 等结构控制。</td>
+</tr>
+<tr>
+<td>IP-Adapter</td>
+<td>Image Prompt Adapter</td>
+<td>图像提示适配器</td>
+<td>用图像作为 prompt 条件控制风格或身份。</td>
+</tr>
+<tr>
+<td>LoRA</td>
+<td>Low-Rank Adaptation</td>
+<td>低秩适配</td>
+<td>用少量参数适配特定角色、风格或商品。</td>
+</tr>
+<tr>
+<td>DreamBooth</td>
+<td>DreamBooth</td>
+<td>个性化微调方法</td>
+<td>用少量图片学习特定主体。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>文字识别，也常用于图像中文字生成评测。</td>
+</tr>
+<tr>
+<td>ROI</td>
+<td>Region of Interest</td>
+<td>感兴趣区域</td>
+<td>局部编辑或检测关注的区域。</td>
+</tr>
+<tr>
+<td>ID</td>
+<td>Identity</td>
+<td>身份</td>
+<td>人物、商品、角色等需要保持一致的视觉身份。</td>
+</tr>
+<tr>
+<td>DINO</td>
+<td>Self-distillation with No Labels</td>
+<td>自监督视觉表征模型</td>
+<td>常用于 reference similarity 或视觉一致性评测。</td>
+</tr>
+<tr>
+<td>FLUX.1</td>
+<td>FLUX.1 Model Family</td>
+<td>FLUX.1 模型系列</td>
+<td>统一图像生成和编辑的模型系列。</td>
+</tr>
+<tr>
+<td><span class="math-text">c</span></td>
+<td>Condition</td>
+<td>条件</td>
+<td>文本、图像、边缘、深度、pose、mask 等。</td>
+</tr>
+<tr>
+<td><span class="math-text">s</span></td>
+<td>Guidance Scale</td>
+<td>引导强度</td>
+<td>CFG 中控制文本遵循强度的系数。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">cond</span></sub></span></td>
+<td>Conditional Prediction</td>
+<td>条件预测</td>
+<td>有 prompt 条件时的噪声预测。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">uncond</span></sub></span></td>
+<td>Unconditional Prediction</td>
+<td>无条件预测</td>
+<td>无 prompt 条件时的噪声预测。</td>
+</tr>
+<tr>
+<td><span class="math-text">m</span></td>
+<td>Mask</td>
+<td>掩码</td>
+<td>指定需要编辑或保护的区域。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 CFG 的公式和直觉。</li>
+<li>掌握 inpainting / outpainting / image-to-image。</li>
+<li>理解 ControlNet 和 adapter 类方法。</li>
+<li>理解 reference consistency、multi-image editing、多轮编辑为什么是 2026 面试重点。</li>
+<li>能写出可复用的生成和编辑 prompt 结构。</li>
+</ul>
+<h2>Classifier-Free Guidance</h2>
+<p>CFG 同时利用 unconditional 和 conditional 预测：</p>
+<div class="math-block"><span class="math-text">ε<sub><span class="math-text">cfg</span></sub> = ε<sub><span class="math-text">uncond</span></sub> + s(ε<sub><span class="math-text">cond</span></sub> - ε<sub><span class="math-text">uncond</span></sub>)</span></div>
+
+<p>其中 <span class="math-text">s</span> 是 guidance scale。</p>
+<p>直觉：</p>
+<ul>
+<li><span class="math-text">s</span> 越大，越贴近 prompt，但可能更僵硬、过饱和、失真。</li>
+<li><span class="math-text">s</span> 越小，多样性更高，但可能不听 prompt。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>CFG 通过放大 conditional 和 unconditional denoising direction 的差异，提高条件遵循度。它是采样阶段的控制技巧，不需要额外 classifier。</p>
+</blockquote>
+<h2>Image-to-Image</h2>
+<p>image-to-image 通常先把输入图像编码并加噪到某个强度，再按 prompt 去噪。</p>
+<p>关键超参：</p>
+<ul>
+<li>denoise strength 高：改动大。</li>
+<li>denoise strength 低：保留原图结构更多。</li>
+<li>prompt 控制语义方向。</li>
+<li>negative prompt 控制避免元素。</li>
+</ul>
+<p>2026 面试里要补一句：</p>
+<blockquote>
+<p>图生图不再只是“改变风格”。主流需求已经变成 reference-based generation：保留商品、人物、角色、logo、服饰、构图关系，同时按文本做可控改动。</p>
+</blockquote>
+<h2>Inpainting</h2>
+<p>inpainting 输入：</p>
+<ul>
+<li>原图。</li>
+<li>mask。</li>
+<li>prompt。</li>
+</ul>
+<p>模型只重绘 mask 区域，非 mask 区域尽量保持。</p>
+<p>难点：</p>
+<ul>
+<li>mask 边缘融合。</li>
+<li>光照和材质一致。</li>
+<li>透视一致。</li>
+<li>局部编辑不能破坏全局语义。</li>
+</ul>
+<h2>ControlNet</h2>
+<p>ControlNet 给 diffusion 增加结构条件，例如：</p>
+<ul>
+<li>Canny edge。</li>
+<li>depth map。</li>
+<li>human pose。</li>
+<li>segmentation map。</li>
+<li>scribble。</li>
+</ul>
+<p>直觉：</p>
+<blockquote>
+<p>原始 text prompt 擅长语义控制，但不擅长精确布局。ControlNet 把结构图作为条件输入，让模型在保持生成质量的同时遵循空间结构。</p>
+</blockquote>
+<h2>Adapter、LoRA 与个性化</h2>
+<p>真实业务很少只用裸模型。常见轻量适配方式：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>English</th>
+<th>中文</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LoRA</td>
+<td>Low-Rank Adaptation</td>
+<td>低秩适配</td>
+<td>学特定风格、角色、商品，成本低。</td>
+</tr>
+<tr>
+<td>DreamBooth</td>
+<td>DreamBooth</td>
+<td>个性化微调</td>
+<td>少量图片绑定一个新主体。</td>
+</tr>
+<tr>
+<td>Textual Inversion</td>
+<td>Textual Inversion</td>
+<td>文本反演</td>
+<td>学一个新 token 表示特定概念。</td>
+</tr>
+<tr>
+<td>IP-Adapter</td>
+<td>Image Prompt Adapter</td>
+<td>图像提示适配器</td>
+<td>不微调主模型，用参考图控制身份或风格。</td>
+</tr>
+</tbody></table>
+<p>面试里要讲 trade-off：</p>
+<ul>
+<li>LoRA 可控但需要训练和版本管理。</li>
+<li>IP-Adapter 上手快，但复杂编辑可能身份漂移。</li>
+<li>DreamBooth 容易过拟合，需要正则和数据增强。</li>
+<li>多个 adapter 叠加可能互相冲突。</li>
+</ul>
+<h2>多图参考与多轮编辑</h2>
+<p>Nano Banana、FLUX.1 Kontext、Qwen-Image、Seedream 4.0 这类系统都把编辑能力放在核心位置。原因很简单：真实用户往往不是“从零生成”，而是上传参考图，然后连续提出修改。</p>
+<p>多图参考常见输入：</p>
+<ul>
+<li>主体参考图：这个人、这件商品、这个角色。</li>
+<li>风格参考图：色调、材质、镜头语言。</li>
+<li>布局参考图：构图、pose、空间关系。</li>
+<li>文字或 logo 参考图：品牌资产、海报标题。</li>
+</ul>
+<p>多轮编辑的主要失败模式：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>失败模式</th>
+<th>English</th>
+<th>中文</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Identity Drift</td>
+<td>Identity Drift</td>
+<td>身份漂移</td>
+<td>连续修改后人物脸变了，商品形状变了。</td>
+</tr>
+<tr>
+<td>Attribute Leakage</td>
+<td>Attribute Leakage</td>
+<td>属性泄漏</td>
+<td>只想换背景，却把衣服颜色也改了。</td>
+</tr>
+<tr>
+<td>Over-editing</td>
+<td>Over-editing</td>
+<td>过度编辑</td>
+<td>局部编辑导致整张图风格被重写。</td>
+</tr>
+<tr>
+<td>Text Corruption</td>
+<td>Text Corruption</td>
+<td>文字损坏</td>
+<td>原本正确的 logo 或标题被改错。</td>
+</tr>
+<tr>
+<td>Layout Collapse</td>
+<td>Layout Collapse</td>
+<td>布局崩坏</td>
+<td>多个主体的位置关系变乱。</td>
+</tr>
+</tbody></table>
+<h2>编辑任务怎么建数据</h2>
+<p>编辑模型比纯 T2I 更依赖数据设计。常见训练样本形式：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>样本</th>
+<th>English</th>
+<th>中文</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Before / After Pair</td>
+<td>Before / After Pair</td>
+<td>编辑前后图对</td>
+<td>学局部和全局编辑。</td>
+</tr>
+<tr>
+<td>Masked Pair</td>
+<td>Masked Pair</td>
+<td>带 mask 图对</td>
+<td>学 inpainting 和区域保护。</td>
+</tr>
+<tr>
+<td>Multi-reference Pair</td>
+<td>Multi-reference Pair</td>
+<td>多参考图对</td>
+<td>学组合多个视觉条件。</td>
+</tr>
+<tr>
+<td>Synthetic Edit</td>
+<td>Synthetic Edit</td>
+<td>合成编辑数据</td>
+<td>用渲染、分割、VLM caption 自动构造。</td>
+</tr>
+<tr>
+<td>Human Preference</td>
+<td>Human Preference</td>
+<td>人类偏好数据</td>
+<td>学哪个编辑结果更符合意图。</td>
+</tr>
+</tbody></table>
+<p>一个成熟 pipeline 往往包括：</p>
+<ol>
+<li>自动生成编辑指令。</li>
+<li>用分割、检测、OCR、captioning 生成结构化标签。</li>
+<li>过滤低质、违规、版权敏感样本。</li>
+<li>训练后用 VLM / OCR / embedding similarity 做自动筛选。</li>
+<li>对高价值场景做人工偏好标注。</li>
+</ol>
+<h2>Prompt 结构</h2>
+<p>通用 prompt 模板：</p>
+<pre><code class="language-text">主体 + 场景 + 构图 + 风格 + 光照 + 镜头 + 细节 + 质量约束
+</code></pre>
+<p>视频 prompt 还要补：</p>
+<pre><code class="language-text">动作 + 镜头运动 + 时间变化 + 主体一致性 + 场景连续性
+</code></pre>
+<p>面试里不要把 prompt 说成唯一核心。真正的系统还包括：</p>
+<ul>
+<li>模型选择。</li>
+<li>分辨率和采样器。</li>
+<li>seed 管理。</li>
+<li>control condition。</li>
+<li>后处理。</li>
+<li>safety filter。</li>
+<li>人工审核。</li>
+</ul>
+<p>编辑 prompt 建议更结构化：</p>
+<pre><code class="language-text">保留：主体身份、商品形状、logo、构图
+修改：背景、光照、服饰颜色、局部物体
+禁止：改变脸、改变文字、添加额外主体、破坏品牌色
+输出：分辨率、比例、风格、是否透明背景
+</code></pre>
+<h2>工程侧控制面板</h2>
+<p>一个好用的图像生成工具通常会暴露这些控制项：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>控制项</th>
+<th>English</th>
+<th>中文</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Seed</td>
+<td>Random Seed</td>
+<td>随机种子</td>
+<td>复现和 A/B 比较。</td>
+</tr>
+<tr>
+<td>Sampler</td>
+<td>Sampler</td>
+<td>采样器</td>
+<td>控制速度和质量。</td>
+</tr>
+<tr>
+<td>Guidance Scale</td>
+<td>Guidance Scale</td>
+<td>引导强度</td>
+<td>控制 prompt adherence。</td>
+</tr>
+<tr>
+<td>Denoise Strength</td>
+<td>Denoise Strength</td>
+<td>去噪强度</td>
+<td>控制编辑幅度。</td>
+</tr>
+<tr>
+<td>Reference Weight</td>
+<td>Reference Weight</td>
+<td>参考权重</td>
+<td>控制身份或风格保留。</td>
+</tr>
+<tr>
+<td>Mask Feather</td>
+<td>Mask Feather</td>
+<td>掩码羽化</td>
+<td>改善边缘融合。</td>
+</tr>
+<tr>
+<td>Negative Prompt</td>
+<td>Negative Prompt</td>
+<td>负向提示</td>
+<td>减少不需要的元素。</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. CFG scale 太大会怎样？</h3>
+<p>模型更强地追随 prompt，但可能降低多样性，产生过饱和、纹理异常、构图僵硬或细节崩坏。</p>
+<h3>2. ControlNet 解决什么问题？</h3>
+<p>解决纯文本控制不精确的问题。通过边缘、深度、pose、segmentation 等结构条件，约束生成图像的布局和姿态。</p>
+<h3>3. Inpainting 为什么容易边缘不自然？</h3>
+<p>因为局部区域需要同时满足 prompt、mask 内语义、mask 外上下文、边界纹理、光照和透视一致性。任何一个不匹配都会让边缘显得突兀。</p>
+<h3>4. Reference consistency 怎么评估？</h3>
+<p>可以用人评、CLIP / DINO embedding similarity、face / product recognition、OCR、局部检测和多轮编辑回归集。关键是把“保留什么”和“允许改什么”写进测试用例，而不是只看最终图好不好看。</p>
+<h3>5. 为什么多轮编辑比单轮编辑难？</h3>
+<p>多轮编辑会累积误差。模型每次生成都会重新解释图像和指令，如果没有稳定的视觉记忆、mask 约束、参考权重和回归测试，就容易身份漂移、文字损坏或不相关区域被改动。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2207.12598">Classifier-Free Diffusion Guidance</a></li>
+<li><a href="https://arxiv.org/abs/2108.01073">SDEdit: Guided Image Synthesis and Editing with Stochastic Differential Equations</a></li>
+<li><a href="https://arxiv.org/abs/2302.05543">Adding Conditional Control to Text-to-Image Diffusion Models</a></li>
+<li><a href="https://arxiv.org/abs/2308.06721">IP-Adapter: Text Compatible Image Prompt Adapter for Text-to-Image Diffusion Models</a></li>
+<li><a href="https://arxiv.org/abs/2506.15742">FLUX.1 Kontext</a></li>
+<li><a href="https://developers.googleblog.com/en/introducing-gemini-2-5-flash-image/">Gemini 2.5 Flash Image</a></li>
+<li><a href="https://arxiv.org/abs/2508.02324">Qwen-Image Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2509.20427">Seedream 4.0</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./02-text-to-image-architectures.html">← 上一章</a><a href="./04-video-generation.html">下一章 →</a></nav></main></body>
+</html>

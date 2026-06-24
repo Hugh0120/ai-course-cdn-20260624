@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 4 章：VLM 基础、ViT、CLIP 与图文对齐</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./03-prompt-rag-agent-eval.html">← 上一章</a><a href="./05-mllm-architectures-and-training.html">下一章 →</a></nav><h1>第 4 章：VLM 基础、ViT、CLIP 与图文对齐</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时建模视觉和语言的模型。</td>
+</tr>
+<tr>
+<td>ViT</td>
+<td>Vision Transformer</td>
+<td>视觉 Transformer</td>
+<td>把图像 patch 当作 token 输入 Transformer。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Contrastive Language-Image Pre-training</td>
+<td>对比式图文预训练</td>
+<td>学习图像和文本共享 embedding 空间。</td>
+</tr>
+<tr>
+<td>ITC</td>
+<td>Image-Text Contrastive Loss</td>
+<td>图文对比损失</td>
+<td>拉近匹配图文，拉远不匹配图文。</td>
+</tr>
+<tr>
+<td>VQA</td>
+<td>Visual Question Answering</td>
+<td>视觉问答</td>
+<td>根据图像回答问题。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>识别图像中的文字。</td>
+</tr>
+<tr>
+<td><span class="math-text">I</span></td>
+<td>Image</td>
+<td>图像</td>
+<td>输入图像。</td>
+</tr>
+<tr>
+<td><span class="math-text">T</span></td>
+<td>Text</td>
+<td>文本</td>
+<td>输入文本或 caption。</td>
+</tr>
+<tr>
+<td><span class="math-text">z<sub><span class="math-text">I</span></sub></span></td>
+<td>Image Embedding</td>
+<td>图像向量</td>
+<td>图像编码器输出的全局表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">z<sub><span class="math-text">T</span></sub></span></td>
+<td>Text Embedding</td>
+<td>文本向量</td>
+<td>文本编码器输出的全局表示。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解图像如何变成 token。</li>
+<li>掌握 CLIP 的 contrastive learning 目标。</li>
+<li>理解 zero-shot classification 和 image-text retrieval。</li>
+<li>认识 VLM 常见任务和瓶颈。</li>
+</ul>
+<h2>ViT：图像变 token</h2>
+<p>ViT 把图像切成 patch：</p>
+<div class="math-block"><span class="math-text">I → [p<sub><span class="math-text">1</span></sub>, p<sub><span class="math-text">2</span></sub>, …, p<sub><span class="math-text">n</span></sub>]</span></div>
+
+<p>每个 patch 线性投影成 embedding，再加 position embedding，输入 Transformer encoder。</p>
+<p>直觉：</p>
+<ul>
+<li>CNN 有强局部归纳偏置。</li>
+<li>ViT 更依赖数据规模和预训练。</li>
+<li>对 VLM 来说，patch token 很自然地可以和 text token 对齐或融合。</li>
+</ul>
+<h2>CLIP</h2>
+<p>CLIP 同时训练 image encoder 和 text encoder。给定 batch 内 <span class="math-text">N</span> 对图文样本：</p>
+<div class="math-block"><span class="math-text">(I<sub><span class="math-text">1</span></sub>,T<sub><span class="math-text">1</span></sub>),…,(I<sub><span class="math-text">N</span></sub>,T<sub><span class="math-text">N</span></sub>)</span></div>
+
+<p>模型得到：</p>
+<div class="math-block"><span class="math-text">z<sub><span class="math-text">I</span></sub> = f<sub><span class="math-text">img</span></sub>(I),  z<sub><span class="math-text">T</span></sub> = f<sub><span class="math-text">text</span></sub>(T)</span></div>
+
+<p>相似度：</p>
+<div class="math-block"><span class="math-text">s<sub><span class="math-text">ij</span></sub> = z<sub><span class="math-text">I<sub><span class="math-text">i</span></sub></span></sub><sup><span class="math-text">⊤</span></sup> z<sub><span class="math-text">T<sub><span class="math-text">j</span></sub></span></sub> / τ</span></div>
+
+<p>训练目标是让匹配的 <span class="math-text">(I<sub><span class="math-text">i</span></sub>,T<sub><span class="math-text">i</span></sub>)</span> 相似度高，不匹配的 <span class="math-text">(I<sub><span class="math-text">i</span></sub>,T<sub><span class="math-text">j</span></sub>)</span> 相似度低。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>CLIP 的关键是用大规模图文对做 contrastive learning，把图像和文本投到同一个语义空间。这样可以通过文本 prompt 表示类别，实现 zero-shot image classification。</p>
+</blockquote>
+<h2>Zero-shot Classification</h2>
+<p>CLIP 做分类时，可以把类别写成 prompt：</p>
+<pre><code class="language-text">a photo of a dog
+a photo of a cat
+</code></pre>
+<p>然后计算图像 embedding 和每个文本 embedding 的相似度，选最高的类别。</p>
+<p>优点：</p>
+<ul>
+<li>不需要为每个新类别训练分类头。</li>
+<li>类别可以由自然语言描述。</li>
+<li>能做开放词表分类。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>prompt 模板敏感。</li>
+<li>对细粒度、计数、空间关系仍可能弱。</li>
+<li>训练数据偏差会影响 zero-shot 表现。</li>
+</ul>
+<h2>VLM 常见任务</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>任务</th>
+<th>English</th>
+<th>中文</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image Captioning</td>
+<td>Image Captioning</td>
+<td>图像描述</td>
+<td>输入图像，输出自然语言描述。</td>
+</tr>
+<tr>
+<td>VQA</td>
+<td>Visual Question Answering</td>
+<td>视觉问答</td>
+<td>输入图像和问题，输出答案。</td>
+</tr>
+<tr>
+<td>OCR QA</td>
+<td>OCR Question Answering</td>
+<td>文字识别问答</td>
+<td>需要读取图像中的文字。</td>
+</tr>
+<tr>
+<td>Chart QA</td>
+<td>Chart Question Answering</td>
+<td>图表问答</td>
+<td>需要解析图表结构和数值。</td>
+</tr>
+<tr>
+<td>Document QA</td>
+<td>Document Question Answering</td>
+<td>文档问答</td>
+<td>需要理解版面、表格和文本。</td>
+</tr>
+<tr>
+<td>Referring</td>
+<td>Referring Expression</td>
+<td>指代表达理解</td>
+<td>根据文字定位图像中的对象。</td>
+</tr>
+<tr>
+<td>Grounding</td>
+<td>Visual Grounding</td>
+<td>视觉定位</td>
+<td>输出框、点或区域。</td>
+</tr>
+</tbody></table>
+<h2>VLM 为什么难</h2>
+<p>VLM 不只是“把图片丢给 LLM”。</p>
+<p>难点包括：</p>
+<ul>
+<li>视觉 token 数量大，计算成本高。</li>
+<li>图像包含空间、局部细节和文字信息。</li>
+<li>文本 token 是离散符号，视觉 token 是连续空间表示。</li>
+<li>OCR、chart、document 需要精确读数和版面理解。</li>
+<li>多图、多页、长视频带来上下文和时间建模问题。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. CLIP 为什么能 zero-shot？</h3>
+<p>CLIP 学到了图像和文本的共享语义空间。分类时把类别变成文本 prompt，比较图像与类别文本的相似度，就能不用训练分类头完成 zero-shot classification。</p>
+<h3>2. CLIP 和传统监督分类有什么区别？</h3>
+<p>传统分类学习固定 label space；CLIP 学图文对齐，label 可以由自然语言动态表达，因此更开放。</p>
+<h3>3. VLM 在文档理解上为什么难？</h3>
+<p>文档理解需要 OCR、版面结构、表格关系、阅读顺序和跨区域推理。单纯全局图像 embedding 往往不够，需要高分辨率、动态切图或专门的 document training data。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2010.11929">An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale</a></li>
+<li><a href="https://arxiv.org/abs/2103.00020">Learning Transferable Visual Models From Natural Language Supervision</a></li>
+<li><a href="https://arxiv.org/abs/2307.06281">MMBench: Is Your Multi-modal Model an All-around Player?</a></li>
+<li><a href="https://arxiv.org/abs/2311.16502">MMMU: A Massive Multi-discipline Multimodal Understanding and Reasoning Benchmark</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./03-prompt-rag-agent-eval.html">← 上一章</a><a href="./05-mllm-architectures-and-training.html">下一章 →</a></nav></main></body>
+</html>

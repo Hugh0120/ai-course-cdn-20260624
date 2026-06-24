@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 5 章：函数逼近、稳定性与 Deadly Triad</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-exploration-bandit.html">← 上一章</a><a href="./06-dqn-and-variants.html">下一章 →</a></nav><h1>第 5 章：函数逼近、稳定性与 Deadly Triad</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">V(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>状态 <span class="math-text">s</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>状态-动作对 <span class="math-text">(s,a)</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">π(a ∣ s)</span></td>
+<td>Policy</td>
+<td>策略</td>
+<td>状态 <span class="math-text">s</span> 下选择动作 <span class="math-text">a</span> 的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span> / <span class="math-text">w</span></td>
+<td>Parameters / Weights</td>
+<td>参数 / 权重</td>
+<td>策略网络或价值网络的可学习参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>Target</td>
+<td>训练目标值</td>
+<td>Bellman target，用来监督当前估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">L(w)</span></td>
+<td>Loss Function</td>
+<td>损失函数</td>
+<td>训练价值网络时最小化的目标。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>用神经网络近似 <span class="math-text">Q(s,a)</span> 的 value-based 算法。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>用一步 reward 和下一状态估计构造 target 的方法。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>本章讨论 RL 从表格方法进入函数逼近后的稳定性问题。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>文中作为高维状态或复杂序列系统的例子。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章从表格型 RL 过渡到深度强化学习。你需要掌握：</p>
+<ul>
+<li>为什么需要函数逼近。</li>
+<li>线性函数逼近和神经网络逼近。</li>
+<li>value function approximation。</li>
+<li>bootstrapping 的影响。</li>
+<li>off-policy learning 的分布问题。</li>
+<li>Deadly Triad。</li>
+</ul>
+<h2>为什么需要函数逼近</h2>
+<p>表格型方法为每个状态或状态动作对存一个值：</p>
+<div class="math-block multi"><div><span class="math-text">V(s)</span></div><div><span class="math-text">Q(s, a)</span></div></div>
+
+<p>但真实任务中状态空间可能极大，甚至连续：</p>
+<ul>
+<li>图像输入。</li>
+<li>机器人连续状态。</li>
+<li>推荐系统用户特征。</li>
+<li>LLM 对话状态。</li>
+</ul>
+<p>这时无法为每个状态单独建表，需要用参数化函数近似价值函数或策略。</p>
+<p>例如：</p>
+<div class="math-block multi"><div><span class="math-text">V(s) ≈ V(s; w)</span></div><div><span class="math-text">Q(s, a) ≈ Q(s, a; w)</span></div><div><span class="math-text">π(a ∣ s) ≈ π(a ∣ s; θ)</span></div></div>
+
+<h2>Value Function Approximation</h2>
+<p>用神经网络近似 Q 函数：</p>
+<div class="math-block"><span class="math-text">Q(s, a; w)</span></div>
+
+<p>训练目标通常来自 Bellman target。</p>
+<p>例如 DQN 中：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>损失：</p>
+<div class="math-block"><span class="math-text">L(w) = 𝔼[(y - Q(s, a; w))<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>其中 <span class="math-text">w<sup><span class="math-text">-</span></sup></span> 是 target network 参数。</p>
+<h2>函数逼近的好处</h2>
+<ul>
+<li>可以处理高维状态。</li>
+<li>可以泛化到没见过的状态。</li>
+<li>可以结合深度学习特征提取能力。</li>
+<li>能用于图像、文本、连续控制等任务。</li>
+</ul>
+<h2>函数逼近的风险</h2>
+<p>表格型方法中，不同状态动作对的值相互独立。<br>函数逼近中，共享参数会导致一个样本更新影响许多状态动作对的估计。</p>
+<p>这带来几个问题：</p>
+<ul>
+<li>训练目标非平稳。</li>
+<li>样本之间高度相关。</li>
+<li>误差可能通过 bootstrap 扩散。</li>
+<li>价值函数可能过估计或发散。</li>
+</ul>
+<h2>Bootstrapping</h2>
+<p>Bootstrapping 指 target 中包含当前模型自己的估计。</p>
+<p>例如 TD target：</p>
+<div class="math-block"><span class="math-text">r + γ V(s')</span></div>
+
+<p>Q-learning target：</p>
+<div class="math-block"><span class="math-text">r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a')</span></div>
+
+<p>它的优点：</p>
+<ul>
+<li>可以在线更新。</li>
+<li>不需要完整 episode。</li>
+<li>sample efficiency 较高。</li>
+</ul>
+<p>它的风险：</p>
+<ul>
+<li>target 依赖当前估计。</li>
+<li>估计错误会被继续传播。</li>
+<li>函数逼近下更容易放大不稳定性。</li>
+</ul>
+<h2>Off-policy Distribution Shift</h2>
+<p>off-policy 学习中，数据来自 behavior policy，但学习目标是 target policy。</p>
+<div class="math-block multi"><div><span class="math-text">data distribution: d<sub><span class="math-text">μ</span></sub>(s, a)</span></div><div><span class="math-text">target policy: π</span></div></div>
+
+<p>如果 behavior policy 产生的数据分布和 target policy 需要的数据分布差异很大，模型可能会在没数据覆盖的状态动作上产生错误估计。</p>
+<p>这种问题在 offline RL 中尤其严重。</p>
+<h2>Deadly Triad</h2>
+<p>Deadly Triad 指三个因素同时出现时，RL 训练可能不稳定甚至发散：</p>
+<ol>
+<li>Function approximation。</li>
+<li>Bootstrapping。</li>
+<li>Off-policy learning。</li>
+</ol>
+<p>为什么危险？</p>
+<ul>
+<li>函数逼近会让误差泛化到其他状态。</li>
+<li>bootstrapping 会用当前估计构造 target，错误会自我强化。</li>
+<li>off-policy 会带来数据分布和学习目标不一致。</li>
+</ul>
+<p>DQN 同时包含这三个因素，因此需要额外稳定技巧：</p>
+<ul>
+<li>replay buffer 打破样本相关性。</li>
+<li>target network 稳定 bootstrap target。</li>
+<li>reward clipping。</li>
+<li>gradient clipping。</li>
+<li>Double DQN 降低 overestimation bias。</li>
+</ul>
+<h2>Experience Replay 的稳定作用</h2>
+<p>Replay buffer 存储历史 transition：</p>
+<pre><code class="language-text">(s, a, r, s&#39;, done)
+</code></pre>
+<p>训练时从 buffer 中随机采样 mini-batch。</p>
+<p>好处：</p>
+<ul>
+<li>打破连续样本相关性。</li>
+<li>提高样本利用率。</li>
+<li>让数据分布更平滑。</li>
+</ul>
+<p>限制：</p>
+<ul>
+<li>数据可能 stale。</li>
+<li>对 on-policy 算法不天然适用。</li>
+<li>分布偏移仍然存在。</li>
+</ul>
+<h2>Target Network 的稳定作用</h2>
+<p>如果 target 和 online prediction 使用同一个网络：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w)</span></div>
+
+<p>那么模型参数一更新，target 也立刻变化，训练目标非常不稳定。</p>
+<p>Target network 使用滞后的参数 <span class="math-text">w<sup><span class="math-text">-</span></sup></span>：</p>
+<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>每隔一段时间同步：</p>
+<div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← w</span></div>
+
+<p>或者软更新：</p>
+<div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ w + (1 - τ) w<sup><span class="math-text">-</span></sup></span></div>
+
+<h2>本章面试高频问题</h2>
+<h3>1. 为什么表格型 RL 不够用？</h3>
+<p>因为真实任务的状态空间通常很大或连续，无法为每个状态动作对单独存一个值。函数逼近可以泛化到未见状态，并处理高维输入。</p>
+<h3>2. 什么是 Deadly Triad？</h3>
+<p>Function approximation、bootstrapping 和 off-policy learning 三者同时出现时，强化学习训练容易不稳定甚至发散。</p>
+<h3>3. 为什么神经网络加 Q-learning 会不稳定？</h3>
+<p>Q-learning 使用 bootstrap target，target 又依赖当前估计。神经网络共享参数，一个样本更新会影响大量状态动作估计。再加上 off-policy 数据分布偏移，误差可能被放大。</p>
+<h3>4. replay buffer 解决什么问题？</h3>
+<p>它通过随机采样历史 transition，打破连续样本相关性，提高样本利用率，并让训练数据分布更平滑。</p>
+<h3>5. target network 解决什么问题？</h3>
+<p>它让 Bellman target 在一段时间内保持相对稳定，避免 online network 更新时 target 也同步剧烈变化。</p>
+<h2>本章练习</h2>
+<ol>
+<li>用自己的话解释 bootstrapping。</li>
+<li>画出 DQN 中 online network 和 target network 的关系。</li>
+<li>解释为什么 off-policy + function approximation 容易出问题。</li>
+<li>总结 DQN 针对 Deadly Triad 做了哪些稳定化设计。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./04-exploration-bandit.html">← 上一章</a><a href="./06-dqn-and-variants.html">下一章 →</a></nav></main></body>
+</html>

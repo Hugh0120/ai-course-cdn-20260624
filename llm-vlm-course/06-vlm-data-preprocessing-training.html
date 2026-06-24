@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 6 章：VLM 数据构造、预处理与训练实操</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-mllm-architectures-and-training.html">← 上一章</a><a href="./07-vlm-evaluation-harness-projects.html">下一章 →</a></nav><h1>第 6 章：VLM 数据构造、预处理与训练实操</h1>
+<p>这一章把 VLM（Vision-Language Model，视觉语言模型）从“模型结构”推进到“怎么训”。面试里如果只说 CLIP、LLaVA、Qwen2.5-VL，很容易停在概念层；真正能拉开差距的是说明多模态数据如何构造、清洗、打标、打包，以及每个训练阶段解决什么问题。</p>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理视觉和语言输入的模型。</td>
+</tr>
+<tr>
+<td>MLLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>把图像、视频、音频等模态接入 LLM 的模型族。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>多模态模型中负责语言理解、推理和生成的核心。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>从图像、截图、扫描件中识别文字。</td>
+</tr>
+<tr>
+<td>VQA</td>
+<td>Visual Question Answering</td>
+<td>视觉问答</td>
+<td>根据图像或视频回答问题。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用指令-答案数据训练模型遵循任务。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>用偏好对直接优化模型输出偏好。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好训练 reward，再优化模型。</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>用自动可验证的任务结果作为奖励信号。</td>
+</tr>
+<tr>
+<td>ETL</td>
+<td>Extract, Transform, Load</td>
+<td>抽取、转换、加载</td>
+<td>数据工程里的标准处理流程。</td>
+</tr>
+<tr>
+<td>JSONL</td>
+<td>JSON Lines</td>
+<td>JSON 行格式</td>
+<td>每行一个 JSON 样本，常用于训练数据。</td>
+</tr>
+<tr>
+<td>DPI</td>
+<td>Dots Per Inch</td>
+<td>每英寸点数</td>
+<td>文档扫描件和截图清晰度指标。</td>
+</tr>
+<tr>
+<td>ROI</td>
+<td>Region of Interest</td>
+<td>感兴趣区域</td>
+<td>图像中需要重点理解或裁剪的区域。</td>
+</tr>
+<tr>
+<td>ViT</td>
+<td>Vision Transformer</td>
+<td>视觉 Transformer</td>
+<td>把图像切成 patch token 的视觉编码器。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Contrastive Language-Image Pre-training</td>
+<td>对比式图文预训练</td>
+<td>学习图文共享语义空间的经典模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">I</span></td>
+<td>Image</td>
+<td>图像</td>
+<td>输入的单张图像。</td>
+</tr>
+<tr>
+<td><span class="math-text">V</span></td>
+<td>Video</td>
+<td>视频</td>
+<td>输入的视频片段或帧序列。</td>
+</tr>
+<tr>
+<td><span class="math-text">T<sub><span class="math-text">v</span></sub></span></td>
+<td>Visual Tokens</td>
+<td>视觉 token</td>
+<td>图像或视频经 encoder/tokenizer 后得到的 token。</td>
+</tr>
+<tr>
+<td><span class="math-text">T<sub><span class="math-text">x</span></sub></span></td>
+<td>Text Tokens</td>
+<td>文本 token</td>
+<td>prompt、问题、答案或系统指令的 token。</td>
+</tr>
+<tr>
+<td><span class="math-text">N<sub><span class="math-text">v</span></sub></span></td>
+<td>Number of Visual Tokens</td>
+<td>视觉 token 数量</td>
+<td>决定上下文占用和 attention 成本。</td>
+</tr>
+<tr>
+<td><span class="math-text">D</span></td>
+<td>Dataset</td>
+<td>数据集</td>
+<td>多模态训练样本集合。</td>
+</tr>
+<tr>
+<td><span class="math-text">q</span></td>
+<td>Question</td>
+<td>问题</td>
+<td>VQA、文档问答或视觉推理中的用户问题。</td>
+</tr>
+<tr>
+<td><span class="math-text">a</span></td>
+<td>Answer</td>
+<td>答案</td>
+<td>模型需要生成的目标回答。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>能讲清 VLM 数据从原始资产到训练样本的完整 pipeline。</li>
+<li>能区分 image-text pretraining、instruction tuning、preference tuning、RLVR 数据。</li>
+<li>能解释 dynamic resolution、tiling、OCR、document parsing 为什么重要。</li>
+<li>能设计一个 VLM 项目的数据 schema、质量过滤和训练阶段。</li>
+</ul>
+<h2>VLM 数据为什么要单独拆</h2>
+<p>LLM 的数据主要是 token 序列，VLM 的数据同时包含视觉内容、文本描述、布局、时间、坐标和任务格式。问题不只是“有没有图”，而是：</p>
+<ul>
+<li>图像是否清晰、完整、无水印、无隐私风险。</li>
+<li>caption 是否描述了细粒度属性、关系、文字和动作。</li>
+<li>OCR 文本是否和图像坐标、版面结构对齐。</li>
+<li>高分辨率图像如何压进有限 visual token budget。</li>
+<li>文档、图表、UI、视频是否有适合任务的标注。</li>
+<li>训练样本是否覆盖模型上线后的真实问题分布。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>VLM 的训练效果很大一部分来自数据工程。视觉输入不是普通文本 token，必须先处理分辨率、裁剪、版面、OCR、caption、坐标和任务 schema，否则模型很容易在 OCR、图表、空间关系和细粒度 grounding 上掉链子。</p>
+</blockquote>
+<h2>数据类型地图</h2>
+<table class="wide-table">
+<thead>
+<tr>
+<th>数据类型</th>
+<th>English</th>
+<th>中文</th>
+<th>典型用途</th>
+<th>常见风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image-Text Pair</td>
+<td>Image-Text Pair</td>
+<td>图文对</td>
+<td>图文对齐、caption、检索</td>
+<td>caption 粗糙、噪声大、版权不清</td>
+</tr>
+<tr>
+<td>Interleaved Data</td>
+<td>Interleaved Image-Text Data</td>
+<td>图文交错数据</td>
+<td>多图理解、上下文学习</td>
+<td>顺序错乱、图文引用不清</td>
+</tr>
+<tr>
+<td>VQA Data</td>
+<td>Visual Question Answering Data</td>
+<td>视觉问答数据</td>
+<td>视觉问答、细粒度理解</td>
+<td>答案过短、问题模板化</td>
+</tr>
+<tr>
+<td>OCR Data</td>
+<td>Optical Character Recognition Data</td>
+<td>文字识别数据</td>
+<td>文档、票据、截图、UI</td>
+<td>低 DPI、文字遮挡、标注错</td>
+</tr>
+<tr>
+<td>Document Data</td>
+<td>Document Understanding Data</td>
+<td>文档理解数据</td>
+<td>PDF、表格、版面解析</td>
+<td>结构丢失、页码和区域不对齐</td>
+</tr>
+<tr>
+<td>Chart Data</td>
+<td>Chart and Table Data</td>
+<td>图表数据</td>
+<td>图表问答、数值读取</td>
+<td>数字精度、坐标轴语义错误</td>
+</tr>
+<tr>
+<td>Grounding Data</td>
+<td>Grounding Data</td>
+<td>定位数据</td>
+<td>box、point、region QA</td>
+<td>坐标归一化错误</td>
+</tr>
+<tr>
+<td>Video Data</td>
+<td>Video Understanding Data</td>
+<td>视频理解数据</td>
+<td>动作、事件、时间推理</td>
+<td>采样稀疏、caption 不含时间变化</td>
+</tr>
+<tr>
+<td>UI Data</td>
+<td>User Interface Data</td>
+<td>界面数据</td>
+<td>computer-use、GUI agent</td>
+<td>点击坐标、状态变化难标注</td>
+</tr>
+<tr>
+<td>Preference Data</td>
+<td>Preference Data</td>
+<td>偏好数据</td>
+<td>回答质量、安全、格式</td>
+<td>judge 偏差、偏好维度混淆</td>
+</tr>
+</tbody></table>
+<h2>从原始数据到训练样本</h2>
+<p>一个 VLM 数据 pipeline 可以这样讲：</p>
+<pre><code class="language-text">原始图片 / 视频 / PDF / 截图
+-&gt; 去重、质量过滤、安全过滤、版权和隐私过滤
+-&gt; OCR / layout parsing / object detection / captioning / recaptioning
+-&gt; 任务构造：caption、VQA、doc QA、chart QA、grounding、UI action
+-&gt; schema 统一：messages、images、boxes、metadata、source、license
+-&gt; train / dev / test 切分与去污染
+-&gt; packing、resolution bucket、visual token budget 控制
+-&gt; SFT / preference / RLVR / eval harness
+</code></pre>
+<p>这里每一步都可能决定模型上线质量。比如 OCR 数据如果没有保留坐标，模型可能能“读字”，但不能回答“右上角表格第二列是多少”；视频 caption 如果只写“一个人在走路”，模型很难学到镜头、动作变化和事件顺序。</p>
+<h2>图像预处理：分辨率、裁剪和 visual token</h2>
+<p>图像进入 VLM 前通常会被切成 patch 或由 vision encoder 编码。对于 ViT 类模型，粗略可以理解成：</p>
+<div class="math-block"><span class="math-text">N<sub><span class="math-text">v</span></sub> ≈ H / p × W / p</span></div>
+
+<p>其中 <span class="math-text">H</span>（Height，高度）和 <span class="math-text">W</span>（Width，宽度）是图像尺寸，<span class="math-text">p</span>（Patch Size，patch 尺寸）是每个视觉 patch 的边长，<span class="math-text">N<sub><span class="math-text">v</span></sub></span>（Number of Visual Tokens，视觉 token 数量）决定计算成本。</p>
+<p>常见策略：</p>
+<table class="wide-table">
+<thead>
+<tr>
+<th>策略</th>
+<th>English</th>
+<th>中文</th>
+<th>适合场景</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Resize</td>
+<td>Resize</td>
+<td>缩放</td>
+<td>普通自然图像</td>
+<td>小字、细节丢失</td>
+</tr>
+<tr>
+<td>Center Crop</td>
+<td>Center Crop</td>
+<td>中心裁剪</td>
+<td>主体居中图片</td>
+<td>边缘信息丢失</td>
+</tr>
+<tr>
+<td>Dynamic Resolution</td>
+<td>Dynamic Resolution</td>
+<td>动态分辨率</td>
+<td>多宽高比、多任务</td>
+<td>训练和 batch 更复杂</td>
+</tr>
+<tr>
+<td>Tiling</td>
+<td>Image Tiling</td>
+<td>图像切块</td>
+<td>文档、长图、截图</td>
+<td>token 数多，跨 tile 关系难</td>
+</tr>
+<tr>
+<td>ROI Crop</td>
+<td>Region of Interest Crop</td>
+<td>重点区域裁剪</td>
+<td>OCR、商品、图表</td>
+<td>依赖检测或规则</td>
+</tr>
+<tr>
+<td>Multi-scale</td>
+<td>Multi-scale Encoding</td>
+<td>多尺度编码</td>
+<td>细节和全局都重要</td>
+<td>推理成本高</td>
+</tr>
+</tbody></table>
+<p>面试表达：</p>
+<blockquote>
+<p>高分辨率 VLM 不是简单把图片放大。真正的问题是如何在有限 visual token budget 里同时保留全局布局和局部细节，所以 dynamic resolution、tiling、ROI crop 和多尺度策略会直接影响 OCR、文档和图表能力。</p>
+</blockquote>
+<h2>Caption 与 Recaption</h2>
+<p>早期图文对 caption 很粗，例如“a dog on grass”。现代 VLM 训练更需要 rich caption：</p>
+<ul>
+<li>主体、属性、数量、颜色、材质。</li>
+<li>空间关系和相对位置。</li>
+<li>OCR 文本和可见标志。</li>
+<li>图表坐标轴、单位、趋势。</li>
+<li>文档版面、标题、表格、脚注。</li>
+<li>视频里的动作、镜头、时间顺序。</li>
+<li>不确定性和遮挡说明。</li>
+</ul>
+<p>常用做法是用强 VLM 或人工标注生成 recaption，再用规则和 judge 过滤低质量描述。</p>
+<p>高质量 caption 不是越长越好，而是要和任务相关。如果目标是文档 QA，就要保留版面、表格结构和 OCR；如果目标是商品理解，就要保留品牌、类目、材质、缺陷和使用场景。</p>
+<h2>训练样本 Schema</h2>
+<p>一个工程上常用的 VLM SFT 样本可以长这样：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;docqa_000001&quot;,
+  &quot;images&quot;: [&quot;page_001.png&quot;],
+  &quot;messages&quot;: [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a visual document assistant.&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;根据图片中的表格，2025 Q4 的收入是多少？&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;2025 Q4 的收入是 1280 万元。&quot;}
+  ],
+  &quot;metadata&quot;: {
+    &quot;task&quot;: &quot;document_qa&quot;,
+    &quot;source&quot;: &quot;internal_synthetic&quot;,
+    &quot;ocr_available&quot;: true,
+    &quot;answer_type&quot;: &quot;numeric&quot;
+  }
+}
+</code></pre>
+<p>带 grounding 的样本还要记录坐标：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;grounding_000017&quot;,
+  &quot;images&quot;: [&quot;shelf.png&quot;],
+  &quot;messages&quot;: [
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请指出红色瓶装饮料的位置。&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;&lt;box&gt;0.62,0.31,0.78,0.67&lt;/box&gt;&quot;}
+  ],
+  &quot;metadata&quot;: {
+    &quot;task&quot;: &quot;grounding&quot;,
+    &quot;coordinate&quot;: &quot;normalized_xyxy&quot;
+  }
+}
+</code></pre>
+<p>注意两点：</p>
+<ul>
+<li>schema 要稳定，否则训练和评测难复现。</li>
+<li>坐标格式必须明确，例如 normalized xyxy、pixel xyxy、center-width-height，混用会造成灾难性错误。</li>
+</ul>
+<h2>训练阶段怎么拆</h2>
+<table class="wide-table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>English</th>
+<th>中文</th>
+<th>主要数据</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Vision Encoder Pretraining</td>
+<td>Vision Encoder Pretraining</td>
+<td>视觉编码器预训练</td>
+<td>图像、图文对</td>
+<td>获得视觉表征</td>
+</tr>
+<tr>
+<td>Projector Alignment</td>
+<td>Projector Alignment</td>
+<td>投影层对齐</td>
+<td>image-caption</td>
+<td>让视觉 token 进入 LLM 语义空间</td>
+</tr>
+<tr>
+<td>Multimodal Pretraining</td>
+<td>Multimodal Pretraining</td>
+<td>多模态预训练</td>
+<td>大规模图文/图文交错</td>
+<td>学习跨模态对齐和基础生成</td>
+</tr>
+<tr>
+<td>Instruction Tuning</td>
+<td>Instruction Tuning</td>
+<td>指令微调</td>
+<td>VQA、doc QA、OCR、grounding</td>
+<td>学会按用户问题回答</td>
+</tr>
+<tr>
+<td>Preference Tuning</td>
+<td>Preference Tuning</td>
+<td>偏好调优</td>
+<td>pairwise response</td>
+<td>改善有用性、格式、安全和拒答</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>OCR、数学图表、UI 状态、代码截图</td>
+<td>用自动判定提升可验证任务</td>
+</tr>
+<tr>
+<td>Distillation</td>
+<td>Knowledge Distillation</td>
+<td>知识蒸馏</td>
+<td>teacher 输出、轨迹</td>
+<td>降低成本、提升小模型能力</td>
+</tr>
+</tbody></table>
+<p>面试里可以说：</p>
+<blockquote>
+<p>VLM 训练通常不是一步到位。先解决视觉-语言对齐，再解决指令遵循，再针对 OCR、文档、图表、grounding、视频和 agent 任务做专门数据，最后用偏好或可验证奖励修正输出质量。</p>
+</blockquote>
+<h2>VLM 数据质量检查清单</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th>检查项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>去重</td>
+<td>同图、近似图、视频帧重复会让训练和评测虚高。</td>
+</tr>
+<tr>
+<td>去污染</td>
+<td>benchmark、dev/test、线上回归集不能泄漏到训练集。</td>
+</tr>
+<tr>
+<td>图像质量</td>
+<td>过滤过低分辨率、严重模糊、遮挡、水印、损坏文件。</td>
+</tr>
+<tr>
+<td>OCR 质量</td>
+<td>检查文字框、读取顺序、表格结构和单位。</td>
+</tr>
+<tr>
+<td>Caption 质量</td>
+<td>检查是否覆盖主体、属性、关系、文字、动作。</td>
+</tr>
+<tr>
+<td>安全和隐私</td>
+<td>过滤人脸、身份证、手机号、医疗、未成年人等敏感内容。</td>
+</tr>
+<tr>
+<td>版权和来源</td>
+<td>记录 source、license、爬取时间、授权范围。</td>
+</tr>
+<tr>
+<td>分布覆盖</td>
+<td>覆盖目标业务场景，不要只优化公开 benchmark。</td>
+</tr>
+<tr>
+<td>Schema 一致</td>
+<td>坐标、messages、图片路径、metadata 字段必须稳定。</td>
+</tr>
+</tbody></table>
+<h2>实操项目：企业文档 VLM</h2>
+<p>如果你要在面试里讲一个 VLM 项目，可以用企业文档 QA：</p>
+<ol>
+<li>数据：PDF、扫描件、表格、票据、PPT 截图。</li>
+<li>预处理：PDF render、OCR、layout parsing、table extraction、page image。</li>
+<li>训练：doc caption、page QA、table QA、区域定位、拒答样本。</li>
+<li>评测：DocVQA、TextVQA、ChartQA、自建业务集。</li>
+<li>指标：exact match、numeric tolerance、citation accuracy、OCR error attribution。</li>
+<li>风险：权限、PII、表格错读、跨页引用、幻觉引用。</li>
+</ol>
+<p>一句话版本：</p>
+<blockquote>
+<p>我不会把企业文档 VLM 做成单纯图片问答，而是会同时建 OCR/layout 结构、page image、检索和可验证问答数据，让模型既能看版面，也能输出可追溯答案。</p>
+</blockquote>
+<h2>本章面试高频问题</h2>
+<h3>1. VLM 数据和 LLM 数据最大的区别？</h3>
+<p>VLM 数据需要处理视觉质量、分辨率、版面、OCR、坐标、时间和多模态 schema。LLM 数据主要是文本序列，VLM 数据还要保证图文对齐、区域对齐和任务对齐。</p>
+<h3>2. 为什么 VLM 容易在 OCR 和图表上出错？</h3>
+<p>OCR 和图表要求细粒度视觉识别、布局理解、数值读取和推理。普通 caption/VQA 数据不一定训练这些能力，高分辨率处理和结构化标注不足时，模型容易看错字、读错轴、算错数。</p>
+<h3>3. Dynamic resolution 有什么价值？</h3>
+<p>它允许模型根据图片宽高比和任务复杂度使用不同视觉 token 数，在成本可控的情况下保留更多细节，尤其对文档、长图、截图、图表很重要。</p>
+<h3>4. VLM 为什么需要 preference 或 RLVR？</h3>
+<p>SFT 能让模型会回答，但不一定可靠。preference 可以优化回答风格、拒答和安全；RLVR 可以在 OCR、表格数值、UI 状态、数学图形等可验证任务上提供更强学习信号。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2301.12597">BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2304.08485">Visual Instruction Tuning</a></li>
+<li><a href="https://arxiv.org/abs/2502.13923">Qwen2.5-VL Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2412.05271">InternVL 2.5: Expanding Performance Boundaries of Open-Source Multimodal Models</a></li>
+<li><a href="https://arxiv.org/abs/2007.00398">DocVQA: A Dataset for VQA on Document Images</a></li>
+<li><a href="https://arxiv.org/abs/2203.10244">ChartQA: A Benchmark for Question Answering about Charts</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./05-mllm-architectures-and-training.html">← 上一章</a><a href="./07-vlm-evaluation-harness-projects.html">下一章 →</a></nav></main></body>
+</html>

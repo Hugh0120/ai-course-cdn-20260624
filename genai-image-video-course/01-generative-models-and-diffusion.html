@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 1 章：生成模型、DDPM、Score 与 Flow Matching</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-text-to-image-architectures.html">下一章 →</a></nav><h1>第 1 章：生成模型、DDPM、Score 与 Flow Matching</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GAN</td>
+<td>Generative Adversarial Network</td>
+<td>生成对抗网络</td>
+<td>generator 和 discriminator 对抗训练的生成模型。</td>
+</tr>
+<tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>学习 latent distribution 的生成模型。</td>
+</tr>
+<tr>
+<td>AR</td>
+<td>Autoregressive</td>
+<td>自回归</td>
+<td>逐 token 或逐 patch 生成的模型族。</td>
+</tr>
+<tr>
+<td>DDPM</td>
+<td>Denoising Diffusion Probabilistic Model</td>
+<td>去噪扩散概率模型</td>
+<td>通过加噪和去噪生成样本。</td>
+</tr>
+<tr>
+<td>DDIM</td>
+<td>Denoising Diffusion Implicit Model</td>
+<td>去噪扩散隐式模型</td>
+<td>常用于更少步数的确定性或半确定性采样。</td>
+</tr>
+<tr>
+<td>EDM</td>
+<td>Elucidated Diffusion Model</td>
+<td>解析化扩散模型设计</td>
+<td>对噪声参数化、预条件和采样器做系统整理。</td>
+</tr>
+<tr>
+<td>SDE</td>
+<td>Stochastic Differential Equation</td>
+<td>随机微分方程</td>
+<td>连续时间扩散过程的数学描述。</td>
+</tr>
+<tr>
+<td>ODE</td>
+<td>Ordinary Differential Equation</td>
+<td>常微分方程</td>
+<td>确定性生成轨迹的数学描述。</td>
+</tr>
+<tr>
+<td>FM</td>
+<td>Flow Matching</td>
+<td>流匹配</td>
+<td>直接学习噪声分布到数据分布的速度场。</td>
+</tr>
+<tr>
+<td>RF</td>
+<td>Rectified Flow</td>
+<td>矫正流</td>
+<td>让生成路径更直、更容易少步采样的 flow 方法。</td>
+</tr>
+<tr>
+<td>SD3</td>
+<td>Stable Diffusion 3</td>
+<td>Stable Diffusion 3 模型系列</td>
+<td>使用 MMDiT 和 rectified flow 的图像生成系列。</td>
+</tr>
+<tr>
+<td>FLUX.1</td>
+<td>FLUX.1 Model Family</td>
+<td>FLUX.1 模型系列</td>
+<td>flow matching 图像生成和编辑模型系列。</td>
+</tr>
+<tr>
+<td>Score</td>
+<td>Score Function</td>
+<td>分数函数</td>
+<td><span class="math-text">∇<sub><span class="math-text">x</span></sub> log p(x)</span>，表示数据密度方向。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">0</span></sub></span></td>
+<td>Clean Data</td>
+<td>干净数据</td>
+<td>原始图像或 latent。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">t</span></sub></span></td>
+<td>Noisy Data</td>
+<td>噪声数据</td>
+<td>第 <span class="math-text">t</span> 步加噪后的样本。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε</span></td>
+<td>Gaussian Noise</td>
+<td>高斯噪声</td>
+<td>forward process 中加入的噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">t</span></sub></span></td>
+<td>Noise Schedule</td>
+<td>噪声调度</td>
+<td>每一步加入噪声的强度。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">t</span></sub></span></td>
+<td>Retained Signal Rate</td>
+<td>保留信号率</td>
+<td>通常 <span class="math-text">α<sub><span class="math-text">t</span></sub> = 1-β<sub><span class="math-text">t</span></sub></span>。</td>
+</tr>
+<tr>
+<td><span class="math-text">σ<sub><span class="math-text">t</span></sub></span></td>
+<td>Noise Level</td>
+<td>噪声等级</td>
+<td>EDM 和连续时间采样器常用的噪声尺度。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">θ</span></sub></span></td>
+<td>Noise Predictor</td>
+<td>噪声预测器</td>
+<td>模型预测噪声的网络。</td>
+</tr>
+<tr>
+<td><span class="math-text">v<sub><span class="math-text">θ</span></sub></span></td>
+<td>Velocity Predictor</td>
+<td>速度预测器</td>
+<td>模型预测从噪声到数据的方向或速度。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解生成模型要学习 <span class="math-text">p<sub><span class="math-text">data</span></sub>(x)</span>。</li>
+<li>掌握 diffusion 的 forward 和 reverse。</li>
+<li>理解为什么训练目标常写成预测噪声。</li>
+<li>能解释 score、v-prediction、flow matching、rectified flow 的关系。</li>
+<li>能解释 diffusion 和 GAN / VAE / AR 的直觉差异。</li>
+</ul>
+<h2>生成模型在学什么</h2>
+<p>生成模型希望从数据分布中采样：</p>
+<div class="math-block"><span class="math-text">x ∼ p<sub><span class="math-text">data</span></sub>(x)</span></div>
+
+<p>但真实 <span class="math-text">p<sub><span class="math-text">data</span></sub></span> 不可直接写出。不同生成模型有不同近似方式：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>模型</th>
+<th>English</th>
+<th>中文</th>
+<th>直觉</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>学一个连续 latent space，再 decode。</td>
+</tr>
+<tr>
+<td>GAN</td>
+<td>Generative Adversarial Network</td>
+<td>生成对抗网络</td>
+<td>generator 骗过 discriminator。</td>
+</tr>
+<tr>
+<td>Autoregressive</td>
+<td>Autoregressive Model</td>
+<td>自回归模型</td>
+<td>逐 token 或逐 patch 生成。</td>
+</tr>
+<tr>
+<td>Diffusion</td>
+<td>Diffusion Model</td>
+<td>扩散模型</td>
+<td>先加噪破坏数据，再学习反向去噪。</td>
+</tr>
+<tr>
+<td>Flow Matching</td>
+<td>Flow Matching Model</td>
+<td>流匹配模型</td>
+<td>学习把噪声连续搬运到数据的速度场。</td>
+</tr>
+</tbody></table>
+<h2>Forward Diffusion</h2>
+<p>forward process 逐步给干净样本 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 加噪：</p>
+<div class="math-block"><span class="math-text">q(x<sub><span class="math-text">t</span></sub> ∣ x<sub><span class="math-text">t-1</span></sub>) = 𝒩(√(1-β<sub><span class="math-text">t</span></sub>)x<sub><span class="math-text">t-1</span></sub>, β<sub><span class="math-text">t</span></sub> I)</span></div>
+
+<p>经过足够多步后，<span class="math-text">x<sub><span class="math-text">T</span></sub></span> 接近标准高斯噪声。</p>
+<p>利用重参数化，可以一步采样任意 <span class="math-text">t</span>：</p>
+<div class="math-block"><span class="math-text">x<sub><span class="math-text">t</span></sub> = √(ᾱ<sub><span class="math-text">t</span></sub>)x<sub><span class="math-text">0</span></sub> + √(1-ᾱ<sub><span class="math-text">t</span></sub>)ε</span></div>
+
+<p>其中：</p>
+<div class="math-block"><span class="math-text">ᾱ<sub><span class="math-text">t</span></sub> = ∏<sub><span class="math-text">s=1</span></sub><sup><span class="math-text">t</span></sup>α<sub><span class="math-text">s</span></sub>,  ε ∼ 𝒩(0,I)</span></div>
+
+<h2>Reverse Denoising</h2>
+<p>反向过程从噪声开始，逐步去噪：</p>
+<div class="math-block"><span class="math-text">p<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t-1</span></sub>∣ x<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>模型常被训练成预测噪声：</p>
+<div class="math-block"><span class="math-text">ε<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t</span></sub>,t) ≈ ε</span></div>
+
+<p>常见简化 loss：</p>
+<div class="math-block"><span class="math-text">L(θ)=𝔼<sub><span class="math-text">x<sub><span class="math-text">0</span></sub>,t,ε</span></sub>[∥ε-ε<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t</span></sub>,t)∥<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>直觉：</p>
+<blockquote>
+<p>模型看到一张被加噪的图和当前噪声等级 <span class="math-text">t</span>，学习判断“哪些部分是噪声”，然后采样时反复去噪，最终从纯噪声变成图像。</p>
+</blockquote>
+<h2>三种常见预测参数化</h2>
+<p>同一个 denoising 任务可以用不同输出形式训练：</p>
+<table class="wide-table">
+<thead>
+<tr>
+<th>参数化</th>
+<th>English</th>
+<th>中文</th>
+<th>预测内容</th>
+<th>面试重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">ε</span>-prediction</td>
+<td>Noise Prediction</td>
+<td>噪声预测</td>
+<td>预测加到样本上的噪声 <span class="math-text">ε</span></td>
+<td>DDPM 最常见，公式直观。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">0</span></sub></span>-prediction</td>
+<td>Clean Sample Prediction</td>
+<td>干净样本预测</td>
+<td>直接预测无噪样本 <span class="math-text">x<sub><span class="math-text">0</span></sub></span></td>
+<td>容易解释，但不同噪声等级权重敏感。</td>
+</tr>
+<tr>
+<td><span class="math-text">v</span>-prediction</td>
+<td>Velocity Prediction</td>
+<td>速度预测</td>
+<td>预测 noise 和 data 的组合方向 <span class="math-text">v</span></td>
+<td>常用于更稳定的训练和采样。</td>
+</tr>
+</tbody></table>
+<p>面试里可以这样说：</p>
+<blockquote>
+<p>这些参数化本质上都是从 noisy sample 估计去噪方向。差异在于数值稳定性、不同 noise level 的 loss 权重，以及采样器怎么把预测量转换成下一步样本。</p>
+</blockquote>
+<h2>为什么 Diffusion 稳定</h2>
+<p>相比 GAN，diffusion 的训练更像 supervised denoising：</p>
+<ul>
+<li>每个训练样本可以构造不同噪声等级。</li>
+<li>loss 稳定，不需要 discriminator 对抗。</li>
+<li>mode coverage 通常更好。</li>
+</ul>
+<p>代价：</p>
+<ul>
+<li>采样需要多步迭代。</li>
+<li>高分辨率训练和推理成本大。</li>
+<li>prompt alignment 需要 conditioning 和 guidance。</li>
+</ul>
+<h2>从 Diffusion 到 Flow Matching</h2>
+<p>新一代图像和视频模型经常使用 flow matching 或 rectified flow。一个简化理解是：diffusion 学习反向去噪分布，flow matching 学习连续路径上的速度场。</p>
+<p>构造一条从噪声 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 到数据 <span class="math-text">x<sub><span class="math-text">1</span></sub></span> 的路径：</p>
+<div class="math-block"><span class="math-text">x<sub><span class="math-text">t</span></sub> = (1-t)x<sub><span class="math-text">0</span></sub> + t x<sub><span class="math-text">1</span></sub></span></div>
+
+<p>模型学习速度：</p>
+<div class="math-block"><span class="math-text">v<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t</span></sub>,t,c) ≈ x<sub><span class="math-text">1</span></sub> - x<sub><span class="math-text">0</span></sub></span></div>
+
+<p>其中 <span class="math-text">c</span> 是文本、图像或视频条件。</p>
+<p>为什么它重要：</p>
+<ul>
+<li>训练目标更直接：预测“往哪里走”，而不是只预测噪声。</li>
+<li>采样路径可以更直，少步采样更有希望。</li>
+<li>很适合和 DiT / MMDiT 结合，成为 SD3、FLUX、Seedream 等模型报告里的核心词。</li>
+</ul>
+<p>不要把 flow matching 理解成 diffusion 的完全替代。面试里更稳的说法是：</p>
+<blockquote>
+<p>diffusion、score model 和 flow matching 都在学习从简单分布到数据分布的生成路径。区别在于路径定义、预测目标、采样方程和数值稳定性。</p>
+</blockquote>
+<h2>采样器和速度</h2>
+<p>训练好模型后，还需要采样器把噪声变成图像或视频。</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>采样相关概念</th>
+<th>English</th>
+<th>中文</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step Count</td>
+<td>Number of Sampling Steps</td>
+<td>采样步数</td>
+<td>步数多通常质量更稳，但延迟更高。</td>
+</tr>
+<tr>
+<td>Noise Schedule</td>
+<td>Noise Schedule</td>
+<td>噪声调度</td>
+<td>决定不同阶段去噪强度。</td>
+</tr>
+<tr>
+<td>Solver</td>
+<td>Numerical Solver</td>
+<td>数值求解器</td>
+<td>DDIM、DPM-Solver、Euler 等会影响速度和质量。</td>
+</tr>
+<tr>
+<td>Distillation</td>
+<td>Distillation</td>
+<td>蒸馏</td>
+<td>把多步模型压到少步模型，如 turbo / lightning 类模型。</td>
+</tr>
+<tr>
+<td>Consistency Model</td>
+<td>Consistency Model</td>
+<td>一致性模型</td>
+<td>训练模型在不同噪声等级输出一致，支持少步采样。</td>
+</tr>
+</tbody></table>
+<p>工程上，采样器不是细枝末节。线上系统常常要在质量、成本、延迟、稳定性之间做 trade-off。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. DDPM 的 forward process 是什么？</h3>
+<p>forward process 是固定的加噪过程，从 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 逐步采样 <span class="math-text">x<sub><span class="math-text">t</span></sub></span>，直到接近高斯噪声。训练时不需要学习 forward，只学习 reverse denoising。</p>
+<h3>2. 为什么可以训练模型预测 <span class="math-text">ε</span>？</h3>
+<p>因为 <span class="math-text">x<sub><span class="math-text">t</span></sub></span> 可以由 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 和噪声 <span class="math-text">ε</span> 闭式构造。知道 <span class="math-text">x<sub><span class="math-text">t</span></sub></span>、<span class="math-text">t</span> 和预测噪声后，就能估计干净样本或反向采样方向。</p>
+<h3>3. Diffusion 和 GAN 的区别？</h3>
+<p>GAN 通过对抗训练直接生成样本，采样快但训练可能不稳定。Diffusion 通过多步去噪生成，训练稳定、质量高，但推理通常更慢。</p>
+<h3>4. Flow matching 和 diffusion 是什么关系？</h3>
+<p>两者都在学习从简单噪声分布到数据分布的生成过程。diffusion 通常从加噪过程推导反向去噪，flow matching 更直接学习路径上的速度场。现在很多 SOTA 图像模型会把 flow matching、rectified flow、DiT 和多模态条件结合起来。</p>
+<h3>5. 为什么少步采样难？</h3>
+<p>少步采样要求每一步都走得很准。步数减少后，误差没有足够机会被修正，容易出现结构崩坏、细节伪影、prompt 不遵循。解决思路包括更好的 solver、distillation、consistency training、flow matching 和后训练。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models</a></li>
+<li><a href="https://arxiv.org/abs/2207.12598">Classifier-Free Diffusion Guidance</a></li>
+<li><a href="https://arxiv.org/abs/2206.00364">Elucidating the Design Space of Diffusion-Based Generative Models</a></li>
+<li><a href="https://arxiv.org/abs/2210.02747">Flow Matching for Generative Modeling</a></li>
+<li><a href="https://arxiv.org/abs/2209.03003">Rectified Flow</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-text-to-image-architectures.html">下一章 →</a></nav></main></body>
+</html>

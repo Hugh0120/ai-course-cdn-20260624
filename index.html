@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 面试课程</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111827;
+      --muted: #4b5563;
+      --line: #d8dee8;
+      --link: #2563eb;
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    main {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 7vw, 48px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0 0 24px;
+      color: var(--muted);
+    }
+    ul {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+    a {
+      color: var(--link);
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    a:hover { text-decoration: underline; }
+    .desc {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      main { padding: 20px; }
+      li {
+        display: block;
+      }
+      a {
+        display: inline-block;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>AI 面试课程</h1>
+    <p>分章节 HTML 适合手机阅读；每门课程内也保留整本 PDF 和单章 PDF 链接。</p>
+    <ul>
+      <li>
+        <span>
+          <strong>强化学习课程</strong>
+          <span class="desc">MDP、Bellman、MC/TD、DQN、Policy Gradient、PPO、SAC、RLHF。</span>
+        </span>
+        <a href="./rl-course/index.html">打开</a>
+      </li>
+      <li>
+        <span>
+          <strong>LLM / VLM 课程</strong>
+          <span class="desc">Transformer、post-training、RAG、agent、VLM 数据/评测、SOTA 报告。</span>
+        </span>
+        <a href="./llm-vlm-course/index.html">打开</a>
+      </li>
+      <li>
+        <span>
+          <strong>文生图 / 文生视频课程</strong>
+          <span class="desc">Diffusion、Flow Matching、图像编辑、视频生成、训练、评测、安全。</span>
+        </span>
+        <a href="./genai-image-video-course/index.html">打开</a>
+      </li>
+    </ul>
+  </main>
+</body>
+</html>

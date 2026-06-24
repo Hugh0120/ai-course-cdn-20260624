@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · LLM / VLM References</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./13-eval-harness-benchmarking.html">← 上一章</a><span>下一章 →</span></nav><h1>LLM / VLM References</h1>
+<h2>LLM 基础、Scaling 与架构</h2>
+<ul>
+<li>Vaswani et al., 2017, <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li>
+<li>Brown et al., 2020, <a href="https://arxiv.org/abs/2005.14165">Language Models are Few-Shot Learners</a></li>
+<li>Kaplan et al., 2020, <a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a></li>
+<li>Hoffmann et al., 2022, <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a></li>
+<li>Dao et al., 2022, <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a></li>
+<li>Meta AI, 2024, <a href="https://arxiv.org/abs/2407.21783">The Llama 3 Herd of Models</a></li>
+<li>Meta AI, 2025, <a href="https://ai.meta.com/blog/llama-4-multimodal-intelligence/">Llama 4 multimodal intelligence</a></li>
+<li>Google, 2025, <a href="https://storage.googleapis.com/deepmind-media/gemini/gemini_v2_5_report.pdf">Gemini 2.5 Technical Report</a></li>
+<li>Qwen Team, 2024, <a href="https://arxiv.org/abs/2412.15115">Qwen2.5 Technical Report</a></li>
+<li>Qwen Team, 2025, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
+</ul>
+<h2>Post-training、Alignment 与 Reasoning</h2>
+<ul>
+<li>Ouyang et al., 2022, <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li>
+<li>Bai et al., 2022, <a href="https://arxiv.org/abs/2212.08073">Constitutional AI: Harmlessness from AI Feedback</a></li>
+<li>Lightman et al., 2023, <a href="https://arxiv.org/abs/2305.20050">Let&#39;s Verify Step by Step</a></li>
+<li>Rafailov et al., 2023, <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a></li>
+<li>Shao et al., 2024, <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></li>
+<li>Guan et al., 2024, <a href="https://arxiv.org/abs/2412.16339">Deliberative Alignment: Reasoning Enables Safer Language Models</a></li>
+<li>DeepSeek-AI, 2025, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+<li>OpenAI, 2025, <a href="https://openai.com/index/o3-o4-mini-system-card/">OpenAI o3 and o4-mini System Card</a></li>
+<li>OpenAI, 2025, <a href="https://openai.com/index/introducing-o3-and-o4-mini/">Introducing OpenAI o3 and o4-mini</a></li>
+<li>OpenAI, 2026, <a href="https://openai.com/index/gpt-5-system-card/">OpenAI GPT-5 System Card</a></li>
+<li>Gould et al., 2026, <a href="https://arxiv.org/abs/2606.07157">Think Fast: Estimating No-CoT Task-Completion Time Horizons of Frontier AI Models</a></li>
+</ul>
+<h2>PEFT 与高效微调</h2>
+<ul>
+<li>Hu et al., 2021, <a href="https://arxiv.org/abs/2106.09685">LoRA</a></li>
+<li>Dettmers et al., 2023, <a href="https://arxiv.org/abs/2305.14314">QLoRA</a></li>
+</ul>
+<h2>Prompt、RAG、Agent 与 Eval</h2>
+<ul>
+<li>Wei et al., 2022, <a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting</a></li>
+<li>Wang et al., 2022, <a href="https://arxiv.org/abs/2203.11171">Self-Consistency Improves Chain of Thought Reasoning</a></li>
+<li>Lewis et al., 2020, <a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation</a></li>
+<li>Guu et al., 2020, <a href="https://arxiv.org/abs/2002.08909">REALM</a></li>
+<li>Microsoft, <a href="https://github.com/microsoft/graphrag">GraphRAG</a></li>
+<li>VibrantLabs, <a href="https://github.com/vibrantlabsai/ragas">RAGAS</a></li>
+<li>Singh et al., 2025, <a href="https://arxiv.org/abs/2501.09136">Agentic Retrieval-Augmented Generation</a></li>
+<li>Sharma, 2025, <a href="https://arxiv.org/abs/2506.00054">Retrieval-Augmented Generation: A Comprehensive Survey</a></li>
+<li>Schick et al., 2023, <a href="https://arxiv.org/abs/2302.04761">Toolformer</a></li>
+<li>Yao et al., 2022, <a href="https://arxiv.org/abs/2210.03629">ReAct</a></li>
+<li>Liu et al., 2023, <a href="https://arxiv.org/abs/2308.03688">AgentBench</a></li>
+<li>Jimenez et al., 2023, <a href="https://arxiv.org/abs/2310.06770">SWE-bench</a></li>
+<li>Yao et al., 2024, <a href="https://arxiv.org/abs/2406.12045">TAU-bench</a></li>
+<li>Wei et al., 2025, <a href="https://arxiv.org/abs/2504.12516">BrowseComp</a></li>
+<li>Kapoor et al., 2026, <a href="https://arxiv.org/abs/2605.20520">Open-World Evaluations for Measuring Frontier AI Capabilities</a></li>
+<li>Liang et al., 2022, <a href="https://arxiv.org/abs/2211.09110">HELM</a></li>
+<li>EleutherAI, <a href="https://github.com/EleutherAI/lm-evaluation-harness">LM Evaluation Harness</a></li>
+<li>OpenAI, <a href="https://github.com/openai/evals">Evals</a></li>
+<li>Lee et al., 2024, <a href="https://arxiv.org/abs/2410.07112">VHELM</a></li>
+<li>Yao et al., 2026, <a href="https://arxiv.org/abs/2605.27922">Harness-Bench</a></li>
+<li>Muennighoff et al., 2022, <a href="https://arxiv.org/abs/2210.07316">MTEB</a></li>
+<li>Hendrycks et al., 2020, <a href="https://arxiv.org/abs/2009.03300">MMLU</a></li>
+</ul>
+<h2>2025-2026 SOTA 技术报告和官方模型页</h2>
+<ul>
+<li>OpenAI, 2025, <a href="https://openai.com/gpt-5/">GPT-5 is here</a></li>
+<li>OpenAI, 2026, <a href="https://openai.com/index/introducing-gpt-5-5/">Introducing GPT-5.5</a></li>
+<li>Anthropic, 2025, <a href="https://www.anthropic.com/news/claude-4">Claude 4</a></li>
+<li>Anthropic, 2026, <a href="https://www.anthropic.com/news/claude-opus-4-7">Claude Opus 4.7</a></li>
+<li>Google, 2025, <a href="https://storage.googleapis.com/deepmind-media/gemini/gemini_v2_5_report.pdf">Gemini 2.5 Technical Report</a></li>
+<li>DeepSeek-AI, 2025, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a></li>
+<li>Qwen Team, 2025, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
+<li>Kimi Team, 2025, <a href="https://arxiv.org/abs/2507.20534">Kimi K2: Open Agentic Intelligence</a></li>
+<li>Kimi Team, 2026, <a href="https://arxiv.org/abs/2602.02276">Kimi K2.5: Visual Agentic Intelligence</a></li>
+<li>GLM Team, 2026, <a href="https://arxiv.org/abs/2602.15763">GLM-5: from Vibe Coding to Agentic Engineering</a></li>
+<li>Z.ai, 2026, <a href="https://github.com/zai-org/GLM-5">GLM-5.2 / GLM-5.1 / GLM-5 official repo</a></li>
+<li>GLM Team, 2025, <a href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li>
+<li>GLM-V Team, 2025, <a href="https://arxiv.org/abs/2507.01006">GLM-4.1V-Thinking and GLM-4.5V</a></li>
+</ul>
+<h2>VLM / MLLM</h2>
+<ul>
+<li>Dosovitskiy et al., 2020, <a href="https://arxiv.org/abs/2010.11929">Vision Transformer</a></li>
+<li>Radford et al., 2021, <a href="https://arxiv.org/abs/2103.00020">CLIP</a></li>
+<li>Alayrac et al., 2022, <a href="https://arxiv.org/abs/2204.14198">Flamingo</a></li>
+<li>Li et al., 2023, <a href="https://arxiv.org/abs/2301.12597">BLIP-2</a></li>
+<li>Liu et al., 2023, <a href="https://arxiv.org/abs/2304.08485">LLaVA: Visual Instruction Tuning</a></li>
+<li>Bai et al., 2025, <a href="https://arxiv.org/abs/2502.13923">Qwen2.5-VL Technical Report</a></li>
+<li>Bai et al., 2025, <a href="https://arxiv.org/abs/2412.15115">Qwen2.5 Technical Report</a></li>
+<li>OpenAI, 2023, <a href="https://arxiv.org/abs/2303.08774">GPT-4 Technical Report</a></li>
+<li>Liu et al., 2023, <a href="https://arxiv.org/abs/2307.06281">MMBench</a></li>
+<li>Yue et al., 2023, <a href="https://arxiv.org/abs/2311.16502">MMMU</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./13-eval-harness-benchmarking.html">← 上一章</a><span>下一章 →</span></nav></main></body>
+</html>

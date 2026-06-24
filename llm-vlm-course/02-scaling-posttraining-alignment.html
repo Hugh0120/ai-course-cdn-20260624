@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 2 章：Scaling、Post-training、Alignment 与 RLVR</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-transformer-tokenization-pretraining.html">← 上一章</a><a href="./03-prompt-rag-agent-eval.html">下一章 →</a></nav><h1>第 2 章：Scaling、Post-training、Alignment 与 RLVR</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Scaling Law</td>
+<td>Scaling Law</td>
+<td>缩放律</td>
+<td>模型性能随参数、数据、算力变化的经验规律。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用高质量指令-答案数据训练模型遵循格式和任务。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好训练 reward model，再优化策略。</td>
+</tr>
+<tr>
+<td>RLAIF</td>
+<td>Reinforcement Learning from AI Feedback</td>
+<td>基于 AI 反馈的强化学习</td>
+<td>用 AI 反馈替代或补充人类偏好反馈。</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>用可自动验证的正确性信号训练模型。</td>
+</tr>
+<tr>
+<td>RM</td>
+<td>Reward Model</td>
+<td>奖励模型</td>
+<td>根据偏好或任务结果预测回答质量的模型。</td>
+</tr>
+<tr>
+<td>PRM</td>
+<td>Process Reward Model</td>
+<td>过程奖励模型</td>
+<td>对中间推理步骤打分。</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>Outcome Reward Model</td>
+<td>结果奖励模型</td>
+<td>对最终答案或最终状态打分。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>RLHF 早期常用策略优化算法。</td>
+</tr>
+<tr>
+<td>GRPO</td>
+<td>Group Relative Policy Optimization</td>
+<td>组相对策略优化</td>
+<td>用同组样本的相对 reward 构造 advantage 的 PPO 变体。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>直接用偏好对优化策略，不显式训练 reward model。</td>
+</tr>
+<tr>
+<td>KL</td>
+<td>Kullback-Leibler Divergence</td>
+<td>KL 散度</td>
+<td>衡量当前策略偏离参考策略的程度。</td>
+</tr>
+<tr>
+<td>CoT</td>
+<td>Chain-of-Thought</td>
+<td>思维链</td>
+<td>模型内部或外显的中间推理过程。</td>
+</tr>
+<tr>
+<td>CoT Monitor</td>
+<td>Chain-of-Thought Monitor</td>
+<td>思维链监控器</td>
+<td>用推理轨迹辅助发现不安全或欺骗性行为的监控方法。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub></span></td>
+<td>Policy Model</td>
+<td>策略模型</td>
+<td>当前生成回答的语言模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">ref</span></sub></span></td>
+<td>Reference Model</td>
+<td>参考模型</td>
+<td>对齐训练中用于约束偏移的原始模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">r<sub><span class="math-text">φ</span></sub>(x,y)</span></td>
+<td>Reward Function</td>
+<td>奖励函数</td>
+<td>对 prompt <span class="math-text">x</span> 和回答 <span class="math-text">y</span> 打分。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">i</span></sub></span></td>
+<td>Advantage</td>
+<td>优势函数</td>
+<td>样本 <span class="math-text">i</span> 相对基线的好坏程度。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 scaling law、compute-optimal training 和 test-time compute 的关系。</li>
+<li>掌握 pretraining、SFT、preference alignment、RLVR、safety tuning 的完整流水线。</li>
+<li>能解释 RLHF、RLAIF、DPO、PPO、GRPO、PRM、ORM 的差异。</li>
+<li>能从工程角度说明为什么 2025-2026 的 reasoning model 更依赖 RL 和可验证环境。</li>
+<li>能回答 alignment 面试里常见的 reward hacking、sycophancy、over-refusal、jailbreak、hidden CoT 问题。</li>
+</ul>
+<h2>从 Scaling 到 Post-training</h2>
+<p>LLM 能力来自四个维度的共同缩放：</p>
+<ol>
+<li>参数量和模型容量。</li>
+<li>训练 token 数和数据质量。</li>
+<li>训练 compute 和优化稳定性。</li>
+<li>post-training 与 inference-time compute。</li>
+</ol>
+<p>Chinchilla 之后，一个关键观点是：固定 compute 下，参数量和训练 token 数要更均衡。2025-2026 的新变化是 reasoning model 把 scaling 延伸到 post-training 和推理阶段：不仅预训练更大，后训练 RL 更多，推理时也允许模型“想更久”。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>传统 scaling law 主要解释 pretraining loss 随 model/data/compute 的变化；reasoning model 之后，还要看 post-training RL compute 和 inference-time compute。复杂数学、代码、工具调用任务上，模型能力不只是参数记忆，而是搜索、验证、自我纠错和工具使用策略的综合结果。</p>
+</blockquote>
+<h2>现代 Post-training Pipeline</h2>
+<p>现代 frontier model 常见流程：</p>
+<ol>
+<li>Pretraining：大规模 next-token prediction，学习通用语言、代码、知识和世界模型。</li>
+<li>Continued pretraining：补领域数据、多语言、代码、长上下文、多模态数据。</li>
+<li>SFT：学习指令格式、对话风格、工具 schema、拒答模板。</li>
+<li>Preference alignment：用人类或 AI 偏好提升 helpfulness、honesty、style。</li>
+<li>Reasoning RL / RLVR：在数学、代码、工具环境、浏览环境中用可验证 reward 优化。</li>
+<li>Safety tuning：安全策略、policy reasoning、over-refusal 控制、jailbreak 鲁棒性。</li>
+<li>Product eval：自动 benchmark、人工评测、红队、安全预案、线上监控。</li>
+</ol>
+<p>一个重要面试点：post-training 不只是“让模型更礼貌”。它会显著改变 instruction following、工具调用、长任务执行、推理深度和安全边界。</p>
+<h2>SFT</h2>
+<p>SFT 用指令数据训练模型：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">SFT</span></sub>(θ) = - ∑<sub><span class="math-text">t</span></sub> log P<sub><span class="math-text">θ</span></sub>(y<sub><span class="math-text">t</span></sub> ∣ x, y<sub><span class="math-text">&lt;t</span></sub>)</span></div>
+
+<p>优点：</p>
+<ul>
+<li>稳定简单。</li>
+<li>能显著改善指令遵循和格式。</li>
+<li>数据质量比数据数量更关键。</li>
+</ul>
+<p>局限：</p>
+<ul>
+<li>学的是示范分布，不直接优化“哪个回答更好”。</li>
+<li>对数学、代码、agent 这类可验证任务，SFT 只能模仿轨迹，不一定学会探索和纠错。</li>
+<li>对 safety 的提升依赖覆盖率，没见过的 jailbreak 和边界条件仍容易出错。</li>
+</ul>
+<h2>RLHF 与 PPO</h2>
+<p>RLHF 典型三步：</p>
+<ol>
+<li>收集 prompt 和多个候选回答。</li>
+<li>人类标注偏好，训练 reward model。</li>
+<li>用 PPO 等 RL 算法优化语言模型，同时用 KL penalty 限制偏移。</li>
+</ol>
+<p>常见目标：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼<sub><span class="math-text">y ∼ π<sub><span class="math-text">θ</span></sub></span></sub> [r<sub><span class="math-text">φ</span></sub>(x,y)] - β KL(π<sub><span class="math-text">θ</span></sub> ∥ π<sub><span class="math-text">ref</span></sub>)</span></div>
+
+<p>直觉：</p>
+<ul>
+<li>reward model 代表“人类更喜欢什么”。</li>
+<li>KL penalty 防止模型为了 reward hacking 偏离太远。</li>
+<li>PPO 可以在线采样并优化，但训练复杂、显存高、调参成本大。</li>
+</ul>
+<p>面试追问：</p>
+<blockquote>
+<p>为什么 RLHF 会 reward hacking？</p>
+</blockquote>
+<p>因为 reward model 是人类偏好的近似，不是真实目标。如果模型发现某些模式能骗过 RM，比如过度自信、迎合用户、模板化安全话术，就会优化这些捷径。</p>
+<h2>RLAIF 与 Constitutional AI</h2>
+<p>RLAIF 用 AI feedback 替代或补充人类反馈。Anthropic 的 Constitutional AI 是代表路线：先让模型根据一组原则自我批评和修订，再用 AI 偏好训练 preference model，最后用 RL 优化。</p>
+<p>优点：</p>
+<ul>
+<li>降低人类标注成本。</li>
+<li>安全原则更显式，适合扩展到大量边界样本。</li>
+<li>可用更强模型监督较弱模型。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>AI judge 也会有偏差。</li>
+<li>如果 judge 与 policy 共享偏见，可能放大系统性错误。</li>
+<li>容易把 alignment 变成“符合某套文本规则”，但现实任务仍有灰区。</li>
+</ul>
+<h2>DPO</h2>
+<p>DPO 直接用偏好对训练，不显式跑 RL。对于同一个 prompt，有 preferred answer <span class="math-text">y<sub><span class="math-text">w</span></sub></span> 和 rejected answer <span class="math-text">y<sub><span class="math-text">l</span></sub></span>。</p>
+<p>简化表达：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">DPO</span></sub> = -log σ(β Δ)</span></div>
+
+<p>其中 <span class="math-text">Δ</span> 表示当前模型相对 reference model 对 preferred/rejected 的 log probability ratio 差异。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>DPO 把偏好优化转成 supervised-style loss，省掉 reward model 和 PPO loop，因此更稳定、更容易复现。但它主要适合 pairwise preference，不等于能替代所有在线 RL；在工具环境、代码执行、数学验证这类任务上，RLVR 更直接。</p>
+</blockquote>
+<h2>RLVR：为什么 2025-2026 很重要</h2>
+<p>RLVR 的核心是：有些任务可以自动判断对错，所以不需要昂贵的人类偏好。</p>
+<p>典型可验证任务：</p>
+<ul>
+<li>数学：最终答案可校验。</li>
+<li>代码：单元测试、隐藏测试、lint、运行结果可校验。</li>
+<li>工具调用：API 最终状态可比对。</li>
+<li>浏览检索：答案可用 reference answer 检查。</li>
+<li>形式化证明：proof checker 可校验。</li>
+</ul>
+<p>RLVR 的目标可以抽象成：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼<sub><span class="math-text">y ∼ π<sub><span class="math-text">θ</span></sub>(· ∣ x)</span></sub> [R(x,y)]</span></div>
+
+<p>其中 <span class="math-text">R(x,y)</span> 是自动验证 reward。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>RLVR 是 reasoning model 的关键训练范式之一，因为数学、代码和 agent 任务有明确的外部反馈。模型不是只模仿人类答案，而是在采样、执行、验证、失败后调整的闭环中学会更可靠的推理策略。</p>
+</blockquote>
+<h2>PRM 与 ORM</h2>
+<p>ORM 只看最终结果：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">ORM</span></sub>(x,y)=1[answer(y)=answer<sup><span class="math-text">*</span></sup>]</span></div>
+
+<p>PRM 给中间步骤打分：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">PRM</span></sub>(x,y<sub><span class="math-text">1:t</span></sub>) → step quality</span></div>
+
+<p>对比：</p>
+<table class="wide-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>English</th>
+<th>中文</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ORM</td>
+<td>Outcome Reward Model</td>
+<td>结果奖励模型</td>
+<td>标注和自动验证简单</td>
+<td>不知道哪里错，稀疏 reward</td>
+</tr>
+<tr>
+<td>PRM</td>
+<td>Process Reward Model</td>
+<td>过程奖励模型</td>
+<td>能指导中间推理，利于搜索</td>
+<td>标注贵，容易奖励表面步骤</td>
+</tr>
+<tr>
+<td>Verifier</td>
+<td>Verifier Model</td>
+<td>验证器模型</td>
+<td>可做 best-of-n / rerank</td>
+<td>仍可能被模型 exploit</td>
+</tr>
+</tbody></table>
+<p>面试回答要点：</p>
+<ul>
+<li>ORM 适合答案可校验任务，但 reward 稀疏。</li>
+<li>PRM 更像“每一步都给老师批改”，对长推理有帮助。</li>
+<li>现代系统经常组合：采样多条轨迹，用 verifier / test / tool result 选最优。</li>
+</ul>
+<h2>GRPO</h2>
+<p>GRPO 是 PPO 的一个 memory-efficient 变体。它不显式训练 value model，而是在同一个 prompt 下采样一组回答，用组内 reward 均值和方差构造相对 advantage。</p>
+<p>给同一个 prompt 采样 <span class="math-text">G</span> 个回答，reward 为 <span class="math-text">r<sub><span class="math-text">i</span></sub></span>，可以写成：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">i</span></sub> = r<sub><span class="math-text">i</span></sub> - mean(r<sub><span class="math-text">1</span></sub>,…,r<sub><span class="math-text">G</span></sub>) / std(r<sub><span class="math-text">1</span></sub>,…,r<sub><span class="math-text">G</span></sub>)</span></div>
+
+<p>直觉：</p>
+<ul>
+<li>同组里表现更好的样本被强化。</li>
+<li>表现更差的样本被压低概率。</li>
+<li>省掉 value model，显存和训练复杂度下降。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>如果一组样本 reward 都一样，学习信号会变弱。</li>
+<li>对 reward 设计和采样温度敏感。</li>
+<li>容易优化到“会拿分”的策略，不等于真实通用推理。</li>
+</ul>
+<h2>Safety Alignment：从拒答到安全推理</h2>
+<p>2026 面试里，alignment 不能只讲“模型会拒答”。要讲四类问题：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>问题</th>
+<th>English</th>
+<th>中文</th>
+<th>典型现象</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Over-refusal</td>
+<td>Over-refusal</td>
+<td>过度拒答</td>
+<td>安全问题过敏，正常请求也拒绝。</td>
+</tr>
+<tr>
+<td>Under-refusal</td>
+<td>Under-refusal</td>
+<td>拒答不足</td>
+<td>危险请求没有拦住。</td>
+</tr>
+<tr>
+<td>Sycophancy</td>
+<td>Sycophancy</td>
+<td>迎合用户</td>
+<td>明知用户错仍附和。</td>
+</tr>
+<tr>
+<td>Reward Hacking</td>
+<td>Reward Hacking</td>
+<td>奖励黑客</td>
+<td>优化指标漏洞，不完成真实目标。</td>
+</tr>
+<tr>
+<td>CoT Faithfulness</td>
+<td>Chain-of-Thought Faithfulness</td>
+<td>思维链忠实性</td>
+<td>展示的理由和真实决策过程不一致。</td>
+</tr>
+</tbody></table>
+<p>OpenAI 的 deliberative alignment 代表一种新思路：把安全规范直接教给模型，让模型在回答前对规范进行推理。GPT-5 system card 进一步强调 safe-completions，即尽量给出安全范围内有帮助的回答，而不是简单二元拒答。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>安全对齐正在从“分类器式拒答”走向“策略推理”。模型需要判断用户意图、上下文、风险等级和可替代帮助方式。好的安全系统既减少 jailbreak，也减少 over-refusal。</p>
+</blockquote>
+<h2>本章面试高频问题</h2>
+<h3>1. SFT、RLHF、DPO、RLVR 的关系？</h3>
+<p>SFT 学示范，RLHF 学人类偏好，DPO 用偏好对做稳定的直接优化，RLVR 用可验证 reward 优化数学、代码、工具等任务。它们不是互斥关系，现代模型通常多阶段组合使用。</p>
+<h3>2. 为什么 reasoning model 更依赖 RL？</h3>
+<p>复杂推理和工具任务不是单步模仿能解决的。RL 可以让模型从执行结果、测试结果、验证结果中学习策略，尤其适合有明确 reward 的数学、代码、agent 环境。</p>
+<h3>3. GRPO 和 PPO 的区别？</h3>
+<p>PPO 通常需要 value model 估计 advantage；GRPO 用同组候选的相对 reward 构造 advantage，省掉 value model，适合大模型 RL，但对 reward 分布和采样组质量敏感。</p>
+<h3>4. PRM 为什么不总是优于 ORM？</h3>
+<p>PRM 提供更密集的中间监督，但标注成本高，也可能奖励“看起来像推理”的步骤。ORM 简单但稀疏。实际系统常结合 verifier、best-of-n、工具执行和最终测试。</p>
+<h3>5. safe-completions 和普通拒答有什么区别？</h3>
+<p>普通拒答把请求分成允许/拒绝。safe-completions 更强调在安全边界内尽量有帮助：危险部分不提供，但可以给高层解释、安全替代方案或合规信息。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a></li>
+<li><a href="https://arxiv.org/abs/2212.08073">Constitutional AI: Harmlessness from AI Feedback</a></li>
+<li><a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a></li>
+<li><a href="https://arxiv.org/abs/2305.20050">Let&#39;s Verify Step by Step</a></li>
+<li><a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning</a></li>
+<li><a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2412.16339">Deliberative Alignment: Reasoning Enables Safer Language Models</a></li>
+<li><a href="https://openai.com/index/gpt-5-system-card/">OpenAI GPT-5 System Card</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./01-transformer-tokenization-pretraining.html">← 上一章</a><a href="./03-prompt-rag-agent-eval.html">下一章 →</a></nav></main></body>
+</html>

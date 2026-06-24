@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 2 章：文生图架构：CLIP、Imagen、Stable Diffusion、DiT 与原生多模态生成</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-generative-models-and-diffusion.html">← 上一章</a><a href="./03-conditioning-editing-control.html">下一章 →</a></nav><h1>第 2 章：文生图架构：CLIP、Imagen、Stable Diffusion、DiT 与原生多模态生成</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T2I</td>
+<td>Text-to-Image</td>
+<td>文生图</td>
+<td>根据文本生成图像。</td>
+</tr>
+<tr>
+<td>TI2I</td>
+<td>Text-Image-to-Image</td>
+<td>文图到图</td>
+<td>输入文本和参考图，输出编辑后的图像。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Contrastive Language-Image Pre-training</td>
+<td>对比式图文预训练</td>
+<td>学习图文共享语义空间。</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Text-to-Text Transfer Transformer</td>
+<td>文本到文本迁移 Transformer</td>
+<td>Imagen、SD3 等常用的强 text encoder。</td>
+</tr>
+<tr>
+<td>LDM</td>
+<td>Latent Diffusion Model</td>
+<td>潜空间扩散模型</td>
+<td>在 VAE latent 中做扩散。</td>
+</tr>
+<tr>
+<td>DiT</td>
+<td>Diffusion Transformer</td>
+<td>扩散 Transformer</td>
+<td>用 Transformer 替代 U-Net denoiser。</td>
+</tr>
+<tr>
+<td>MMDiT</td>
+<td>Multimodal Diffusion Transformer</td>
+<td>多模态扩散 Transformer</td>
+<td>文本 token 和图像 token 使用不同权重并交互的扩散 Transformer。</td>
+</tr>
+<tr>
+<td>MM-LLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>能理解或生成多种模态的语言模型体系。</td>
+</tr>
+<tr>
+<td>SD3</td>
+<td>Stable Diffusion 3</td>
+<td>Stable Diffusion 3 模型系列</td>
+<td>使用 MMDiT 和 rectified flow 的图像生成系列。</td>
+</tr>
+<tr>
+<td>FLUX.1</td>
+<td>FLUX.1 Model Family</td>
+<td>FLUX.1 模型系列</td>
+<td>flow matching 图像生成和编辑模型系列。</td>
+</tr>
+<tr>
+<td>GPT-4o</td>
+<td>Generative Pre-trained Transformer 4o</td>
+<td>GPT-4o 多模态模型</td>
+<td>OpenAI 的原生多模态模型系列。</td>
+</tr>
+<tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>把图像压缩到 latent，再 decode 回像素。</td>
+</tr>
+<tr>
+<td>U-Net</td>
+<td>U-Net Architecture</td>
+<td>U-Net 架构</td>
+<td>常见 diffusion denoiser backbone。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>用于读取图像中文字，也用于文字渲染评测。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理图像和文本的模型。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>可用于 caption、prompt planning、judge 或原生多模态生成。</td>
+</tr>
+<tr>
+<td>FM</td>
+<td>Flow Matching</td>
+<td>流匹配</td>
+<td>新一代图像生成模型常用的训练目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">c</span></td>
+<td>Condition</td>
+<td>条件</td>
+<td>文本 embedding、图像 embedding、layout 等条件。</td>
+</tr>
+<tr>
+<td><span class="math-text">z</span></td>
+<td>Latent</td>
+<td>潜变量</td>
+<td>压缩后的图像表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">θ</span></sub>(z<sub><span class="math-text">t</span></sub>,t,c)</span></td>
+<td>Conditional Noise Predictor</td>
+<td>条件噪声预测器</td>
+<td>输入 noisy latent、时间步和条件，预测噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">v<sub><span class="math-text">θ</span></sub>(z<sub><span class="math-text">t</span></sub>,t,c)</span></td>
+<td>Conditional Velocity Predictor</td>
+<td>条件速度预测器</td>
+<td>输入 noisy latent、时间和条件，预测 flow 方向。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解文生图如何把文本条件注入生成过程。</li>
+<li>掌握 DALL-E 2、Imagen、Stable Diffusion 的架构差异。</li>
+<li>理解 latent diffusion 为什么重要。</li>
+<li>理解 DiT / MMDiT / flow matching 为什么代表可扩展趋势。</li>
+<li>能讨论 GPT-4o Image、Gemini / Nano Banana、Qwen-Image、Seedream 这类原生编辑和多模态生成系统。</li>
+</ul>
+<h2>文本条件怎么进入图像生成</h2>
+<p>文本 prompt 先经过 text encoder：</p>
+<div class="math-block"><span class="math-text">c = E<sub><span class="math-text">text</span></sub>(T)</span></div>
+
+<p>然后 diffusion denoiser 在每一步使用条件 <span class="math-text">c</span>：</p>
+<div class="math-block"><span class="math-text">ε<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t</span></sub>,t,c)</span></div>
+
+<p>注入方式包括：</p>
+<ul>
+<li>cross-attention。</li>
+<li>adaptive normalization。</li>
+<li>class/text embedding conditioning。</li>
+<li>拼接 image/text latent。</li>
+</ul>
+<h2>DALL-E 2 / unCLIP</h2>
+<p>DALL-E 2 使用 CLIP latent 作为桥：</p>
+<ol>
+<li>text encoder 得到 text embedding。</li>
+<li>prior model 预测 image embedding。</li>
+<li>diffusion decoder 根据 image embedding 生成图像。</li>
+</ol>
+<p>直觉：</p>
+<blockquote>
+<p>CLIP embedding 捕捉语义和风格，先在语义空间规划图像，再由 diffusion decoder 生成像素。</p>
+</blockquote>
+<h2>Imagen</h2>
+<p>Imagen 的关键发现之一：强语言模型对文生图非常重要。它使用大规模 frozen T5 text encoder，再用级联 diffusion model 生成高分辨率图像。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Imagen 说明 text encoder 的语言理解能力会显著影响图文对齐。生成质量不只取决于 image diffusion backbone，也取决于 prompt 被理解得多好。</p>
+</blockquote>
+<h2>Stable Diffusion / LDM</h2>
+<p>像素空间 diffusion 成本高。Latent Diffusion 先用 VAE 把图像压缩：</p>
+<div class="math-block"><span class="math-text">x → z = E<sub><span class="math-text">VAE</span></sub>(x)</span></div>
+
+<p>在 latent space 做 diffusion：</p>
+<div class="math-block"><span class="math-text">ε<sub><span class="math-text">θ</span></sub>(z<sub><span class="math-text">t</span></sub>,t,c)</span></div>
+
+<p>最后 decode：</p>
+<div class="math-block"><span class="math-text">x̂=D<sub><span class="math-text">VAE</span></sub>(ẑ)</span></div>
+
+<p>优点：</p>
+<ul>
+<li>大幅降低训练和推理成本。</li>
+<li>支持高分辨率生成。</li>
+<li>cross-attention 可以接入文本、mask、box 等条件。</li>
+</ul>
+<p>代价：</p>
+<ul>
+<li>VAE 会带来信息损失。</li>
+<li>细节和文字可能受 latent bottleneck 影响。</li>
+<li>需要额外维护 text encoder、VAE、denoiser。</li>
+</ul>
+<h2>DiT</h2>
+<p>DiT 把 latent 切成 patch token，用 Transformer 做 denoiser。</p>
+<p>核心变化：</p>
+<ul>
+<li>U-Net 依赖卷积和多尺度结构。</li>
+<li>DiT 更接近 Transformer scaling 范式。</li>
+<li>增大 depth、width、token 数通常能带来更可预测的扩展。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DiT 的意义不只是把 U-Net 换成 Transformer，而是让 diffusion backbone 更符合大模型 scaling 经验，便于统一图像、视频和多模态生成。</p>
+</blockquote>
+<h2>Stable Diffusion 3 / 3.5：MMDiT 与 Rectified Flow</h2>
+<p>Stable Diffusion 3 系列的公开报告把两个词推到前台：MMDiT 和 rectified flow。</p>
+<p>MMDiT 的直觉：</p>
+<ul>
+<li>文本 token 和图像 latent token 不是同一种信号。</li>
+<li>让它们完全共享 Transformer 权重可能不够灵活。</li>
+<li>MMDiT 用不同权重处理不同模态，再通过 attention 交互。</li>
+</ul>
+<p>Stable Diffusion 3 还组合了多个 text encoder，例如 CLIP 和 T5。面试里可以这样回答：</p>
+<blockquote>
+<p>SD3 的核心不是“又一个 Stable Diffusion”，而是把 latent diffusion 从 U-Net 时代推进到多模态 Transformer 时代。它用更强的 text encoder、更可扩展的 MMDiT，以及 rectified flow 训练目标来提升 prompt adherence、文字渲染和复杂构图。</p>
+</blockquote>
+<h2>FLUX.1：Flow Matching 与编辑统一化</h2>
+<p>FLUX.1 系列的代表意义在于把 flow matching、DiT 和高质量图像生成结合起来。FLUX.1 Kontext 进一步强调统一的图像生成和编辑：</p>
+<ul>
+<li>输入可以是文本，也可以是参考图和文本。</li>
+<li>局部编辑、全局风格迁移、角色一致、文字编辑都尽量放进一个模型范式。</li>
+<li>用 benchmark 评估编辑一致性，而不是只看单张生成图好不好。</li>
+</ul>
+<p>面试高分点：</p>
+<blockquote>
+<p>新一代图像模型的竞争已经从“能不能生成漂亮图”转向“能不能按复杂意图稳定编辑，并在多轮交互里保持主体、文字、风格和布局一致”。</p>
+</blockquote>
+<h2>GPT-4o Image 与 Gemini / Nano Banana：原生多模态生成</h2>
+<p>传统文生图系统常是“语言模型写 prompt + 图像模型生成”。GPT-4o Image 和 Gemini / Nano Banana 这类系统代表另一个方向：把图像生成作为多模态模型的原生能力。</p>
+<p>它们的面试关注点：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>能力</th>
+<th>English</th>
+<th>中文</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Text Rendering</td>
+<td>Text Rendering</td>
+<td>文字渲染</td>
+<td>海报、UI、信息图、商品图都需要准确文字。</td>
+</tr>
+<tr>
+<td>Multi-turn Editing</td>
+<td>Multi-turn Editing</td>
+<td>多轮编辑</td>
+<td>用户会连续改图，模型要记住上下文。</td>
+</tr>
+<tr>
+<td>Reference Consistency</td>
+<td>Reference Consistency</td>
+<td>参考一致性</td>
+<td>人物、商品、品牌资产不能漂移。</td>
+</tr>
+<tr>
+<td>World Knowledge</td>
+<td>World Knowledge</td>
+<td>世界知识</td>
+<td>能把事实知识和视觉生成结合。</td>
+</tr>
+<tr>
+<td>Instruction Following</td>
+<td>Instruction Following</td>
+<td>指令遵循</td>
+<td>复杂 prompt 中多个对象、关系、约束都要满足。</td>
+</tr>
+</tbody></table>
+<p>这类系统也有典型限制：</p>
+<ul>
+<li>长文本排版仍可能出错。</li>
+<li>多主体、多约束时容易遗漏。</li>
+<li>事实细节需要外部校验。</li>
+<li>真实人物、品牌和版权内容必须有更强安全策略。</li>
+</ul>
+<h2>Qwen-Image 与 Seedream 4.0：中文文字和多图编辑</h2>
+<p>中文场景里，文字渲染和图像编辑是非常现实的面试点。Qwen-Image 技术报告强调中文和复杂文字渲染、图像编辑一致性；Seedream 4.0 报告强调统一 T2I、image editing、多图组合和高效 DiT / VAE。</p>
+<p>为什么这些点重要：</p>
+<ul>
+<li>中文文字是 logographic writing system，形状更复杂，OCR-style 容错更低。</li>
+<li>商品图、海报、社媒素材依赖准确文字和品牌一致性。</li>
+<li>多图参考让模型从“生成一张图”变成“理解素材库并合成新素材”。</li>
+<li>编辑模型要同时保持语义一致性和视觉保真度。</li>
+</ul>
+<h2>架构拆解模板</h2>
+<p>看到任何新文生图报告，都按下面拆：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>你要问的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Data</td>
+<td>图文数据从哪里来，如何过滤水印、低质、违法、隐私和 OCR 噪声？</td>
+</tr>
+<tr>
+<td>Captioning</td>
+<td>是否用 VLM / LLM 重新描述图像，caption 是否包含布局、文字、风格、关系？</td>
+</tr>
+<tr>
+<td>Tokenizer</td>
+<td>像素空间、VAE latent、VQ token，压缩率和重建质量如何？</td>
+</tr>
+<tr>
+<td>Text Encoder</td>
+<td>CLIP、T5、LLM、VLM，是否冻结，是否多 encoder？</td>
+</tr>
+<tr>
+<td>Backbone</td>
+<td>U-Net、DiT、MMDiT、原生多模态 LM，条件如何注入？</td>
+</tr>
+<tr>
+<td>Objective</td>
+<td>DDPM、EDM、v-prediction、flow matching、rectified flow？</td>
+</tr>
+<tr>
+<td>Post-training</td>
+<td>是否做 SFT、偏好优化、编辑数据微调、安全对齐？</td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td>用哪些自动指标、人评、编辑 benchmark、线上 A/B？</td>
+</tr>
+<tr>
+<td>Safety</td>
+<td>水印、C2PA、真人肖像、版权、训练数据合规怎么处理？</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. 为什么 Stable Diffusion 在 latent space 做 diffusion？</h3>
+<p>因为直接在高分辨率像素空间做 diffusion 成本很高。VAE latent 保留主要语义和视觉结构，同时降低空间维度，使训练和推理更便宜。</p>
+<h3>2. DALL-E 2 和 Stable Diffusion 的差异？</h3>
+<p>DALL-E 2 使用 CLIP latent prior + diffusion decoder；Stable Diffusion 使用 VAE latent space + U-Net denoiser + text cross-attention。二者都利用 diffusion，但条件路径和训练开放性不同。</p>
+<h3>3. Imagen 的核心启发是什么？</h3>
+<p>强 text encoder 对 prompt adherence 很关键。更好的语言理解可以提升图文对齐和复杂 prompt 的遵循。</p>
+<h3>4. DiT 为什么重要？</h3>
+<p>DiT 用 Transformer 做 denoiser，更适合 scaling，也更容易扩展到视频中的 spacetime token。</p>
+<h3>5. MMDiT 和普通 DiT 有什么区别？</h3>
+<p>普通 DiT 可以把文本条件作为 embedding 或 cross-attention 条件。MMDiT 更强调多模态 token 的联合建模：文本和图像有不同表示路径，并在 Transformer 内交互，因此更适合复杂 prompt、文字渲染和多模态生成。</p>
+<h3>6. 为什么原生多模态图像生成值得关注？</h3>
+<p>因为真实产品不是一次性 prompt 生成，而是连续对话、上传参考图、要求局部修改、生成带文字的素材。原生多模态模型更容易把语言理解、视觉理解和图像生成放到同一个交互闭环里。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2103.00020">Learning Transferable Visual Models From Natural Language Supervision</a></li>
+<li><a href="https://arxiv.org/abs/2204.06125">Hierarchical Text-Conditional Image Generation with CLIP Latents</a></li>
+<li><a href="https://arxiv.org/abs/2205.11487">Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding</a></li>
+<li><a href="https://arxiv.org/abs/2112.10752">High-Resolution Image Synthesis with Latent Diffusion Models</a></li>
+<li><a href="https://arxiv.org/abs/2212.09748">Scalable Diffusion Models with Transformers</a></li>
+<li><a href="https://openai.com/index/dall-e-3/">DALL·E 3 official page</a></li>
+<li><a href="https://deepmind.google/models/imagen/">Imagen official page</a></li>
+<li><a href="https://stability.ai/news-updates/stable-diffusion-3-research-paper">Stable Diffusion 3 Research Paper announcement</a></li>
+<li><a href="https://stability.ai/news-updates/introducing-stable-diffusion-3-5">Stable Diffusion 3.5 announcement</a></li>
+<li><a href="https://openai.com/index/introducing-4o-image-generation/">Introducing 4o Image Generation</a></li>
+<li><a href="https://developers.googleblog.com/en/introducing-gemini-2-5-flash-image/">Gemini 2.5 Flash Image</a></li>
+<li><a href="https://blog.google/innovation-and-ai/products/nano-banana-pro/">Nano Banana Pro</a></li>
+<li><a href="https://arxiv.org/abs/2508.02324">Qwen-Image Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2509.20427">Seedream 4.0</a></li>
+<li><a href="https://arxiv.org/abs/2506.15742">FLUX.1 Kontext</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./01-generative-models-and-diffusion.html">← 上一章</a><a href="./03-conditioning-editing-control.html">下一章 →</a></nav></main></body>
+</html>

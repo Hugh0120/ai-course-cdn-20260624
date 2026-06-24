@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 9 章：Reasoning Model、RLVR 与过程监督</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-interview-cheatsheet-projects.html">← 上一章</a><a href="./10-agentic-systems-coding-agents.html">下一章 →</a></nav><h1>第 9 章：Reasoning Model、RLVR 与过程监督</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Reasoning Model</td>
+<td>Reasoning Model</td>
+<td>推理模型</td>
+<td>会在回答前分配额外推理计算的模型。</td>
+</tr>
+<tr>
+<td>Test-time Compute</td>
+<td>Test-time Compute</td>
+<td>测试时计算</td>
+<td>推理阶段额外使用的 token、采样、搜索或工具调用预算。</td>
+</tr>
+<tr>
+<td>CoT</td>
+<td>Chain-of-Thought</td>
+<td>思维链</td>
+<td>中间推理过程。</td>
+</tr>
+<tr>
+<td>Hidden CoT</td>
+<td>Hidden Chain-of-Thought</td>
+<td>隐藏思维链</td>
+<td>不直接展示给用户的内部推理轨迹。</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>用可自动验证的 reward 训练模型。</td>
+</tr>
+<tr>
+<td>PRM</td>
+<td>Process Reward Model</td>
+<td>过程奖励模型</td>
+<td>对中间步骤打分。</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>Outcome Reward Model</td>
+<td>结果奖励模型</td>
+<td>对最终答案或最终状态打分。</td>
+</tr>
+<tr>
+<td>GRPO</td>
+<td>Group Relative Policy Optimization</td>
+<td>组相对策略优化</td>
+<td>用组内相对 reward 训练策略的 RL 算法。</td>
+</tr>
+<tr>
+<td>Best-of-N</td>
+<td>Best-of-N Sampling</td>
+<td>N 选 1 采样</td>
+<td>采样多个答案，再用 verifier 选最优。</td>
+</tr>
+<tr>
+<td>Self-Consistency</td>
+<td>Self-Consistency</td>
+<td>自一致性</td>
+<td>多条推理路径投票或聚合。</td>
+</tr>
+<tr>
+<td>Verifier</td>
+<td>Verifier</td>
+<td>验证器</td>
+<td>判断答案、步骤、代码或状态是否正确。</td>
+</tr>
+<tr>
+<td>MCTS</td>
+<td>Monte Carlo Tree Search</td>
+<td>蒙特卡洛树搜索</td>
+<td>通过搜索树探索候选推理路径。</td>
+</tr>
+<tr>
+<td><span class="math-text">x</span></td>
+<td>Prompt</td>
+<td>输入问题</td>
+<td>用户问题或任务。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>Response</td>
+<td>模型回答</td>
+<td>模型生成的完整回答或轨迹。</td>
+</tr>
+<tr>
+<td><span class="math-text">y<sub><span class="math-text">t</span></sub></span></td>
+<td>Reasoning Step</td>
+<td>第 <span class="math-text">t</span> 个推理步骤</td>
+<td>推理轨迹中的一步。</td>
+</tr>
+<tr>
+<td><span class="math-text">R(x,y)</span></td>
+<td>Reward</td>
+<td>奖励</td>
+<td>对回答或轨迹的得分。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 reasoning model 和普通 instruction model 的区别。</li>
+<li>能解释为什么 test-time compute 可以提升复杂任务表现。</li>
+<li>掌握 PRM、ORM、verifier、best-of-n、self-consistency 的关系。</li>
+<li>能讲清 DeepSeek-R1、OpenAI o-series、Qwen3 等报告里常见的 RLVR / thinking mode。</li>
+<li>理解 reasoning 带来的安全和评测新问题。</li>
+</ul>
+<h2>Reasoning Model 是什么</h2>
+<p>普通 chat model 倾向于直接生成答案。Reasoning model 会在复杂任务上使用更多内部推理预算、采样或工具调用，再输出最终答案。</p>
+<p>核心变化：</p>
+<ul>
+<li>训练目标从“像高质量答案”变成“能通过验证和测试”。</li>
+<li>推理阶段从单次生成变成可搜索、可验证、可反思。</li>
+<li>对数学、代码、科学、工具调用、视觉推理更有效。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Reasoning model 的本质不是神秘的“会思考”，而是训练和推理范式变化：post-training 中用可验证奖励强化长推理轨迹，inference 时给更多 compute 让模型搜索、检查和修正。</p>
+</blockquote>
+<h2>Test-time Compute</h2>
+<p>Test-time compute 包括：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>类型</th>
+<th>English</th>
+<th>中文</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Longer Thinking</td>
+<td>Longer Thinking</td>
+<td>更长推理</td>
+<td>允许更多 hidden reasoning tokens。</td>
+</tr>
+<tr>
+<td>Best-of-N</td>
+<td>Best-of-N Sampling</td>
+<td>多采样择优</td>
+<td>采样多个答案，用 verifier 选最好。</td>
+</tr>
+<tr>
+<td>Self-Consistency</td>
+<td>Self-Consistency</td>
+<td>自一致性</td>
+<td>多条链投票。</td>
+</tr>
+<tr>
+<td>Tool Execution</td>
+<td>Tool Execution</td>
+<td>工具执行</td>
+<td>Python、browser、compiler、unit test。</td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Search</td>
+<td>搜索</td>
+<td>tree search、beam、planner-executor。</td>
+</tr>
+</tbody></table>
+<p>关键直觉：</p>
+<ul>
+<li>对不可验证任务，更多推理可能只是更长的幻觉。</li>
+<li>对可验证任务，更多推理可以带来“生成-验证-修正”的收益。</li>
+<li>现代 API 常提供 reasoning effort / thinking budget，本质就是控制质量、延迟、成本的旋钮。</li>
+</ul>
+<h2>PRM、ORM 与 Verifier</h2>
+<p>ORM 只看最终结果：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">ORM</span></sub>(x,y)=1[final(y)=target]</span></div>
+
+<p>PRM 看中间步骤：</p>
+<div class="math-block"><span class="math-text">R<sub><span class="math-text">PRM</span></sub>(x,y<sub><span class="math-text">1:t</span></sub>) → {0,1} or ℝ</span></div>
+
+<p>Verifier 更泛化，可以检查：</p>
+<ul>
+<li>数学最终答案。</li>
+<li>代码单元测试。</li>
+<li>工具调用最终数据库状态。</li>
+<li>RAG 引用是否支持答案。</li>
+<li>agent 是否完成用户目标。</li>
+</ul>
+<p>面试回答：</p>
+<blockquote>
+<p>ORM 信号简单但稀疏，PRM 信号密集但贵且可能奖励表面推理。Verifier 可以用于训练，也可以用于 inference-time reranking。现代 reasoning 系统常把它们组合起来。</p>
+</blockquote>
+<h2>RLVR 训练闭环</h2>
+<p>RLVR 典型流程：</p>
+<ol>
+<li>给模型一个问题 <span class="math-text">x</span>。</li>
+<li>模型采样多个回答或轨迹 <span class="math-text">y<sub><span class="math-text">1</span></sub>,…,y<sub><span class="math-text">n</span></sub></span>。</li>
+<li>外部 verifier 给 reward。</li>
+<li>用 RL 更新模型，使高 reward 轨迹概率升高。</li>
+</ol>
+<p>可以写成：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼<sub><span class="math-text">y ∼ π<sub><span class="math-text">θ</span></sub>(· ∣ x)</span></sub>[R(x,y)]</span></div>
+
+<p>为什么它有效：</p>
+<ul>
+<li>数学和代码天然有 reward。</li>
+<li>agent 可以用最终状态做 reward。</li>
+<li>模型能从失败样本中学习策略。</li>
+<li>相比人工偏好，更可扩展。</li>
+</ul>
+<p>为什么它危险：</p>
+<ul>
+<li>reward 写错会被 exploit。</li>
+<li>benchmark 泄漏会导致虚高。</li>
+<li>模型可能学会 shortcut，而不是学会真实能力。</li>
+<li>长 CoT 可能变成不可审计的内部策略。</li>
+</ul>
+<h2>GRPO 的直觉</h2>
+<p>GRPO 给同一个问题采样一组回答，用组内相对表现构造 advantage：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">i</span></sub> = r<sub><span class="math-text">i</span></sub>-r̄ / σ<sub><span class="math-text">r</span></sub></span></div>
+
+<p>其中：</p>
+<div class="math-block"><span class="math-text">r̄=1 / G∑<sub><span class="math-text">j=1</span></sub><sup><span class="math-text">G</span></sup>r<sub><span class="math-text">j</span></sub></span></div>
+
+<p>优点：</p>
+<ul>
+<li>不需要 value model。</li>
+<li>显存更省。</li>
+<li>很适合大模型上做 reasoning RL。</li>
+</ul>
+<p>局限：</p>
+<ul>
+<li>如果一组样本全对或全错，学习信号会弱。</li>
+<li>对 reward 稀疏任务，采样策略很重要。</li>
+<li>相对 reward 会鼓励组内胜出，不保证绝对质量。</li>
+</ul>
+<h2>DeepSeek-R1 的训练启发</h2>
+<p>DeepSeek-R1 把 reasoning RL 推到开源社区视野里。核心启发：</p>
+<ul>
+<li>R1-Zero 显示大规模 RL 可以让 reasoning behavior 自发出现。</li>
+<li>纯 RL 可能出现可读性差、语言混杂等问题。</li>
+<li>R1 用 cold-start data + 多阶段 RL 改善可读性和稳定性。</li>
+<li>distilled models 说明大模型 reasoning 轨迹可以迁移到小模型。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DeepSeek-R1 的意义不只是模型效果，而是证明了“可验证 reward + 大规模 RL”可以显著激发推理能力。但它也暴露出 reasoning trace 可读性、语言混杂、reward 设计和安全监控问题。</p>
+</blockquote>
+<h2>Qwen3 的 Thinking / Non-thinking 统一</h2>
+<p>Qwen3 技术报告强调一个实用方向：同一个模型支持 thinking mode 和 non-thinking mode，并通过 thinking budget 控制推理深度。</p>
+<p>面试可以这样讲：</p>
+<blockquote>
+<p>这说明产业界不希望永远让用户手动切模型。更理想的系统是统一模型或路由器根据任务复杂度决定是否深度推理，在成本、延迟和质量之间动态折中。</p>
+</blockquote>
+<h2>CoT 监控与隐藏推理</h2>
+<p>Reasoning model 带来一个新问题：如果模型的真实推理过程不展示，怎么监控安全？</p>
+<p>需要区分：</p>
+<ul>
+<li>给用户看的解释。</li>
+<li>模型内部 hidden CoT。</li>
+<li>系统用于安全审计的 trace。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>展示完整 CoT 可能泄露隐私、安全策略或训练数据。</li>
+<li>不展示 CoT 会降低可解释性。</li>
+<li>模型可能出现 reasoning-output discrepancy，即内部想法和外部回答不一致。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>CoT 不是越透明越好。产品上常展示摘要而不是原始推理；安全上需要内部监控、红队、行为 eval 和工具轨迹审计一起做。</p>
+</blockquote>
+<h2>Reasoning Eval</h2>
+<p>常见评测：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>Benchmark</th>
+<th>English</th>
+<th>中文</th>
+<th>测什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AIME</td>
+<td>American Invitational Mathematics Examination</td>
+<td>美国邀请数学竞赛</td>
+<td>数学推理。</td>
+</tr>
+<tr>
+<td>GPQA</td>
+<td>Graduate-Level Google-Proof QA</td>
+<td>研究生级问答</td>
+<td>科学知识和推理。</td>
+</tr>
+<tr>
+<td>FrontierMath</td>
+<td>Frontier Math Benchmark</td>
+<td>前沿数学基准</td>
+<td>难数学问题。</td>
+</tr>
+<tr>
+<td>SWE-bench</td>
+<td>Software Engineering Benchmark</td>
+<td>软件工程基准</td>
+<td>真实代码 issue 修复。</td>
+</tr>
+<tr>
+<td>Terminal-Bench</td>
+<td>Terminal Benchmark</td>
+<td>终端任务基准</td>
+<td>命令行多步任务。</td>
+</tr>
+<tr>
+<td>BrowseComp</td>
+<td>Browsing Competition Benchmark</td>
+<td>浏览检索基准</td>
+<td>隐蔽信息查找。</td>
+</tr>
+<tr>
+<td>TAU-bench</td>
+<td>Tool-Agent-User Benchmark</td>
+<td>工具-智能体-用户基准</td>
+<td>多轮业务工具任务。</td>
+</tr>
+</tbody></table>
+<p>不要只报 benchmark 分数。要追问：</p>
+<ul>
+<li>是否用了 tool？</li>
+<li>是否用了 high reasoning effort？</li>
+<li>是否用了多次采样？</li>
+<li>是否有外部 scaffold？</li>
+<li>任务集是否污染？</li>
+<li>结果是 pass@1 还是 best-of-n？</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. Reasoning model 和普通 LLM 的区别？</h3>
+<p>普通 LLM 主要直接生成答案。Reasoning model 通过 RL 和 inference-time compute 学会更长的搜索、验证和修正，尤其适合数学、代码、科学、工具调用等可验证任务。</p>
+<h3>2. 为什么 PRM 有用？</h3>
+<p>PRM 给中间步骤提供监督，可以减少只看最终答案时的 credit assignment 问题。但 PRM 标注贵，也可能被模型学成表面推理模板。</p>
+<h3>3. 为什么 RLVR 比 RLHF 更适合代码和数学？</h3>
+<p>代码和数学有自动验证器，比如单元测试、编译器、答案检查器。相比人类偏好，这些 reward 更便宜、更客观、更可扩展。</p>
+<h3>4. 为什么更多 thinking 不一定更好？</h3>
+<p>如果任务不可验证，模型可能只是生成更长、更自信的错误推理。更多 thinking 还会增加延迟、成本和安全审计难度。</p>
+<h3>5. 面试被问 DeepSeek-R1 怎么答？</h3>
+<p>答训练范式：R1-Zero 用大规模 RL 激发推理；R1 加 cold-start data 和多阶段训练改善可读性；核心贡献是证明 verifiable reward + RL 可以扩展 reasoning，但也带来 reward hacking、语言混杂、CoT 监控等问题。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2305.20050">Let&#39;s Verify Step by Step</a></li>
+<li><a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning</a></li>
+<li><a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
+<li><a href="https://openai.com/index/o3-o4-mini-system-card/">OpenAI o3 and o4-mini System Card</a></li>
+<li><a href="https://arxiv.org/abs/2412.16339">Deliberative Alignment: Reasoning Enables Safer Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2606.07157">Think Fast: Estimating No-CoT Task-Completion Time Horizons of Frontier AI Models</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./08-interview-cheatsheet-projects.html">← 上一章</a><a href="./10-agentic-systems-coding-agents.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 12 章：强化学习面试速查与项目准备</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1>第 12 章：强化学习面试速查与项目准备</h1>
+<h2>本章符号说明</h2>
+<p>本章是速查表，会集中复现前面章节的核心符号：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MDP</td>
+<td>Markov Decision Process</td>
+<td>马尔可夫决策过程</td>
+<td>RL 标准建模。</td>
+</tr>
+<tr>
+<td><span class="math-text">S</span> / <span class="math-text">A</span> / <span class="math-text">R</span></td>
+<td>State / Action / Reward</td>
+<td>状态 / 动作 / 奖励</td>
+<td>MDP 三个基础元素。</td>
+</tr>
+<tr>
+<td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>Return</td>
+<td>回报 / 累计折扣奖励</td>
+<td>从时刻 <span class="math-text">t</span> 开始的累计收益。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态 <span class="math-text">s</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态-动作对 <span class="math-text">(s,a)</span> 的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Advantage Function</td>
+<td>优势函数</td>
+<td>动作相对状态平均价值的优势；这里的 <span class="math-text">A</span> 不是 action space。</td>
+</tr>
+<tr>
+<td><span class="math-text">J(θ)</span></td>
+<td>Objective Function</td>
+<td>目标函数</td>
+<td>policy optimization 中要最大化的目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">L(θ)</span></td>
+<td>Loss Function</td>
+<td>损失函数</td>
+<td>神经网络训练中要最小化的目标。</td>
+</tr>
+<tr>
+<td>KL</td>
+<td>Kullback-Leibler Divergence</td>
+<td>KL 散度</td>
+<td>衡量两个策略分布的差异。</td>
+</tr>
+<tr>
+<td>DQN / PPO / SAC</td>
+<td>Deep Q-Network / Proximal Policy Optimization / Soft Actor-Critic</td>
+<td>深度 Q 网络 / 近端策略优化 / 软 Actor-Critic</td>
+<td>面试中最高频的三类 deep RL 算法。</td>
+</tr>
+<tr>
+<td>RL / RLHF</td>
+<td>Reinforcement Learning / Reinforcement Learning from Human Feedback</td>
+<td>强化学习 / 基于人类反馈的强化学习</td>
+<td>本套课程和对齐流程中的核心概念。</td>
+</tr>
+<tr>
+<td>DP / MC / TD</td>
+<td>Dynamic Programming / Monte Carlo / Temporal Difference</td>
+<td>动态规划 / 蒙特卡洛 / 时序差分</td>
+<td>价值估计和控制的基础方法。</td>
+</tr>
+<tr>
+<td>SARSA</td>
+<td>State-Action-Reward-State-Action</td>
+<td>状态-动作-奖励-状态-动作</td>
+<td>on-policy TD control 算法。</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>REINFORCE algorithm</td>
+<td>REINFORCE 算法</td>
+<td>Monte Carlo policy gradient 基线算法。</td>
+</tr>
+<tr>
+<td>A2C / A3C</td>
+<td>Advantage Actor-Critic / Asynchronous Advantage Actor-Critic</td>
+<td>优势 Actor-Critic / 异步优势 Actor-Critic</td>
+<td>actor-critic 的同步和异步版本。</td>
+</tr>
+<tr>
+<td>GAE</td>
+<td>Generalized Advantage Estimation</td>
+<td>广义优势估计</td>
+<td>PPO 常用的 advantage 估计方法。</td>
+</tr>
+<tr>
+<td>DDPG / TD3</td>
+<td>Deep Deterministic Policy Gradient / Twin Delayed DDPG</td>
+<td>深度确定性策略梯度 / 双延迟 DDPG</td>
+<td>连续动作控制算法。</td>
+</tr>
+<tr>
+<td>UCB</td>
+<td>Upper Confidence Bound</td>
+<td>置信上界</td>
+<td>bandit 中基于不确定性 bonus 的探索方法。</td>
+</tr>
+<tr>
+<td>MLP</td>
+<td>Multi-Layer Perceptron</td>
+<td>多层感知机</td>
+<td>CartPole DQN 项目中常用的小型神经网络。</td>
+</tr>
+<tr>
+<td>PG</td>
+<td>Policy Gradient</td>
+<td>策略梯度</td>
+<td>直接优化策略参数的一类方法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章用于面试前快速复习。你需要整理：</p>
+<ul>
+<li>核心概念速查。</li>
+<li>常见算法横向对比。</li>
+<li>高频公式。</li>
+<li>高频问答。</li>
+<li>项目表达模板。</li>
+</ul>
+<h2>核心概念速查</h2>
+<p>MDP：</p>
+<div class="math-block"><span class="math-text">(S, A, P, R, γ)</span></div>
+
+<p>Return：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = ∑<sub><span class="math-text">k=0</span></sub><sup><span class="math-text">∞</span></sup> γ<sup><span class="math-text">k</span></sup> R<sub><span class="math-text">t+k+1</span></sub></span></div>
+
+<p>Value：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub> = s]</span></div>
+
+<p>Q value：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub> = s, A<sub><span class="math-text">t</span></sub> = a]</span></div>
+
+<p>Advantage：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a) = Q<sub><span class="math-text">π</span></sub>(s,a) - V<sub><span class="math-text">π</span></sub>(s)</span></div>
+
+<p>Bellman expectation：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub> + γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>) ∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>Bellman optimality：</p>
+<div class="math-block"><span class="math-text">Q<sup><span class="math-text">*</span></sup>(s,a) = 𝔼[R<sub><span class="math-text">t+1</span></sub> + γ max<sub><span class="math-text">a'</span></sub> Q<sup><span class="math-text">*</span></sup>(S<sub><span class="math-text">t+1</span></sub>,a') ∣ S<sub><span class="math-text">t</span></sub>=s,A<sub><span class="math-text">t</span></sub>=a]</span></div>
+
+<p>TD error：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>Policy Gradient：</p>
+<div class="math-block"><span class="math-text">∇ J(θ) = 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A(s,a)]</span></div>
+
+<p>PPO ratio：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>PPO clipped objective：</p>
+<div class="math-block"><span class="math-text">𝔼[min(r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(r<sub><span class="math-text">t</span></sub>, 1 - ε, 1 + ε) A<sub><span class="math-text">t</span></sub>)]</span></div>
+
+<p>SAC soft target：</p>
+<div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α log π(a'∣ s')]</span></div>
+
+<h2>算法横向对比</h2>
+<table class="wide-table">
+<thead>
+<tr>
+<th>算法</th>
+<th>类型</th>
+<th>on/off-policy</th>
+<th>关键点</th>
+<th>适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Policy Iteration</td>
+<td>DP</td>
+<td>模型已知</td>
+<td>evaluation + improvement</td>
+<td>小规模 MDP</td>
+</tr>
+<tr>
+<td>Value Iteration</td>
+<td>DP</td>
+<td>模型已知</td>
+<td>Bellman optimality backup</td>
+<td>小规模 MDP</td>
+</tr>
+<tr>
+<td>Monte Carlo</td>
+<td>value estimation</td>
+<td>on-policy 常见</td>
+<td>完整 return</td>
+<td>episodic task</td>
+</tr>
+<tr>
+<td>TD(0)</td>
+<td>value estimation</td>
+<td>on-policy 常见</td>
+<td>bootstrap</td>
+<td>在线估值</td>
+</tr>
+<tr>
+<td>SARSA</td>
+<td>value-based</td>
+<td>on-policy</td>
+<td>target 用实际 <span class="math-text">a&#39;</span></td>
+<td>表格控制</td>
+</tr>
+<tr>
+<td>Q-learning</td>
+<td>value-based</td>
+<td>off-policy</td>
+<td>target 用 max</td>
+<td>表格控制</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>value-based</td>
+<td>off-policy</td>
+<td>replay + target network</td>
+<td>离散动作</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>policy-based</td>
+<td>on-policy</td>
+<td>Monte Carlo PG</td>
+<td>教学基础</td>
+</tr>
+<tr>
+<td>A2C/A3C</td>
+<td>actor-critic</td>
+<td>on-policy</td>
+<td>critic 降方差</td>
+<td>离散/连续</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>actor-critic</td>
+<td>on-policy</td>
+<td>clipped objective</td>
+<td>通用稳定基线</td>
+</tr>
+<tr>
+<td>DDPG</td>
+<td>actor-critic</td>
+<td>off-policy</td>
+<td>deterministic actor</td>
+<td>连续动作</td>
+</tr>
+<tr>
+<td>TD3</td>
+<td>actor-critic</td>
+<td>off-policy</td>
+<td>double Q + delayed update</td>
+<td>连续动作</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>actor-critic</td>
+<td>off-policy</td>
+<td>maximum entropy</td>
+<td>连续动作</td>
+</tr>
+</tbody></table>
+<h2>高频概念问答</h2>
+<h3>1. RL 为什么难？</h3>
+<p>因为 RL 同时面对 delayed reward、探索与利用、非 i.i.d. 数据、动作影响未来数据分布、credit assignment 和训练稳定性问题。</p>
+<h3>2. Bellman 方程为什么重要？</h3>
+<p>Bellman 方程描述了价值函数的递归自洽关系：当前价值等于即时 reward 加未来价值。绝大多数 value-based 和 actor-critic 方法都直接或间接基于 Bellman backup。</p>
+<h3>3. On-policy 和 off-policy 区别？</h3>
+<p>On-policy 学习当前采样策略的价值或改进当前策略。Off-policy 用 behavior policy 的数据学习另一个 target policy，样本效率更高，但有分布偏移风险。</p>
+<h3>4. MC 和 TD 区别？</h3>
+<p>MC 用完整 episode 的真实 return，不 bootstrap，bias 小但 variance 大。TD 用一步 reward 加下一状态价值估计，能在线更新，variance 小但有 bootstrap bias。</p>
+<h3>5. SARSA 和 Q-learning 区别？</h3>
+<p>SARSA 是 on-policy，target 使用实际采样的下一个动作。Q-learning 是 off-policy，target 使用下一状态最大 Q 值。</p>
+<h3>6. DQN 的两个核心稳定技巧？</h3>
+<p>Experience replay 和 target network。前者打破样本相关性并复用样本，后者稳定 bootstrap target。</p>
+<h3>7. Double DQN 解决什么？</h3>
+<p>缓解 DQN 中 <span class="math-text">max</span> 操作造成的 Q 值过估计。它用 online network 选动作，用 target network 评估动作。</p>
+<h3>8. Policy Gradient 怎么理解？</h3>
+<p>如果某个动作带来正 advantage，就增加该动作在该状态下的概率；如果 advantage 为负，就降低概率。公式是：</p>
+<div class="math-block"><span class="math-text">∇ J = 𝔼[∇ log π(a∣ s) A(s,a)]</span></div>
+
+<h3>9. Baseline 为什么不引入 bias？</h3>
+<p>因为 baseline 不依赖 action，而：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a~π</span></sub>[∇ log π(a∣ s)] = 0</span></div>
+
+<p>因此减去 baseline 只改变方差，不改变梯度期望。</p>
+<h3>10. PPO 为什么常用？</h3>
+<p>PPO 用 clipped objective 限制新旧策略差异，稳定性好、实现简单、适用面广，是 on-policy actor-critic 中非常常用的工程基线。</p>
+<h3>11. SAC 为什么适合连续控制？</h3>
+<p>SAC 是 off-policy，样本效率较高；最大熵目标鼓励探索并提升稳定性；双 Q 网络缓解过估计，因此在连续控制任务中表现稳定。</p>
+<h3>12. Offline RL 为什么难？</h3>
+<p>因为不能继续探索收集数据。学习策略可能选择数据集中没覆盖的动作，critic 对这些动作估计不可靠，容易出现 extrapolation error。</p>
+<h2>面试中算法讲解模板</h2>
+<p>回答某个算法时，按这个顺序讲：</p>
+<pre><code class="language-text">1. 它解决什么问题？
+2. 是 value-based、policy-based 还是 actor-critic？
+3. 是 on-policy 还是 off-policy？
+4. 核心目标函数或更新公式是什么？
+5. 关键 trick 是什么？
+6. 相比前一个算法改进在哪里？
+7. 局限是什么？
+</code></pre>
+<p>例如讲 DQN：</p>
+<p>DQN 是把 Q-learning 扩展到高维状态输入的 deep RL 算法。它用神经网络近似 Q(s,a)，适合离散动作空间。核心 target 是 r + \gamma max Q_{\mathrm{target}}(s&#39;,a&#39;)。为了稳定训练，它使用 replay buffer 打破样本相关性、复用历史经验，并使用 target network 稳定 Bellman target。它的局限是难以处理连续动作空间，并且存在 Q 值过估计问题，后续 Double DQN 对此做了改进。</p>
+<h2>项目准备建议</h2>
+<p>面试前建议至少准备一个可讲清楚的 RL 小项目。</p>
+<p>优先级：</p>
+<ol>
+<li>CartPole with DQN。</li>
+<li>LunarLander with PPO。</li>
+<li>Pendulum or HalfCheetah with SAC。</li>
+<li>简化推荐系统 bandit。</li>
+<li>RLHF toy example，例如偏好数据训练 reward model。</li>
+</ol>
+<h2>项目表达模板</h2>
+<pre><code class="language-text">项目背景：
+任务建模：
+状态空间：
+动作空间：
+奖励设计：
+算法选择：
+训练流程：
+关键工程细节：
+实验指标：
+遇到的问题：
+改进方向：
+</code></pre>
+<h2>CartPole DQN 项目讲法</h2>
+<p>任务建模：</p>
+<ul>
+<li>State：小车位置、速度、杆角度、角速度。</li>
+<li>Action：向左或向右施加力。</li>
+<li>Reward：每保持一步平衡得到 1。</li>
+<li>Done：杆倾斜过大或小车越界。</li>
+</ul>
+<p>算法选择：</p>
+<ul>
+<li>动作空间离散，适合 DQN。</li>
+<li>用 MLP 近似 Q 函数。</li>
+<li>epsilon-greedy 探索。</li>
+<li>replay buffer 存储 transition。</li>
+<li>target network 稳定 target。</li>
+</ul>
+<p>可以强调的问题：</p>
+<ul>
+<li>epsilon decay 如何设置。</li>
+<li>replay buffer 大小。</li>
+<li>target network 更新频率。</li>
+<li>loss 曲线不稳定是否正常。</li>
+<li>reward 是否能达到环境上限。</li>
+</ul>
+<h2>LunarLander PPO 项目讲法</h2>
+<p>任务建模：</p>
+<ul>
+<li>State：位置、速度、角度、角速度、腿部接触信息。</li>
+<li>Action：离散喷气控制。</li>
+<li>Reward：接近着陆点、平稳降落、节省燃料等。</li>
+</ul>
+<p>算法选择：</p>
+<ul>
+<li>PPO 稳定且适合 policy optimization。</li>
+<li>使用 GAE 估计 advantage。</li>
+<li>使用 entropy bonus 保持探索。</li>
+<li>使用 clipped objective 限制策略更新。</li>
+</ul>
+<p>可以强调：</p>
+<ul>
+<li>PPO 是 on-policy，采样效率不如 DQN/SAC。</li>
+<li>但训练稳定，调参相对友好。</li>
+<li>advantage normalization 对训练很重要。</li>
+</ul>
+<h2>推荐系统 Bandit 项目讲法</h2>
+<p>任务建模：</p>
+<ul>
+<li>State/context：用户画像、上下文、历史行为。</li>
+<li>Action：推荐某个 item 或策略。</li>
+<li>Reward：点击、停留、转化、长期留存。</li>
+</ul>
+<p>算法选择：</p>
+<ul>
+<li>如果动作不影响长期状态，可先用 contextual bandit。</li>
+<li>可比较 epsilon-greedy、UCB、Thompson Sampling。</li>
+</ul>
+<p>注意点：</p>
+<ul>
+<li>线上探索有风险，需要控制流量。</li>
+<li>reward 延迟和偏差要处理。</li>
+<li>离线评估有 selection bias。</li>
+</ul>
+<h2>面试前最终检查清单</h2>
+<ul>
+<li>能手写 Bellman expectation 和 optimality equation。</li>
+<li>能解释 MC、TD、DP 的区别。</li>
+<li>能写出 SARSA 和 Q-learning 更新公式。</li>
+<li>能解释 DQN 两个核心 trick。</li>
+<li>能解释 Double DQN 为什么缓解过估计。</li>
+<li>能推导 policy gradient 的 log-derivative trick。</li>
+<li>能证明 baseline 不引入 bias。</li>
+<li>能解释 Actor-Critic 和 GAE。</li>
+<li>能手写 PPO clipped objective。</li>
+<li>能解释 SAC 的最大熵目标。</li>
+<li>能说明 offline RL 的 extrapolation error。</li>
+<li>能讲一个完整 RL 项目。</li>
+</ul>
+<h2>30 分钟口述复习路线</h2>
+<ol>
+<li>5 分钟：MDP、return、V/Q、Bellman。</li>
+<li>5 分钟：DP、MC、TD、SARSA、Q-learning。</li>
+<li>5 分钟：DQN、Double DQN、Dueling、Replay。</li>
+<li>5 分钟：Policy Gradient、baseline、Actor-Critic、GAE。</li>
+<li>5 分钟：PPO、DDPG、TD3、SAC。</li>
+<li>5 分钟：offline RL、RLHF、项目总结。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav></main></body>
+</html>

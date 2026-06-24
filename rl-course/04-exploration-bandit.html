@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 4 章：探索与利用、Bandit、UCB（Upper Confidence Bound，置信上界）与 Thompson Sampling</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./03-monte-carlo-td-learning.html">← 上一章</a><a href="./05-function-approximation-deadly-triad.html">下一章 →</a></nav><h1>第 4 章：探索与利用、Bandit、UCB（Upper Confidence Bound，置信上界）与 Thompson Sampling</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UCB</td>
+<td>Upper Confidence Bound</td>
+<td>置信上界</td>
+<td>用价值估计加不确定性 bonus 做探索。</td>
+</tr>
+<tr>
+<td><span class="math-text">K</span></td>
+<td>Number of Arms</td>
+<td>拉杆数量 / 动作数量</td>
+<td>K-armed bandit 中候选动作的数量。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td>Action at time <span class="math-text">t</span></td>
+<td>时刻 <span class="math-text">t</span> 的动作</td>
+<td>bandit 或 RL 中当前选择的动作。</td>
+</tr>
+<tr>
+<td><span class="math-text">R<sub><span class="math-text">t</span></sub></span></td>
+<td>Reward at time <span class="math-text">t</span></td>
+<td>时刻 <span class="math-text">t</span> 的奖励</td>
+<td>本轮选择动作后获得的奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">t</span></sub>(a)</span></td>
+<td>Action-value Estimate</td>
+<td>动作价值估计</td>
+<td>到时刻 <span class="math-text">t</span> 为止动作 <span class="math-text">a</span> 的平均 reward 估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">N<sub><span class="math-text">t</span></sub>(a)</span></td>
+<td>Action Count</td>
+<td>动作选择次数</td>
+<td>到时刻 <span class="math-text">t</span> 为止动作 <span class="math-text">a</span> 被选过多少次。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ<sub><span class="math-text">a</span></sub></span> / <span class="math-text">μ<sup><span class="math-text">*</span></sup></span></td>
+<td>Mean Reward / Best Mean Reward</td>
+<td>平均奖励 / 最优平均奖励</td>
+<td>动作 <span class="math-text">a</span> 或最优动作的期望奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">Regret(T)</span></td>
+<td>Cumulative Regret</td>
+<td>累计后悔值</td>
+<td>到时间 <span class="math-text">T</span> 为止因为没有总选最优动作损失的收益。</td>
+</tr>
+<tr>
+<td><span class="math-text">τ</span></td>
+<td>Temperature</td>
+<td>温度参数</td>
+<td>softmax exploration 中控制分布平滑程度。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>探索与利用是 RL 的核心问题之一。</td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>Deep Q-Network</td>
+<td>深度 Q 网络</td>
+<td>常用 epsilon-greedy 做探索的 value-based 算法。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章讨论强化学习中的 exploration-exploitation tradeoff。你需要掌握：</p>
+<ul>
+<li>为什么需要探索。</li>
+<li>epsilon-greedy。</li>
+<li>softmax exploration。</li>
+<li>Multi-Armed Bandit。</li>
+<li>UCB。</li>
+<li>Thompson Sampling。</li>
+<li>regret。</li>
+</ul>
+<h2>探索与利用</h2>
+<p>强化学习中，agent 面临两个目标：</p>
+<ul>
+<li>exploitation：选择当前看起来最好的动作，最大化已知收益。</li>
+<li>exploration：尝试不确定的动作，发现潜在更好的选择。</li>
+</ul>
+<p>如果只 exploitation，可能永远错过更优动作。<br>如果只 exploration，则无法稳定获得高收益。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>Exploration-exploitation tradeoff 是 RL 的核心问题之一。Agent 需要在利用当前价值估计和探索未知动作之间平衡。探索不足会导致局部最优，探索过多会损害短期收益和训练稳定性。</p>
+</blockquote>
+<h2>Epsilon-greedy</h2>
+<p>epsilon-greedy 是最常见的探索策略。</p>
+<pre><code class="language-text">with probability epsilon:
+    choose random action
+otherwise:
+    choose argmax_a Q(s, a)
+</code></pre>
+<p>优点：</p>
+<ul>
+<li>简单。</li>
+<li>容易实现。</li>
+<li>DQN 等算法常用。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>随机探索没有方向。</li>
+<li>对所有非 greedy 动作一视同仁。</li>
+<li>在大动作空间中效率较低。</li>
+</ul>
+<p>常见工程做法：</p>
+<pre><code class="language-text">epsilon starts high and decays over time
+</code></pre>
+<p>例如从 <span class="math-text">1.0</span> 逐渐衰减到 <span class="math-text">0.05</span>。</p>
+<h2>Softmax Exploration</h2>
+<p>softmax exploration 按照 action-value 的 softmax 概率采样动作：</p>
+<div class="math-block"><span class="math-text">P(a ∣ s) = exp(Q(s,a) / τ) / ∑<sub><span class="math-text">b</span></sub> exp(Q(s,b) / τ)</span></div>
+
+<p><span class="math-text">τ</span> 是 temperature：</p>
+<ul>
+<li><span class="math-text">τ</span> 大：分布更平，探索更多。</li>
+<li><span class="math-text">τ</span> 小：分布更尖，接近 greedy。</li>
+</ul>
+<p>相比 epsilon-greedy，softmax 会更偏向价值较高的动作，而不是均匀随机探索。</p>
+<p>缺点：</p>
+<ul>
+<li>对 Q 值尺度敏感。</li>
+<li>如果 Q 值估计不准，采样分布也会被误导。</li>
+</ul>
+<h2>Multi-Armed Bandit</h2>
+<p>Bandit 是最简单的 sequential decision 问题：</p>
+<ul>
+<li>只有动作，没有状态转移。</li>
+<li>每个 action 对应一个未知 reward distribution。</li>
+<li>目标是在不断试验中最大化累计 reward。</li>
+</ul>
+<p>K-armed bandit：</p>
+<pre><code class="language-text">choose action A_t in {1, ..., K}
+receive reward R_t
+</code></pre>
+<p>它可以看成没有状态或只有单一状态的 RL 问题。</p>
+<p>Bandit 在推荐系统、广告投放、A/B testing 中非常常见。</p>
+<h2>Regret</h2>
+<p>Regret 衡量由于没有总是选择最优动作而损失的收益。</p>
+<p>如果最优动作的期望奖励是 <span class="math-text">μ<sup><span class="math-text">*</span></sup></span>，第 <span class="math-text">t</span> 步选择动作的期望奖励是 <span class="math-text">μ<sub><span class="math-text">a<sub><span class="math-text">t</span></sub></span></sub></span>，则累计 regret：</p>
+<div class="math-block"><span class="math-text">Regret(T) = ∑<sub><span class="math-text">t=1</span></sub><sup><span class="math-text">T</span></sup> (μ<sup><span class="math-text">*</span></sup> - μ<sub><span class="math-text">a<sub><span class="math-text">t</span></sub></span></sub>)</span></div>
+
+<p>目标不是只最大化 reward，也可以表述为最小化 regret。</p>
+<h2>UCB</h2>
+<p>Upper Confidence Bound，简称 UCB。</p>
+<p>核心思想：</p>
+<blockquote>
+<p>乐观面对不确定性。对不确定的动作给一个探索 bonus。</p>
+</blockquote>
+<p>常见 UCB 形式：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub> = argmax<sub><span class="math-text">a</span></sub> [Q<sub><span class="math-text">t</span></sub>(a) + c √(ln t / N<sub><span class="math-text">t</span></sub>(a))]</span></div>
+
+<p>其中：</p>
+<ul>
+<li><span class="math-text">Q<sub><span class="math-text">t</span></sub>(a)</span>：动作 <span class="math-text">a</span> 当前平均 reward 估计。</li>
+<li><span class="math-text">N<sub><span class="math-text">t</span></sub>(a)</span>：动作 <span class="math-text">a</span> 被选择次数。</li>
+<li><span class="math-text">t</span>：总时间步。</li>
+<li><span class="math-text">c</span>：控制探索强度。</li>
+</ul>
+<p>解释：</p>
+<ul>
+<li>如果动作被选得少，<span class="math-text">N<sub><span class="math-text">t</span></sub>(a)</span> 小，bonus 大。</li>
+<li>如果动作被选得多，不确定性下降，bonus 变小。</li>
+<li>UCB 会系统性探索不确定动作，而不是随机探索。</li>
+</ul>
+<h2>Thompson Sampling</h2>
+<p>Thompson Sampling 是一种 Bayesian exploration 方法。</p>
+<p>流程：</p>
+<ol>
+<li>为每个动作维护 reward 分布参数的 posterior。</li>
+<li>每轮从每个动作的 posterior 中采样一个可能的参数。</li>
+<li>选择采样后看起来最优的动作。</li>
+<li>根据实际 reward 更新 posterior。</li>
+</ol>
+<p>直觉：</p>
+<p>一个动作的不确定性越大，它在采样中偶尔成为最优的概率越大，因此会自然获得探索机会。</p>
+<p>优点：</p>
+<ul>
+<li>探索非常自然。</li>
+<li>在 bandit 问题中表现强。</li>
+<li>常用于推荐、广告、实验分流。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>需要构造合适的概率模型。</li>
+<li>在复杂深度 RL 中实现和建模成本更高。</li>
+</ul>
+<h2>NoisyNet 与参数空间探索</h2>
+<p>深度 RL 中还可以在参数空间探索。例如 NoisyNet 在网络参数中加入可学习噪声。</p>
+<p>直觉：</p>
+<ul>
+<li>epsilon-greedy 是 action-level 随机。</li>
+<li>参数空间噪声会让整个策略在一段时间内保持一致的探索模式。</li>
+</ul>
+<p>这在需要 temporally coherent exploration 的任务中更合理。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. 为什么强化学习需要探索？</h3>
+<p>因为 agent 初始并不知道哪些动作长期收益最高。如果只选择当前估计最优的动作，可能因为早期估计错误而陷入局部最优。</p>
+<h3>2. epsilon-greedy 的缺点是什么？</h3>
+<p>探索是均匀随机的，没有利用不确定性信息，也不区分非 greedy 动作的潜在价值。在大动作空间中效率较低。</p>
+<h3>3. UCB 的核心思想是什么？</h3>
+<p>UCB 使用当前价值估计加上不确定性 bonus 选动作。被尝试较少的动作有更大 bonus，从而获得探索机会。</p>
+<h3>4. Thompson Sampling 和 UCB 的区别？</h3>
+<p>UCB 基于置信上界，显式构造 optimism bonus。Thompson Sampling 是 Bayesian 方法，从 posterior 采样参数，通过概率匹配自然平衡探索和利用。</p>
+<h3>5. Bandit 和完整 RL 的区别？</h3>
+<p>Bandit 没有复杂状态转移，动作只影响当前 reward。完整 RL 中动作会影响未来状态分布和长期 return。</p>
+<h2>本章练习</h2>
+<ol>
+<li>写出 epsilon-greedy 的动作选择逻辑。</li>
+<li>解释 UCB 中 <span class="math-text">√(ln t / N(a))</span> 的直觉。</li>
+<li>用推荐系统举一个 bandit 的例子。</li>
+<li>比较 epsilon-greedy、UCB 和 Thompson Sampling。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./03-monte-carlo-td-learning.html">← 上一章</a><a href="./05-function-approximation-deadly-triad.html">下一章 →</a></nav></main></body>
+</html>

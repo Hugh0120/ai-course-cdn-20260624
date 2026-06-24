@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>强化学习面试课程 · 第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-dynamic-programming.html">下一章 →</a></nav><h1>第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</h1>
+<h2>本章符号说明</h2>
+<p>本章第一次出现公式前，先把核心符号列清楚：</p>
+<p>本章统一写大写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>；如果你在 Sutton &amp; Barto 等教材里看到小写 <span class="math-text">v<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">q<sub><span class="math-text">π</span></sub>(s,a)</span>，它们表示同类 state-value/action-value function。</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">S</span> / <span class="math-text">S<sub><span class="math-text">t</span></sub></span></td>
+<td>State / State at time <span class="math-text">t</span></td>
+<td>状态空间 / 时刻 <span class="math-text">t</span> 的状态</td>
+<td><span class="math-text">S</span> 是状态空间，<span class="math-text">S<sub><span class="math-text">t</span></sub></span> 是时刻 <span class="math-text">t</span> 的状态随机变量。</td>
+</tr>
+<tr>
+<td><span class="math-text">s</span></td>
+<td>State realization</td>
+<td>具体状态</td>
+<td>小写 <span class="math-text">s</span> 表示某一个具体 state，不是 value function。</td>
+</tr>
+<tr>
+<td><span class="math-text">A</span> / <span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td>Action / Action at time <span class="math-text">t</span></td>
+<td>动作空间 / 时刻 <span class="math-text">t</span> 的动作</td>
+<td><span class="math-text">A</span> 是动作空间，<span class="math-text">A<sub><span class="math-text">t</span></sub></span> 是时刻 <span class="math-text">t</span> 的动作随机变量。</td>
+</tr>
+<tr>
+<td><span class="math-text">a</span></td>
+<td>Action realization</td>
+<td>具体动作</td>
+<td>小写 <span class="math-text">a</span> 表示某一个具体 action，不是 action-value function。</td>
+</tr>
+<tr>
+<td><span class="math-text">R</span> / <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></td>
+<td>Reward</td>
+<td>奖励</td>
+<td><span class="math-text">R<sub><span class="math-text">t+1</span></sub></span> 是执行 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 后得到的即时奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>Return</td>
+<td>回报 / 累计折扣奖励</td>
+<td><span class="math-text">G<sub><span class="math-text">t</span></sub></span> 表示从时刻 <span class="math-text">t</span> 开始的长期累计收益；<span class="math-text">G</span> 是常用记号，不建议理解成固定英文缩写。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(s&#39; ∣ s,a)</span></td>
+<td>Transition Probability</td>
+<td>状态转移概率</td>
+<td>从 <span class="math-text">s</span> 执行 <span class="math-text">a</span> 后到 <span class="math-text">s&#39;</span> 的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">π(a ∣ s)</span></td>
+<td>Policy</td>
+<td>策略</td>
+<td>在状态 <span class="math-text">s</span> 选择动作 <span class="math-text">a</span> 的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>策略 <span class="math-text">π</span> 下状态 <span class="math-text">s</span> 的期望 return。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Action-value Function</td>
+<td>动作价值函数</td>
+<td>策略 <span class="math-text">π</span> 下，在 <span class="math-text">s</span> 先执行 <span class="math-text">a</span> 的期望 return；<span class="math-text">Q</span> 可理解为 action quality。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制未来 reward 权重的系数。</td>
+</tr>
+<tr>
+<td>RL</td>
+<td>Reinforcement Learning</td>
+<td>强化学习</td>
+<td>本课程主题，学习长期决策策略。</td>
+</tr>
+<tr>
+<td>POMDP</td>
+<td>Partially Observable Markov Decision Process</td>
+<td>部分可观测马尔可夫决策过程</td>
+<td>观测不满足完整 Markov property 时的建模。</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>后续用 Bellman target 做采样更新的方法。</td>
+</tr>
+<tr>
+<td>DQN / PPO / A2C / SAC</td>
+<td>Deep Q-Network / Proximal Policy Optimization / Advantage Actor-Critic / Soft Actor-Critic</td>
+<td>深度 Q 网络 / 近端策略优化 / 优势 Actor-Critic / 软 Actor-Critic</td>
+<td>后续章节会学习的典型 deep RL 算法。</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>REINFORCE algorithm</td>
+<td>REINFORCE 算法</td>
+<td>最基础的 Monte Carlo policy gradient 算法名。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<p>本章是强化学习的地基。你需要掌握：</p>
+<ul>
+<li>强化学习和监督学习的区别。</li>
+<li>agent、environment、state、action、reward、policy 的含义。</li>
+<li>return 和 discount factor。</li>
+<li>MDP 五元组和 Markov property。</li>
+<li><span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 的定义和关系。</li>
+<li>Bellman expectation equation 与 Bellman optimality equation。</li>
+</ul>
+<h2>强化学习在学什么</h2>
+<p>强化学习研究的是：一个 agent 通过和 environment 交互，学习一个 policy，使得长期累计 reward 最大。</p>
+<p>一次交互可以写成：</p>
+<div class="math-block"><span class="math-text">S<sub><span class="math-text">t</span></sub> → A<sub><span class="math-text">t</span></sub> → R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>含义：</p>
+<ul>
+<li><span class="math-text">S<sub><span class="math-text">t</span></sub></span>：State at time <span class="math-text">t</span>，时刻 <span class="math-text">t</span> 的状态。</li>
+<li><span class="math-text">A<sub><span class="math-text">t</span></sub></span>：Action at time <span class="math-text">t</span>，时刻 <span class="math-text">t</span> 的动作。</li>
+<li><span class="math-text">R<sub><span class="math-text">t+1</span></sub></span>：Reward after action，执行 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 后得到的奖励。</li>
+<li><span class="math-text">S<sub><span class="math-text">t+1</span></sub></span>：Next state，环境转移到的下一个状态。</li>
+</ul>
+<p>监督学习通常学习 <span class="math-text">x → y</span> 的映射，而强化学习学习的是 sequential decision making。当前动作不仅影响当前 reward，也会影响未来会遇到的状态分布。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>RL 的核心难点在于 delayed reward 和 sequential decision making。Agent 的动作会影响未来状态分布，因此数据不是固定的 i.i.d. 样本，目标也不是单步预测正确，而是长期累计收益最大。</p>
+</blockquote>
+<h2>Return</h2>
+<p>强化学习优化的是累计回报：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ R<sub><span class="math-text">t+2</span></sub> + γ<sup><span class="math-text">2</span></sup> R<sub><span class="math-text">t+3</span></sub> + ...</span></div>
+
+<p>也就是：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = ∑<sub><span class="math-text">k=0</span></sub><sup><span class="math-text">∞</span></sup> γ<sup><span class="math-text">k</span></sup> R<sub><span class="math-text">t+k+1</span></sub></span></div>
+
+<p>这里 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 表示 Return，也就是“从时刻 <span class="math-text">t</span> 开始往后看的累计回报”。<span class="math-text">G</span> 是强化学习教材中的常用记号，不建议把它理解成某个固定英文缩写。</p>
+<p><span class="math-text">γ</span> 是 discount factor，通常在 <span class="math-text">[0, 1]</span>。</p>
+<p><span class="math-text">γ</span> 的作用：</p>
+<ul>
+<li><span class="math-text">γ = 0</span> 时，agent 只关心眼前 reward。</li>
+<li><span class="math-text">γ</span> 接近 1 时，agent 更重视长期 reward。</li>
+<li>在 infinite horizon 下，折扣可以让 return 更容易有界。</li>
+<li>工程上，<span class="math-text">γ</span> 也控制短视和长远之间的权衡。</li>
+</ul>
+<p>面试追问：为什么需要 discount factor？</p>
+<p>可以回答：</p>
+<blockquote>
+<p>一方面是数学上让无限时域的累计 reward 更容易收敛，另一方面表达了对未来 reward 的偏好衰减或不确定性。<span class="math-text">γ</span> 越大越重视长期收益，但训练可能更难、更不稳定。</p>
+</blockquote>
+<h2>Policy</h2>
+<p>Policy 描述 agent 如何根据 state 选择 action。</p>
+<p>确定性策略：</p>
+<div class="math-block"><span class="math-text">a = π(s)</span></div>
+
+<p>随机策略：</p>
+<div class="math-block"><span class="math-text">π(a ∣ s) = P(A<sub><span class="math-text">t</span></sub> = a ∣ S<sub><span class="math-text">t</span></sub> = s)</span></div>
+
+<p>强化学习最终通常是在寻找最优策略：</p>
+<div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup> = argmax<sub><span class="math-text">π</span></sub> 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>]</span></div>
+
+<p>常见算法分类：</p>
+<ul>
+<li>value-based：先学习价值函数，再通过价值函数导出策略，例如 Q-learning、DQN。</li>
+<li>policy-based：直接参数化策略并优化，例如 REINFORCE、PPO。</li>
+<li>actor-critic：同时学习策略 actor 和价值 critic，例如 A2C、SAC。</li>
+</ul>
+<h2>MDP</h2>
+<p>MDP 是 Markov Decision Process，强化学习最常见的数学建模。</p>
+<p>MDP 五元组：</p>
+<div class="math-block"><span class="math-text">(S, A, P, R, γ)</span></div>
+
+<p>分别表示：</p>
+<ul>
+<li><span class="math-text">S</span>：State Space，状态空间。</li>
+<li><span class="math-text">A</span>：Action Space，动作空间。</li>
+<li><span class="math-text">P(s&#39; ∣ s, a)</span>：Transition Probability，状态转移概率。</li>
+<li><span class="math-text">R(s, a)</span> 或 <span class="math-text">R(s, a, s&#39;)</span>：Reward Function，奖励函数。</li>
+<li><span class="math-text">γ</span>：Discount Factor，折扣因子。</li>
+</ul>
+<p>MDP 的核心是假设 Markov property：</p>
+<div class="math-block multi"><div><span class="math-text">P(S<sub><span class="math-text">t+1</span></sub> ∣ S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, S<sub><span class="math-text">t-1</span></sub>, A<sub><span class="math-text">t-1</span></sub>, ...)</span></div><div><span class="math-text">= P(S<sub><span class="math-text">t+1</span></sub> ∣ S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div></div>
+
+<p>也就是说，当前 state 已经包含了预测未来所需的全部历史信息。</p>
+<p>面试表达：</p>
+<blockquote>
+<p>MDP 假设 state 是历史信息的 sufficient statistic。给定当前 state 和 action 后，未来状态转移与更早的历史无关。如果观测不满足这个条件，例如只能看到局部信息，则更准确的模型是 POMDP。</p>
+</blockquote>
+<h2>Value Function</h2>
+<p>状态价值函数（State-value Function，记作 <span class="math-text">V</span>，<span class="math-text">V</span> 来自 value）：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub> = s]</span></div>
+
+<p>含义：从状态 <span class="math-text">s</span> 出发，之后一直按照策略 <span class="math-text">π</span> 行动，期望累计 return 是多少。</p>
+<p>动作价值函数（Action-value Function，记作 <span class="math-text">Q</span>，<span class="math-text">Q</span> 可理解为 action quality）：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s, a) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub> = s, A<sub><span class="math-text">t</span></sub> = a]</span></div>
+
+<p>含义：在状态 <span class="math-text">s</span> 先执行动作 <span class="math-text">a</span>，之后按照策略 <span class="math-text">π</span> 行动，期望累计 return 是多少。</p>
+<p>两者关系：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) Q<sub><span class="math-text">π</span></sub>(s, a)</span></div>
+
+<p>最优情况下：</p>
+<div class="math-block"><span class="math-text">V<sup><span class="math-text">*</span></sup>(s) = max<sub><span class="math-text">a</span></sub> Q<sup><span class="math-text">*</span></sup>(s, a)</span></div>
+
+<p>最优动作：</p>
+<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup> = argmax<sub><span class="math-text">a</span></sub> Q<sup><span class="math-text">*</span></sup>(s, a)</span></div>
+
+<p>为什么 <span class="math-text">Q</span> 更适合直接决策？</p>
+<p>因为 <span class="math-text">Q(s,a)</span> 已经评价了具体 action 的长期价值，可以直接用 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。而 <span class="math-text">V(s)</span> 只评价状态好坏，如果不知道环境转移模型，单独的 <span class="math-text">V(s)</span> 不一定能直接告诉你该选哪个动作。</p>
+<h2>Bellman 方程</h2>
+<p>Return 可以递归拆开：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ G<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>于是价值函数也可以递归表示：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub> + γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>) ∣ S<sub><span class="math-text">t</span></sub> = s]</span></div>
+
+<p>展开得到 Bellman expectation equation：</p>
+<div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
+
+<p>对于动作价值函数：</p>
+<div class="math-block multi"><div><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s, a)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ ∑<sub><span class="math-text">a'</span></sub> π(a' ∣ s') Q<sub><span class="math-text">π</span></sub>(s', a')]</span></div></div>
+
+<p>最优 Bellman 方程：</p>
+<div class="math-block multi"><div><span class="math-text">V<sup><span class="math-text">*</span></sup>(s) = max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sup><span class="math-text">*</span></sup>(s')]</span></div></div>
+
+<div class="math-block multi"><div><span class="math-text">Q<sup><span class="math-text">*</span></sup>(s, a) = ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ max<sub><span class="math-text">a'</span></sub> Q<sup><span class="math-text">*</span></sup>(s', a')]</span></div></div>
+
+<p>这个式子非常重要。Q-learning 和 DQN 都是在用采样和函数逼近来逼近它。</p>
+<h2>Bellman 推导过程：不要直接背公式</h2>
+<p>Bellman 方程可以按四步讲。</p>
+<p>第一步，从 return 的定义出发：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ R<sub><span class="math-text">t+2</span></sub> + γ<sup><span class="math-text">2</span></sup> R<sub><span class="math-text">t+3</span></sub> + ...</span></div>
+
+<p>把第一项单独拿出来，后面的部分正好是从 <span class="math-text">t+1</span> 开始的 return：</p>
+<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ G<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>第二步，对“从状态 <span class="math-text">s</span> 出发”的长期回报取期望：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>把递归式代进去：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>第三步，把 <span class="math-text">G<sub><span class="math-text">t+1</span></sub></span> 换成下一状态的价值。因为到达 <span class="math-text">S<sub><span class="math-text">t+1</span></sub></span> 后，后续仍按策略 <span class="math-text">π</span> 行动：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t+1</span></sub>∣ S<sub><span class="math-text">t+1</span></sub>=s'] = V<sub><span class="math-text">π</span></sub>(s')</span></div>
+
+<p>于是得到：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
+
+<p>第四步，把期望展开成“先按策略选动作，再按环境转移到下一个状态”：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=∑<sub><span class="math-text">a</span></sub> π(a∣ s)∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V<sub><span class="math-text">π</span></sub>(s')]</span></div>
+
+<p>这就是 Bellman expectation equation。</p>
+<p>从 expectation 到 optimality 只改一个地方：不再对动作按当前策略求平均，而是假设在每个状态都选最优动作：</p>
+<div class="math-block"><span class="math-text">V<sup><span class="math-text">*</span></sup>(s)=max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V<sup><span class="math-text">*</span></sup>(s')]</span></div>
+
+<p>面试表达：</p>
+<blockquote>
+<p>Bellman 方程本质是价值函数的递归自洽关系。当前状态的价值等于即时 reward 加上下一个状态价值的折扣期望。Expectation version 是评估固定策略，optimality version 是每一步都对动作取最大值。</p>
+</blockquote>
+<h2>从 Bellman 到算法的推理链</h2>
+<p>不同 RL 算法可以看成在回答同一个问题：怎么逼近 Bellman backup？</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>推理方式</th>
+<th>需要环境模型吗</th>
+<th>用什么近似 Bellman target</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DP</td>
+<td>直接对 <span class="math-text">P(s&#39;∣ s,a)</span> 求和</td>
+<td>需要</td>
+<td>完整期望 backup</td>
+</tr>
+<tr>
+<td>MC</td>
+<td>采样完整 episode</td>
+<td>不需要</td>
+<td>实际 return <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+</tr>
+<tr>
+<td>TD</td>
+<td>采样一步 transition</td>
+<td>不需要</td>
+<td><span class="math-text">r+γ V(s&#39;)</span></td>
+</tr>
+<tr>
+<td>Q-learning</td>
+<td>采样一步 transition，并对下一动作取 max</td>
+<td>不需要</td>
+<td><span class="math-text">r+γ max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;)</span></td>
+</tr>
+<tr>
+<td>DQN</td>
+<td>用神经网络拟合 Q-learning target</td>
+<td>不需要</td>
+<td><span class="math-text">r+γ max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span></td>
+</tr>
+</tbody></table>
+<p>所以不要把这些算法看成完全无关的技巧。它们都围绕 Bellman target，只是期望怎么估、target 怎么构造、是否用函数逼近不同。</p>
+<h2>TD Target 与 TD Error</h2>
+<p>Q-learning 的更新式：</p>
+<div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>
+
+<p>其中：</p>
+<div class="math-block multi"><div><span class="math-text">TD target = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a')</span></div><div><span class="math-text">TD error = TD target - Q(s, a)</span></div></div>
+
+<p>直觉：</p>
+<ul>
+<li>旧估计是 <span class="math-text">Q(s,a)</span>。</li>
+<li>新观测告诉我们，一步之后的目标应该是 <span class="math-text">r + γ max<sub><span class="math-text">a&#39;</span></sub> Q(s&#39;,a&#39;)</span>。</li>
+<li>两者差值就是 TD error。</li>
+<li>用学习率 <span class="math-text">α</span> 做一个增量更新。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. RL 和监督学习有什么区别？</h3>
+<p>监督学习有固定标签，通常假设样本 i.i.d.，目标是拟合输入到标签的映射。RL 没有逐步标准答案，只有 reward，且 reward 可能延迟出现。Agent 的动作会改变未来状态分布，因此需要处理 exploration-exploitation 和长期收益最大化。</p>
+<h3>2. 什么是 MDP？</h3>
+<p>MDP 是强化学习的标准建模，由状态空间、动作空间、转移概率、奖励函数和折扣因子组成。它的核心假设是 Markov property，即未来只依赖当前状态和动作，而不依赖完整历史。</p>
+<h3>3. <span class="math-text">V</span> 和 <span class="math-text">Q</span> 有什么区别？</h3>
+<p><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 衡量状态 <span class="math-text">s</span> 在策略 <span class="math-text">π</span> 下的长期价值。<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 衡量在状态 <span class="math-text">s</span> 先执行动作 <span class="math-text">a</span> 后，再跟随策略 <span class="math-text">π</span> 的长期价值。<span class="math-text">Q</span> 多了动作维度，因此更适合直接用来选动作。</p>
+<h3>4. Bellman expectation equation 和 Bellman optimality equation 区别？</h3>
+<p>Bellman expectation equation 用来评估一个给定策略 <span class="math-text">π</span> 的价值。Bellman optimality equation 描述最优价值函数，会在动作上取最大值，对应寻找最优策略。</p>
+<h3>5. Bellman 方程的核心直觉是什么？</h3>
+<p>当前价值等于即时奖励加上折扣后的未来价值。它把长期决策问题拆成一步 reward 和下一状态 value 的递归组合。</p>
+<h2>本章练习</h2>
+<ol>
+<li>用自己的话解释为什么强化学习的数据不是固定 i.i.d.。</li>
+<li>手写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>、<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 的关系。</li>
+<li>从 <span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ G<sub><span class="math-text">t+1</span></sub></span> 推导 Bellman expectation equation。</li>
+<li>解释为什么 <span class="math-text">Q<sup><span class="math-text">*</span></sup>(s,a)</span> 的 Bellman optimality equation 中有 <span class="math-text">max<sub><span class="math-text">a&#39;</span></sub></span>。</li>
+</ol>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-dynamic-programming.html">下一章 →</a></nav></main></body>
+</html>

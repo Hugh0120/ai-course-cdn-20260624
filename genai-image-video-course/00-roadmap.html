@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 文生图 / 文生视频课程 Roadmap</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><span>← 上一章</span><a href="./01-generative-models-and-diffusion.html">下一章 →</a></nav><h1>文生图 / 文生视频课程 Roadmap</h1>
+<p>这套笔记面向 AI（Artificial Intelligence，人工智能）算法工程师的文生图、文生视频和多模态生成面试准备。目标不是背产品名，而是形成一套可迁移的框架：生成模型基础、diffusion / flow matching、文本与图像条件、编辑与控制、视频时序建模、视频数据和训练实操、SOTA 技术报告阅读、评测 harness、安全与产品化。</p>
+<p>截至 2026 年 6 月，面试里只讲 DDPM（Denoising Diffusion Probabilistic Model，去噪扩散概率模型）和 Stable Diffusion 已经不够了。你还需要能讨论 GPT-4o Image、Gemini / Nano Banana、Imagen 4、Qwen-Image、Seedream 4.0、Stable Diffusion 3 / 3.5、FLUX.1 Kontext、Sora / Sora 2、Veo 3.1、Movie Gen、Runway Gen-4、HunyuanVideo、Seedance 2.0 这类系统背后的共性。</p>
+<h2>全局符号和缩写说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AI</td>
+<td>Artificial Intelligence</td>
+<td>人工智能</td>
+<td>本课程讨论的上层技术领域。</td>
+</tr>
+<tr>
+<td>GenAI</td>
+<td>Generative Artificial Intelligence</td>
+<td>生成式人工智能</td>
+<td>生成图像、视频、音频、文本等内容的模型和系统。</td>
+</tr>
+<tr>
+<td>T2I</td>
+<td>Text-to-Image</td>
+<td>文生图</td>
+<td>用文本 prompt 生成图像。</td>
+</tr>
+<tr>
+<td>T2V</td>
+<td>Text-to-Video</td>
+<td>文生视频</td>
+<td>用文本 prompt 生成视频。</td>
+</tr>
+<tr>
+<td>I2I</td>
+<td>Image-to-Image</td>
+<td>图生图</td>
+<td>用图像和文本条件编辑或重绘图像。</td>
+</tr>
+<tr>
+<td>I2V</td>
+<td>Image-to-Video</td>
+<td>图生视频</td>
+<td>用图像作为起点生成视频。</td>
+</tr>
+<tr>
+<td>V2V</td>
+<td>Video-to-Video</td>
+<td>视频到视频</td>
+<td>用输入视频做编辑、风格迁移或重生成。</td>
+</tr>
+<tr>
+<td>AV</td>
+<td>Audio-Video</td>
+<td>音视频</td>
+<td>联合生成画面、声音、对白、音效的任务。</td>
+</tr>
+<tr>
+<td>AR</td>
+<td>Autoregressive</td>
+<td>自回归</td>
+<td>逐 token 或逐 patch 预测下一个元素的生成范式。</td>
+</tr>
+<tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>把图像或视频压缩到 latent，再解码回像素。</td>
+</tr>
+<tr>
+<td>VQ-VAE</td>
+<td>Vector Quantized Variational Autoencoder</td>
+<td>向量量化变分自编码器</td>
+<td>把视觉内容离散化成 codebook token 的自编码器。</td>
+</tr>
+<tr>
+<td>DDPM</td>
+<td>Denoising Diffusion Probabilistic Model</td>
+<td>去噪扩散概率模型</td>
+<td>通过加噪和反向去噪生成样本。</td>
+</tr>
+<tr>
+<td>DDIM</td>
+<td>Denoising Diffusion Implicit Model</td>
+<td>去噪扩散隐式模型</td>
+<td>常用于更少步数的 diffusion 采样。</td>
+</tr>
+<tr>
+<td>EDM</td>
+<td>Elucidated Diffusion Model</td>
+<td>解析化扩散模型设计</td>
+<td>Karras 等提出的一套噪声调度和采样设计空间。</td>
+</tr>
+<tr>
+<td>SDE</td>
+<td>Stochastic Differential Equation</td>
+<td>随机微分方程</td>
+<td>连续时间 diffusion 的一种建模方式。</td>
+</tr>
+<tr>
+<td>ODE</td>
+<td>Ordinary Differential Equation</td>
+<td>常微分方程</td>
+<td>确定性采样路径常用的数学表示。</td>
+</tr>
+<tr>
+<td>FM</td>
+<td>Flow Matching</td>
+<td>流匹配</td>
+<td>直接学习从噪声到数据的连续向量场。</td>
+</tr>
+<tr>
+<td>RF</td>
+<td>Rectified Flow</td>
+<td>矫正流</td>
+<td>用更直的生成路径提升训练和采样效率的 flow 方法。</td>
+</tr>
+<tr>
+<td>CFM</td>
+<td>Conditional Flow Matching</td>
+<td>条件流匹配</td>
+<td>带条件变量的 flow matching 训练方式。</td>
+</tr>
+<tr>
+<td>LDM</td>
+<td>Latent Diffusion Model</td>
+<td>潜空间扩散模型</td>
+<td>在 VAE latent space 中做 diffusion。</td>
+</tr>
+<tr>
+<td>U-Net</td>
+<td>U-Net Architecture</td>
+<td>U-Net 架构</td>
+<td>diffusion 早期常用 denoiser backbone。</td>
+</tr>
+<tr>
+<td>DiT</td>
+<td>Diffusion Transformer</td>
+<td>扩散 Transformer</td>
+<td>用 Transformer 作为 diffusion / flow backbone。</td>
+</tr>
+<tr>
+<td>MMDiT</td>
+<td>Multimodal Diffusion Transformer</td>
+<td>多模态扩散 Transformer</td>
+<td>文本和图像 token 分支交互的 DiT 架构。</td>
+</tr>
+<tr>
+<td>SD3</td>
+<td>Stable Diffusion 3</td>
+<td>Stable Diffusion 3 模型系列</td>
+<td>使用 MMDiT 和 rectified flow 的图像生成系列。</td>
+</tr>
+<tr>
+<td>FLUX.1</td>
+<td>FLUX.1 Model Family</td>
+<td>FLUX.1 模型系列</td>
+<td>Black Forest Labs 的图像生成和编辑模型系列。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>用于 prompt planning、captioning、judge 或原生多模态生成的语言模型。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>Vision-Language Model</td>
+<td>视觉语言模型</td>
+<td>同时处理图像和文本，常用于 caption、评测和审核。</td>
+</tr>
+<tr>
+<td>MLLM</td>
+<td>Multimodal Large Language Model</td>
+<td>多模态大语言模型</td>
+<td>同时处理文本、图像、视频、音频等模态的大模型。</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>Contrastive Language-Image Pre-training</td>
+<td>对比式图文预训练</td>
+<td>用于图文语义对齐、检索和评测。</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Text-to-Text Transfer Transformer</td>
+<td>文本到文本迁移 Transformer</td>
+<td>Imagen、Stable Diffusion 3 等系统常用的强 text encoder。</td>
+</tr>
+<tr>
+<td>GPT-4o</td>
+<td>Generative Pre-trained Transformer 4o</td>
+<td>GPT-4o 多模态模型</td>
+<td>OpenAI 的原生多模态模型系列，包含图像生成能力。</td>
+</tr>
+<tr>
+<td>CFG</td>
+<td>Classifier-Free Guidance</td>
+<td>无分类器引导</td>
+<td>采样时增强条件遵循度的技巧。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用高质量指令、编辑或偏好数据微调模型。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人工偏好训练 reward，再优化生成策略。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>不显式训练 reward model 的偏好优化方法。</td>
+</tr>
+<tr>
+<td>LoRA</td>
+<td>Low-Rank Adaptation</td>
+<td>低秩适配</td>
+<td>低成本个性化或风格微调方法。</td>
+</tr>
+<tr>
+<td>C2PA</td>
+<td>Coalition for Content Provenance and Authenticity</td>
+<td>内容来源与真实性联盟</td>
+<td>用 Content Credentials 标记内容来源和编辑历史的开放标准。</td>
+</tr>
+<tr>
+<td>FID</td>
+<td>Fréchet Inception Distance</td>
+<td>Fréchet Inception 距离</td>
+<td>评估生成图像分布和真实图像分布差异的指标。</td>
+</tr>
+<tr>
+<td>FVD</td>
+<td>Fréchet Video Distance</td>
+<td>Fréchet Video 距离</td>
+<td>视频生成常用的分布距离指标。</td>
+</tr>
+<tr>
+<td>CLIPScore</td>
+<td>CLIP Score</td>
+<td>CLIP 相似度得分</td>
+<td>用 CLIP 衡量图文语义相似。</td>
+</tr>
+<tr>
+<td>VQAScore</td>
+<td>Visual Question Answering Score</td>
+<td>视觉问答得分</td>
+<td>用 VQA 模型评估 prompt 中属性是否被满足。</td>
+</tr>
+<tr>
+<td>HPS</td>
+<td>Human Preference Score</td>
+<td>人类偏好得分</td>
+<td>用人类偏好数据训练出的自动偏好指标。</td>
+</tr>
+<tr>
+<td>DINO</td>
+<td>Self-distillation with No Labels</td>
+<td>自监督视觉表征模型</td>
+<td>常用于 reference similarity 或视觉一致性评测。</td>
+</tr>
+<tr>
+<td>LPIPS</td>
+<td>Learned Perceptual Image Patch Similarity</td>
+<td>学习感知图像块相似度</td>
+<td>衡量图像感知差异，常用于编辑保真评测。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>产品接入生成模型或评测服务的接口。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">0</span></sub></span></td>
+<td>Clean Sample</td>
+<td>干净样本</td>
+<td>原始图像、视频帧或 latent。</td>
+</tr>
+<tr>
+<td><span class="math-text">x<sub><span class="math-text">t</span></sub></span></td>
+<td>Noisy Sample at step <span class="math-text">t</span></td>
+<td>第 <span class="math-text">t</span> 步噪声样本</td>
+<td>forward diffusion 后的样本。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε</span></td>
+<td>Gaussian Noise</td>
+<td>高斯噪声</td>
+<td>加到样本上的噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">θ</span></sub></span></td>
+<td>Noise Predictor</td>
+<td>噪声预测器</td>
+<td>diffusion model 预测的噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">v<sub><span class="math-text">θ</span></sub></span></td>
+<td>Velocity Predictor</td>
+<td>速度预测器</td>
+<td>diffusion / flow 模型预测的速度或方向。</td>
+</tr>
+<tr>
+<td><span class="math-text">c</span></td>
+<td>Condition</td>
+<td>条件</td>
+<td>文本、图像、mask、边缘、pose、音频、参考视频等控制条件。</td>
+</tr>
+<tr>
+<td><span class="math-text">z</span></td>
+<td>Latent</td>
+<td>潜变量</td>
+<td>VAE 编码后的低维表示。</td>
+</tr>
+</tbody></table>
+<h2>学习路线</h2>
+<table class="roadmap-table">
+<thead>
+<tr>
+<th>章节</th>
+<th>主题</th>
+<th>面试产出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 章</td>
+<td>生成模型、DDPM、score、flow matching、rectified flow</td>
+<td>能把 diffusion 和 flow 的训练目标讲清楚。</td>
+</tr>
+<tr>
+<td>第 2 章</td>
+<td>文生图架构：CLIP、Imagen、Stable Diffusion、DiT、MMDiT、原生多模态图像生成</td>
+<td>能比较 DALL-E / Imagen / Stable Diffusion / SD3 / FLUX / GPT-4o Image。</td>
+</tr>
+<tr>
+<td>第 3 章</td>
+<td>Conditioning、editing、control、reference consistency</td>
+<td>能解释 CFG、ControlNet、IP-Adapter、LoRA、Kontext、Nano Banana 类编辑。</td>
+</tr>
+<tr>
+<td>第 4 章</td>
+<td>文生视频、时空 token、world model、音视频联合生成</td>
+<td>能讨论 Sora、Veo、Movie Gen、Runway、HunyuanVideo、Seedance。</td>
+</tr>
+<tr>
+<td>第 5 章</td>
+<td>文生视频数据构造、预处理与训练实操</td>
+<td>能讲清 shot detection、caption、T2V/I2V/V2V 数据、视频 RLHF、distillation。</td>
+</tr>
+<tr>
+<td>第 6 章</td>
+<td>文生视频工作流、控制、评测与项目实操</td>
+<td>能设计分镜、首尾帧、参考图、音频、视频 eval harness 和 badcase 归因。</td>
+</tr>
+<tr>
+<td>第 7 章</td>
+<td>面试速查、项目表达、常见追问</td>
+<td>能把项目讲成模型、数据、评测、安全、线上闭环。</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>2026 SOTA 技术报告阅读地图</td>
+<td>能快速拆解最新模型报告，而不是只背榜单。</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>Eval harness、benchmarking、人评和自动评测</td>
+<td>能设计可复现的图像/视频生成评测系统。</td>
+</tr>
+<tr>
+<td>第 10 章</td>
+<td>训练、对齐、安全、provenance、产品化</td>
+<td>能讨论真实系统怎么训练、过滤、上线、治理。</td>
+</tr>
+<tr>
+<td>References</td>
+<td>论文、官方技术报告、模型页面、基准</td>
+<td>面试前用于定位原始材料。</td>
+</tr>
+</tbody></table>
+<h2>推荐学习顺序</h2>
+<ol>
+<li>先读第 1 章，把 DDPM、score、flow matching 的共同目标理解成“从简单分布到数据分布的可学习路径”。</li>
+<li>再读第 2 章，把文生图架构按 text encoder、visual tokenizer、denoiser / flow model、decoder、post-training 拆开。</li>
+<li>第 3 章关注真实需求：一致性、局部编辑、多图参考、结构控制、低成本个性化。</li>
+<li>第 4 章转向视频，把难点从“单帧好看”升级为“时间、物理、镜头、声音、角色一致”。</li>
+<li>第 5 章补视频训练实操：数据清洗、caption、T2V/I2V/V2V 样本、偏好数据、蒸馏。</li>
+<li>第 6 章补视频产品工作流：分镜、参考图、首尾帧、音频、评测 harness、badcase 归因。</li>
+<li>第 8 章按报告读 SOTA：每篇只抓任务定义、数据、架构、训练、评测、安全、限制。</li>
+<li>第 9 和第 10 章放到面试前重点复习，因为它们最能拉开“会用模型”和“能做系统”的差距。</li>
+</ol>
+<h2>面试目标</h2>
+<p>学完后你应该能回答：</p>
+<ul>
+<li>DDPM 的 forward process、reverse denoising 和 denoising loss 在做什么。</li>
+<li>为什么很多新模型从 noise prediction 转向 v-prediction、flow matching 或 rectified flow。</li>
+<li>Stable Diffusion 为什么在 latent space 做 diffusion，VAE bottleneck 的收益和代价是什么。</li>
+<li>SD3 的 MMDiT、FLUX.1 的 flow matching、GPT-4o Image 的原生多模态生成分别代表什么趋势。</li>
+<li>Nano Banana / FLUX.1 Kontext / Qwen-Image / Seedream 4.0 这类编辑模型为什么强调 reference consistency。</li>
+<li>文生视频相比文生图多了哪些难点，为什么 Sora / Veo / Movie Gen / Seedance 都强调时空 token、数据 curation、captioning 和 post-training。</li>
+<li>文生视频训练数据如何构造：shot detection、frame sampling、caption / recaption、ASR / OCR、T2V / I2V / V2V schema。</li>
+<li>如何把文生视频做成工作流：storyboard、shot list、首尾帧、参考资产、音频、评测和审核闭环。</li>
+<li>如何设计一个文生图/视频 eval harness，并让结果可复现、可对比、能服务产品决策。</li>
+<li>安全和合规怎么落到工程：输入输出审核、水印、C2PA、SynthID、真人肖像、版权/IP、训练数据过滤、日志和申诉。</li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><span>← 上一章</span><a href="./01-generative-models-and-diffusion.html">下一章 →</a></nav></main></body>
+</html>

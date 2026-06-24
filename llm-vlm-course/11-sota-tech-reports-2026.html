@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 11 章：2026 SOTA 技术报告阅读地图</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-agentic-systems-coding-agents.html">← 上一章</a><a href="./12-rag-systems-and-evaluation.html">下一章 →</a></nav><h1>第 11 章：2026 SOTA 技术报告阅读地图</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SOTA</td>
+<td>State of the Art</td>
+<td>当前最优</td>
+<td>某任务或评测上的前沿水平。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>模型服务和工具调用的接口。</td>
+</tr>
+<tr>
+<td>GPT</td>
+<td>Generative Pre-trained Transformer</td>
+<td>生成式预训练 Transformer</td>
+<td>OpenAI GPT 系列模型名称中的缩写。</td>
+</tr>
+<tr>
+<td>GLM</td>
+<td>General Language Model</td>
+<td>通用语言模型</td>
+<td>智谱 GLM 系列模型名称中的缩写。</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>Kimi K2</td>
+<td>Kimi K2 模型</td>
+<td>Moonshot AI 的 agentic MoE 模型系列。</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>DeepSeek-R1</td>
+<td>DeepSeek-R1 模型</td>
+<td>DeepSeek 的 reasoning model 系列。</td>
+</tr>
+<tr>
+<td>System Card</td>
+<td>System Card</td>
+<td>系统卡</td>
+<td>描述模型能力、限制、安全评估和部署策略的官方报告。</td>
+</tr>
+<tr>
+<td>Tech Report</td>
+<td>Technical Report</td>
+<td>技术报告</td>
+<td>描述模型架构、训练、数据、评测和安全的报告。</td>
+</tr>
+<tr>
+<td>Frontier Model</td>
+<td>Frontier Model</td>
+<td>前沿模型</td>
+<td>当前能力接近行业最前沿的大模型。</td>
+</tr>
+<tr>
+<td>Reasoning Model</td>
+<td>Reasoning Model</td>
+<td>推理模型</td>
+<td>会分配额外推理计算解决复杂任务的模型。</td>
+</tr>
+<tr>
+<td>Hybrid Reasoning</td>
+<td>Hybrid Reasoning</td>
+<td>混合推理</td>
+<td>同一模型或系统支持快速回答和深度推理。</td>
+</tr>
+<tr>
+<td>Router</td>
+<td>Router</td>
+<td>路由器</td>
+<td>根据任务复杂度选择模型或推理模式的组件。</td>
+</tr>
+<tr>
+<td>MoE</td>
+<td>Mixture of Experts</td>
+<td>混合专家模型</td>
+<td>每个 token 只激活部分专家参数。</td>
+</tr>
+<tr>
+<td>RLVR</td>
+<td>Reinforcement Learning with Verifiable Rewards</td>
+<td>可验证奖励强化学习</td>
+<td>用自动验证 reward 优化推理、代码、工具任务。</td>
+</tr>
+<tr>
+<td>GRPO</td>
+<td>Group Relative Policy Optimization</td>
+<td>组相对策略优化</td>
+<td>DeepSeek-R1 相关报告中常见的 RL 算法。</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>Reinforcement Learning from Human Feedback</td>
+<td>基于人类反馈的强化学习</td>
+<td>用人类偏好训练 reward model 并优化策略。</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>Supervised Fine-Tuning</td>
+<td>监督微调</td>
+<td>用高质量指令数据微调模型。</td>
+</tr>
+<tr>
+<td>ARC</td>
+<td>Agentic, Reasoning, Coding</td>
+<td>智能体、推理、编程</td>
+<td>GLM 系列报告中强调的三类能力。</td>
+</tr>
+<tr>
+<td>DSA</td>
+<td>DeepSeek Sparse Attention</td>
+<td>DeepSeek 稀疏注意力</td>
+<td>GLM-5 报告采用的长上下文高效注意力路线。</td>
+</tr>
+<tr>
+<td>IndexShare</td>
+<td>Index Sharing Sparse Attention</td>
+<td>索引共享稀疏注意力</td>
+<td>GLM-5.2 repo 中提出的 1M context 稀疏注意力优化。</td>
+</tr>
+<tr>
+<td>MTP</td>
+<td>Multi-Token Prediction</td>
+<td>多 token 预测</td>
+<td>GLM-5.2 repo 中用于提升 speculative decoding 接受长度的机制。</td>
+</tr>
+<tr>
+<td>RLCS</td>
+<td>Reinforcement Learning with Curriculum Sampling</td>
+<td>课程采样强化学习</td>
+<td>GLM-4.5V 报告中用于视觉推理的 RL 方法。</td>
+</tr>
+<tr>
+<td>Agentic Coding</td>
+<td>Agentic Coding</td>
+<td>智能体式编程</td>
+<td>模型能规划、修改、测试、调试代码任务。</td>
+</tr>
+<tr>
+<td>GUI</td>
+<td>Graphical User Interface</td>
+<td>图形用户界面</td>
+<td>多模态 agent 操作的网页或桌面界面。</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>User Interface</td>
+<td>用户界面</td>
+<td>文档、网页、应用界面等视觉任务对象。</td>
+</tr>
+<tr>
+<td>SWE</td>
+<td>Software Engineering</td>
+<td>软件工程</td>
+<td>coding agent 和真实仓库任务所在领域。</td>
+</tr>
+<tr>
+<td>STEM</td>
+<td>Science, Technology, Engineering, Mathematics</td>
+<td>科学、技术、工程、数学</td>
+<td>高难推理和多模态评测常见领域。</td>
+</tr>
+<tr>
+<td>Terminal-Bench</td>
+<td>Terminal Benchmark</td>
+<td>终端任务基准</td>
+<td>衡量模型在 shell/terminal 中完成长期任务的 benchmark。</td>
+</tr>
+<tr>
+<td>SWE-bench Pro</td>
+<td>Software Engineering Benchmark Pro</td>
+<td>软件工程进阶基准</td>
+<td>更高难度的软件工程 agent benchmark。</td>
+</tr>
+<tr>
+<td>Long Context</td>
+<td>Long Context</td>
+<td>长上下文</td>
+<td>支持数十万到百万 token 级输入。</td>
+</tr>
+<tr>
+<td>Multimodal</td>
+<td>Multimodal</td>
+<td>多模态</td>
+<td>支持文本、图像、音频、视频等输入或输出。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>知道截至 2026-06-21，大模型技术报告的主线是什么。</li>
+<li>能把 OpenAI、Anthropic、Google、DeepSeek、Qwen、Kimi、GLM 的报告按技术维度比较。</li>
+<li>面试中能从“训练方法、推理方式、agentic 能力、评测协议、安全策略”五个角度讲模型。</li>
+<li>不背模型名，而是读出趋势。</li>
+</ul>
+<h2>读 SOTA 报告的框架</h2>
+<p>看任何模型报告，按这 8 个问题读：</p>
+<ol>
+<li>模型是 dense 还是 MoE？</li>
+<li>是单模型，还是 router/system-of-models？</li>
+<li>是否支持 thinking / reasoning effort？</li>
+<li>post-training 里用了 SFT、preference、RLHF、RLVR、tool RL 里的哪些？</li>
+<li>agentic 能力如何评估？是否给了 scaffold、工具、预算？</li>
+<li>长上下文和多模态能力怎么做？是真支持还是只在特定 preview？</li>
+<li>安全评测覆盖哪些高风险域？是否有 system card？</li>
+<li>benchmark 是否可比？是否用了 high compute、best-of-n、tool access？</li>
+</ol>
+<h2>OpenAI：o-series、GPT-5 与 GPT-5.5</h2>
+<p>OpenAI o3 / o4-mini system card 的重点：</p>
+<ul>
+<li>reasoning model 结合完整工具能力。</li>
+<li>模型可以在推理过程中使用 web、Python、image/file analysis 等工具。</li>
+<li>o-series 使用 large-scale RL on chains of thought。</li>
+<li>deliberative alignment 用安全规范推理提升安全边界遵循。</li>
+</ul>
+<p>GPT-5 system card 的重点：</p>
+<ul>
+<li>GPT-5 是 unified system，而不只是单一模型。</li>
+<li>系统包含 fast model、deeper reasoning model 和 real-time router。</li>
+<li>强调减少 hallucination、改善 instruction following、降低 sycophancy。</li>
+<li>引入 safe-completions：在安全范围内尽量有帮助，而不是简单拒答。</li>
+</ul>
+<p>GPT-5.5 官方 release 的重点：</p>
+<ul>
+<li>面向 agentic coding、Terminal-Bench、SWE-Bench Pro、BrowseComp 等长任务。</li>
+<li>强调更少 token、更少 retry、更高质量输出。</li>
+<li>在 Codex 和 ChatGPT 中用于复杂工程、研究和电脑工作流。</li>
+<li>API 部署需要额外 safeguards，说明 frontier model 上线已经和安全治理强绑定。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>OpenAI 这条线的关键词是 unified system、router、reasoning effort、tool-augmented reasoning 和 safe-completions。它把“模型能力”和“产品系统”绑定得更紧：同一个用户请求可能被路由到快模型、深度推理模型或工具增强流程。</p>
+</blockquote>
+<h2>Anthropic：Claude 4 到 Opus 4.7</h2>
+<p>Claude 4 报告重点：</p>
+<ul>
+<li>extended thinking with tool use。</li>
+<li>parallel tool execution。</li>
+<li>memory improvements。</li>
+<li>coding 和 agentic tasks 上减少 shortcut / loophole 行为。</li>
+</ul>
+<p>Claude Opus 4.7 官方 release 的重点：</p>
+<ul>
+<li>复杂长任务和高级软件工程能力提升。</li>
+<li>更重视 self-verification：完成前自己检查输出。</li>
+<li>图像分辨率和专业文档/UI/slide 任务增强。</li>
+<li>对高风险 cybersecurity 能力做差异化削弱和自动防护。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Anthropic 这条线的关键词是 long-running task、tool use、memory、self-verification 和 safety gating。它特别强调模型作为“长期协作者”而不是单轮问答模型。</p>
+</blockquote>
+<h2>Google DeepMind：Gemini 2.5</h2>
+<p>Gemini 2.5 technical report 的重点：</p>
+<ul>
+<li>Gemini 2.5 Pro / Flash 是 thinking model 或 hybrid reasoning model。</li>
+<li>原生多模态，文本、图像、音频、视频和长上下文结合。</li>
+<li>支持 1M token 级长上下文，Gemini 2.5 Pro 可处理长视频内容。</li>
+<li>Sparse MoE 架构，提高容量/成本比。</li>
+<li>Flash 走 controllable thinking budget，覆盖质量、成本、延迟 Pareto frontier。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Gemini 2.5 的关键词是 native multimodality、long context、MoE 和 controllable thinking budget。它的差异化在于把长上下文、多模态和 agentic workflow 结合，而不是只做纯文本推理。</p>
+</blockquote>
+<h2>DeepSeek-R1：开源 reasoning RL 里程碑</h2>
+<p>DeepSeek-R1 技术报告重点：</p>
+<ul>
+<li>R1-Zero 用大规模 RL，不经过传统 SFT cold start，也能出现推理能力。</li>
+<li>R1 引入 cold-start data 和多阶段训练，解决可读性和语言混杂问题。</li>
+<li>GRPO / verifiable reward 成为开源 reasoning model 训练的重要范式。</li>
+<li>蒸馏出多个小模型，说明 reasoning 能力可以通过轨迹迁移。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>DeepSeek-R1 的影响在于训练范式：它让社区看到大规模 RLVR 可以激发 reasoning behavior，并推动 GRPO、verifier、distillation 成为开源模型训练标配。</p>
+</blockquote>
+<h2>Qwen3：Thinking / Non-thinking 统一</h2>
+<p>Qwen3 technical report 重点：</p>
+<ul>
+<li>同一模型支持 thinking mode 和 non-thinking mode。</li>
+<li>引入 thinking budget，在性能、延迟和成本之间调节。</li>
+<li>同时覆盖 dense 和 MoE，模型规模从小模型到 235B。</li>
+<li>多语言从 Qwen2.5 的 29 种扩到 119 种语言/方言。</li>
+<li>强调 agent tasks、code、math 和 multilingual 能力。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Qwen3 的关键不是单个分数，而是统一 reasoning 和 non-reasoning 的产品形态。它说明开源模型也在走“一个模型动态调 thinking budget”的方向。</p>
+</blockquote>
+<h2>Kimi K2 / K2.5：Open Agentic Intelligence</h2>
+<p>Kimi K2 技术报告重点：</p>
+<ul>
+<li>1T total parameters、32B activated parameters 的 MoE。</li>
+<li>MuonClip optimizer 缓解训练不稳定。</li>
+<li>15.5T tokens 预训练。</li>
+<li>post-training 里有大规模 agentic data synthesis 和 joint RL。</li>
+<li>强项集中在 agentic tasks、software engineering 和 coding。</li>
+</ul>
+<p>Kimi K2.5 技术报告重点：</p>
+<ul>
+<li>多模态 agentic model。</li>
+<li>joint text-vision pretraining、zero-vision SFT、joint text-vision RL。</li>
+<li>Agent Swarm：并行分解复杂任务，降低延迟。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Kimi 这条线的关键词是 open agentic intelligence：不只追求聊天能力，而是把软件工程、工具交互、多模态和 agent swarm 放进训练目标。</p>
+</blockquote>
+<h2>GLM-5 / GLM-5.1 / GLM-5.2：Agentic Engineering</h2>
+<p>GLM-5 技术报告重点：</p>
+<ul>
+<li>从 vibe coding 走向 agentic engineering。</li>
+<li>延续 ARC：Agentic、Reasoning、Coding 三类能力一起优化。</li>
+<li>GLM-5 规模提升到 744B total parameters、40B activated parameters。</li>
+<li>采用 DSA，降低长上下文训练和推理成本。</li>
+<li>引入异步 reinforcement learning infrastructure，把 generation 和 training 解耦，提高 post-training 效率。</li>
+<li>强调 complex systems engineering、long-horizon agentic tasks 和真实代码工程任务。</li>
+</ul>
+<p>GLM-5.1 官方 repo 重点：</p>
+<ul>
+<li>面向 agentic engineering。</li>
+<li>强调模型能在更长 session 中持续实验、读结果、识别 blocker、迭代策略。</li>
+<li>关注 SWE-Bench Pro、NL2Repo、Terminal-Bench 2.0 等工程基准。</li>
+</ul>
+<p>GLM-5.2 官方 repo 重点：</p>
+<ul>
+<li>最新 flagship model，主打 long-horizon tasks。</li>
+<li>支持 solid 1M-token context，面向长期工作流。</li>
+<li>coding 能力支持 multiple thinking effort levels，在效果和延迟之间折中。</li>
+<li>提出 IndexShare，在 1M context 下复用稀疏注意力 index，降低 per-token FLOPs。</li>
+<li>改进 MTP layer，用于 speculative decoding，提升 acceptance length。</li>
+<li>官方 repo 报告了 Terminal-Bench 2.1 和 SWE-bench Pro 等 coding benchmark 改进。</li>
+</ul>
+<p>GLM-4.5V / GLM-4.1V-Thinking 仍然值得了解：</p>
+<ul>
+<li>多模态 reasoning。</li>
+<li>RLCS 用于解锁视觉推理能力。</li>
+<li>覆盖 STEM、video understanding、content recognition、coding、grounding、GUI agents、long document。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>GLM 这条线已经从 GLM-4.5 的 ARC 走到 GLM-5 系列的 agentic engineering。重点不是只看开源模型分数，而是看 1M context、异步 RL、long-horizon coding、thinking effort、Terminal-Bench / SWE-bench Pro 这类长期工程任务怎么一起推动。</p>
+</blockquote>
+<h2>横向对比表</h2>
+<table class="wide-table">
+<thead>
+<tr>
+<th>系列</th>
+<th>English</th>
+<th>中文</th>
+<th>关键词</th>
+<th>面试重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenAI GPT-5/5.5</td>
+<td>OpenAI GPT-5/5.5</td>
+<td>OpenAI GPT-5/5.5</td>
+<td>router、safe-completions、agentic coding</td>
+<td>unified system，不是单模型。</td>
+</tr>
+<tr>
+<td>OpenAI o-series</td>
+<td>OpenAI o-series</td>
+<td>OpenAI o 系列</td>
+<td>CoT RL、tool reasoning、deliberative alignment</td>
+<td>reasoning + tool use + safety reasoning。</td>
+</tr>
+<tr>
+<td>Claude Opus 4.7</td>
+<td>Claude Opus 4.7</td>
+<td>Claude Opus 4.7</td>
+<td>long-running tasks、self-verification、safety gating</td>
+<td>长任务稳定性和工程协作。</td>
+</tr>
+<tr>
+<td>Gemini 2.5</td>
+<td>Gemini 2.5</td>
+<td>Gemini 2.5</td>
+<td>native multimodal、1M context、MoE、thinking budget</td>
+<td>长上下文 + 多模态 + agentic workflow。</td>
+</tr>
+<tr>
+<td>DeepSeek-R1</td>
+<td>DeepSeek-R1</td>
+<td>DeepSeek-R1</td>
+<td>RLVR、GRPO、distillation</td>
+<td>开源 reasoning RL 范式。</td>
+</tr>
+<tr>
+<td>Qwen3</td>
+<td>Qwen3</td>
+<td>Qwen3</td>
+<td>thinking/non-thinking unified、MoE、multilingual</td>
+<td>统一 thinking budget 和开源生态。</td>
+</tr>
+<tr>
+<td>Kimi K2/K2.5</td>
+<td>Kimi K2/K2.5</td>
+<td>Kimi K2/K2.5</td>
+<td>agentic data synthesis、joint RL、Agent Swarm</td>
+<td>agentic intelligence 和并行任务分解。</td>
+</tr>
+<tr>
+<td>GLM-5.2/5.1/5</td>
+<td>GLM-5.2/5.1/5</td>
+<td>GLM-5 系列</td>
+<td>1M context、IndexShare、MTP、async RL、agentic engineering</td>
+<td>long-horizon coding 和工程任务。</td>
+</tr>
+<tr>
+<td>GLM-4.5V</td>
+<td>GLM-4.5V</td>
+<td>GLM-4.5V</td>
+<td>RLCS、multimodal reasoning、GUI agents</td>
+<td>多模态 RL 和视觉推理。</td>
+</tr>
+</tbody></table>
+<h2>2026 技术趋势总结</h2>
+<h3>1. 从单模型到系统模型</h3>
+<p>前沿产品越来越像 system-of-models：router、fast model、thinking model、tools、memory、verifier 一起工作。</p>
+<h3>2. 从 SFT 到 RLVR</h3>
+<p>数学、代码、工具调用、浏览、GUI 都有可验证 reward，RLVR 成为提升 reasoning 和 agentic 能力的核心。</p>
+<h3>3. 从聊天到长任务</h3>
+<p>SOTA 模型的竞争点从“答题准确率”转向“能不能稳定完成长周期工作”。</p>
+<h3>4. 从单 agent 到多 agent / parallel attempts</h3>
+<p>复杂任务常用并行尝试、候选筛选、agent swarm，但最终仍依赖 verifier。</p>
+<h3>5. 从安全拒答到安全完成</h3>
+<p>安全系统从二元拒答转向 safe-completions、deliberative alignment、cyber gating、preparedness framework。</p>
+<h3>6. 从 VLM 到多模态 agent</h3>
+<p>多模态不只是看图回答，而是视频、GUI、文档、浏览器、代码和工具环境的统一推理。</p>
+<h2>本章面试高频问题</h2>
+<h3>1. 2026 年大模型最重要的趋势是什么？</h3>
+<p>从“更大预训练模型”转向“reasoning + tools + verifiable RL + long-horizon agents”。模型能力、系统架构和安全部署越来越不可分。</p>
+<h3>2. OpenAI、Anthropic、Gemini 的差异怎么讲？</h3>
+<p>OpenAI 强调 unified system、router、agentic coding 和 safe-completions；Anthropic 强调 long-running task、tool use、self-verification 和安全 gating；Gemini 强调 native multimodality、long context、MoE 和 controllable thinking budget。</p>
+<h3>3. 开源模型最近为什么进步快？</h3>
+<p>DeepSeek-R1、Qwen3、Kimi K2、GLM-5.2 都把 reasoning RL、MoE、agentic data、distillation、thinking budget、long-horizon coding 等技术公开化，让社区可以复现和组合。</p>
+<h3>4. 技术报告里的 benchmark 怎么看？</h3>
+<p>先看是否用了 tool、high reasoning effort、多次采样、外部 scaffold 和隐藏测试。不同协议下的分数不能直接横比。</p>
+<h3>5. 面试如何展示“我跟进了 SOTA”？</h3>
+<p>不要背模型排行榜。讲趋势和机制：RLVR 为什么重要，agent eval 为什么难，long-context 何时替代不了 RAG，safe-completions 为什么比拒答更好，多模态 agent 为什么是下一阶段。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://openai.com/index/o3-o4-mini-system-card/">OpenAI o3 and o4-mini System Card</a></li>
+<li><a href="https://openai.com/index/introducing-o3-and-o4-mini/">Introducing OpenAI o3 and o4-mini</a></li>
+<li><a href="https://openai.com/index/gpt-5-system-card/">OpenAI GPT-5 System Card</a></li>
+<li><a href="https://openai.com/index/introducing-gpt-5-5/">Introducing GPT-5.5</a></li>
+<li><a href="https://www.anthropic.com/news/claude-4">Claude 4</a></li>
+<li><a href="https://www.anthropic.com/news/claude-opus-4-7">Claude Opus 4.7</a></li>
+<li><a href="https://storage.googleapis.com/deepmind-media/gemini/gemini_v2_5_report.pdf">Gemini 2.5 Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a></li>
+<li><a href="https://arxiv.org/abs/2507.20534">Kimi K2: Open Agentic Intelligence</a></li>
+<li><a href="https://arxiv.org/abs/2602.02276">Kimi K2.5: Visual Agentic Intelligence</a></li>
+<li><a href="https://arxiv.org/abs/2602.15763">GLM-5: from Vibe Coding to Agentic Engineering</a></li>
+<li><a href="https://github.com/zai-org/GLM-5">Z.ai GLM-5.2 / GLM-5.1 / GLM-5 official repo</a></li>
+<li><a href="https://arxiv.org/abs/2508.06471">GLM-4.5: Agentic, Reasoning, and Coding Foundation Models</a></li>
+<li><a href="https://arxiv.org/abs/2507.01006">GLM-4.1V-Thinking and GLM-4.5V</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./10-agentic-systems-coding-agents.html">← 上一章</a><a href="./12-rag-systems-and-evaluation.html">下一章 →</a></nav></main></body>
+</html>

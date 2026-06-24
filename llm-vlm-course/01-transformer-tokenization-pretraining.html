@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 1 章：Transformer、Tokenization 与自回归预训练</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-scaling-posttraining-alignment.html">下一章 →</a></nav><h1>第 1 章：Transformer、Tokenization 与自回归预训练</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Transformer</td>
+<td>Transformer Architecture</td>
+<td>Transformer 架构</td>
+<td>基于 self-attention 的序列建模架构。</td>
+</tr>
+<tr>
+<td>BPE</td>
+<td>Byte Pair Encoding</td>
+<td>字节对编码</td>
+<td>常见 subword tokenization 方法。</td>
+</tr>
+<tr>
+<td>MHA</td>
+<td>Multi-Head Attention</td>
+<td>多头注意力</td>
+<td>在多个子空间并行计算 attention 的模块。</td>
+</tr>
+<tr>
+<td><span class="math-text">X</span></td>
+<td>Input Embedding Matrix</td>
+<td>输入嵌入矩阵</td>
+<td>一段 token embedding 组成的矩阵。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q</span> / <span class="math-text">K</span> / <span class="math-text">V</span></td>
+<td>Query / Key / Value</td>
+<td>查询 / 键 / 值</td>
+<td>attention 中由 <span class="math-text">X</span> 线性投影得到的表示。</td>
+</tr>
+<tr>
+<td><span class="math-text">d<sub><span class="math-text">k</span></sub></span></td>
+<td>Key Dimension</td>
+<td>key 向量维度</td>
+<td>attention 缩放项中的维度。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(w<sub><span class="math-text">t</span></sub> ∣ w<sub><span class="math-text">&lt;t</span></sub>)</span></td>
+<td>Next-token Probability</td>
+<td>下一个 token 概率</td>
+<td>自回归语言模型的训练目标。</td>
+</tr>
+<tr>
+<td>CE</td>
+<td>Cross Entropy</td>
+<td>交叉熵</td>
+<td>预测 token 分布与真实 token 的损失。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解 tokenization 为什么重要。</li>
+<li>掌握 self-attention 的矩阵公式。</li>
+<li>区分 encoder-only、decoder-only、encoder-decoder。</li>
+<li>理解 next-token prediction 为什么能学到通用能力。</li>
+<li>能解释 pretraining loss 和 inference decoding。</li>
+</ul>
+<h2>Tokenization</h2>
+<p>LLM 不能直接处理字符串，通常先把文本切成 token，再映射成 embedding。</p>
+<p>常见 tokenization 方法：</p>
+<ul>
+<li>word-level：按词切分，词表大，未登录词问题明显。</li>
+<li>char-level：按字符切分，词表小，但序列很长。</li>
+<li>subword：折中方案，BPE、WordPiece、SentencePiece 都属于这一类。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Tokenization 决定了模型看到的最小语义单位，也影响上下文长度、压缩率、多语言表现和代码能力。中文、代码、数学表达式通常对 tokenizer 更敏感。</p>
+</blockquote>
+<h2>Self-Attention</h2>
+<p>输入 embedding 矩阵为：</p>
+<div class="math-block"><span class="math-text">X ∈ ℝ<sup><span class="math-text">n × d</span></sup></span></div>
+
+<p>通过线性投影得到：</p>
+<div class="math-block"><span class="math-text">Q = XW<sub><span class="math-text">Q</span></sub>,  K = XW<sub><span class="math-text">K</span></sub>,  V = XW<sub><span class="math-text">V</span></sub></span></div>
+
+<p>scaled dot-product attention：</p>
+<div class="math-block"><span class="math-text">Attention(Q,K,V) = softmax(QK<sup><span class="math-text">⊤</span></sup> / √(d<sub><span class="math-text">k</span></sub>))V</span></div>
+
+<p>直觉：</p>
+<ul>
+<li><span class="math-text">Q</span> 表示当前位置想找什么信息。</li>
+<li><span class="math-text">K</span> 表示每个位置能被什么信息匹配。</li>
+<li><span class="math-text">V</span> 表示真正被聚合的内容。</li>
+<li>除以 <span class="math-text">√(d<sub><span class="math-text">k</span></sub>)</span> 是为了避免点积随维度变大而过大，使 softmax 过于尖锐。</li>
+</ul>
+<h2>Multi-Head Attention</h2>
+<p>multi-head attention 让模型在多个子空间里计算 attention：</p>
+<div class="math-block"><span class="math-text">head<sub><span class="math-text">i</span></sub> = Attention(XW<sub><span class="math-text">i</span></sub><sup><span class="math-text">Q</span></sup>, XW<sub><span class="math-text">i</span></sub><sup><span class="math-text">K</span></sup>, XW<sub><span class="math-text">i</span></sub><sup><span class="math-text">V</span></sup>)</span></div>
+
+<p>然后拼接：</p>
+<div class="math-block"><span class="math-text">MHA(X)=Concat(head<sub><span class="math-text">1</span></sub>,…,head<sub><span class="math-text">h</span></sub>)W<sup><span class="math-text">O</span></sup></span></div>
+
+<p>面试直觉：</p>
+<blockquote>
+<p>不同 head 可以关注不同关系，例如局部语法、长程依赖、实体指代、代码括号匹配。它不是保证每个 head 都有清晰可解释含义，但增加了并行建模不同关系的能力。</p>
+</blockquote>
+<h2>Decoder-only LLM</h2>
+<p>主流生成式 LLM 多用 decoder-only Transformer。训练目标是自回归 next-token prediction：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> ∑<sub><span class="math-text">t=1</span></sub><sup><span class="math-text">T</span></sup> log P<sub><span class="math-text">θ</span></sub>(w<sub><span class="math-text">t</span></sub> ∣ w<sub><span class="math-text">&lt;t</span></sub>)</span></div>
+
+<p>对应最小化 cross entropy：</p>
+<div class="math-block"><span class="math-text">L(θ) = - ∑<sub><span class="math-text">t=1</span></sub><sup><span class="math-text">T</span></sup> log P<sub><span class="math-text">θ</span></sub>(w<sub><span class="math-text">t</span></sub> ∣ w<sub><span class="math-text">&lt;t</span></sub>)</span></div>
+
+<p>为了防止模型看到未来 token，会使用 causal mask：</p>
+<div class="math-block"><span class="math-text">mask<sub><span class="math-text">ij</span></sub>=0   if  j ≤ i</span></div>
+
+<h2>为什么 next-token prediction 有用</h2>
+<p>next-token prediction 看起来只是预测下一个词，但要做好它，模型需要隐式学习：</p>
+<ul>
+<li>语法和语义。</li>
+<li>世界知识。</li>
+<li>长程依赖。</li>
+<li>代码和数学模式。</li>
+<li>指令和对话格式。</li>
+</ul>
+<p>但它也有天然限制：</p>
+<ul>
+<li>目标是拟合语料分布，不等于遵循用户意图。</li>
+<li>训练目标不直接惩罚幻觉。</li>
+<li>模型可能学到偏见、噪声和过期知识。</li>
+</ul>
+<p>这就是为什么后续还需要 SFT、RLHF、DPO 和 RAG。</p>
+<h2>Inference Decoding</h2>
+<p>推理时，模型会根据当前上下文预测下一个 token，然后把生成 token 拼回上下文继续生成。</p>
+<p>常见 decoding 策略：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>English</th>
+<th>中文</th>
+<th>直觉</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Greedy</td>
+<td>Greedy Decoding</td>
+<td>贪心解码</td>
+<td>每步选概率最高 token，稳定但容易死板。</td>
+</tr>
+<tr>
+<td>Beam Search</td>
+<td>Beam Search</td>
+<td>束搜索</td>
+<td>保留多个候选，适合翻译，不一定适合开放生成。</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>Temperature Sampling</td>
+<td>温度采样</td>
+<td>调整分布尖锐程度。</td>
+</tr>
+<tr>
+<td>Top-k</td>
+<td>Top-k Sampling</td>
+<td>Top-k 采样</td>
+<td>只从最高的 <span class="math-text">k</span> 个 token 采样。</td>
+</tr>
+<tr>
+<td>Top-p</td>
+<td>Nucleus Sampling</td>
+<td>核采样</td>
+<td>从累计概率达到 <span class="math-text">p</span> 的 token 集合中采样。</td>
+</tr>
+</tbody></table>
+<h2>本章面试高频问题</h2>
+<h3>1. Transformer 相比 RNN 的核心优势是什么？</h3>
+<p>Transformer 用 attention 直接建模任意 token 间关系，并且训练时可以并行处理序列位置；RNN 顺序递推，长程依赖和并行效率都更弱。</p>
+<h3>2. 为什么 attention 要除以 <span class="math-text">√(d<sub><span class="math-text">k</span></sub>)</span>？</h3>
+<p>点积的方差会随维度变大而增大，如果不缩放，softmax 会过于尖锐，梯度变小，训练不稳定。除以 <span class="math-text">√(d<sub><span class="math-text">k</span></sub>)</span> 可以让 attention logits 的尺度更稳定。</p>
+<h3>3. decoder-only 为什么适合生成？</h3>
+<p>decoder-only 使用 causal mask，只能看当前位置之前的 token，天然匹配从左到右生成。GPT 系列、LLaMA 系列、Qwen 系列都属于这一路线。</p>
+<h3>4. next-token prediction 为什么能产生 few-shot 能力？</h3>
+<p>大规模语料里存在大量任务描述、示例、问答、代码和推理模式。模型在预训练中学习这些分布后，可以在 prompt 中根据少量示例适配新任务。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li>
+<li><a href="https://arxiv.org/abs/2005.14165">Language Models are Few-Shot Learners</a></li>
+<li><a href="https://arxiv.org/abs/2205.14135">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-scaling-posttraining-alignment.html">下一章 →</a></nav></main></body>
+</html>

@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>LLM/VLM 面试课程 · 第 12 章：RAG 系统、Agentic RAG 与评测</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-sota-tech-reports-2026.html">← 上一章</a><a href="./13-eval-harness-benchmarking.html">下一章 →</a></nav><h1>第 12 章：RAG 系统、Agentic RAG 与评测</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RAG</td>
+<td>Retrieval-Augmented Generation</td>
+<td>检索增强生成</td>
+<td>从外部知识源检索证据，再让模型基于证据生成答案。</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large Language Model</td>
+<td>大语言模型</td>
+<td>基于大规模文本预训练的生成式语言模型。</td>
+</tr>
+<tr>
+<td>IR</td>
+<td>Information Retrieval</td>
+<td>信息检索</td>
+<td>从文档集合中找到相关信息的技术领域。</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Application Programming Interface</td>
+<td>应用程序编程接口</td>
+<td>RAG 从业务系统实时取数时常用的接口。</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>Database</td>
+<td>数据库</td>
+<td>存储结构化或半结构化数据的系统。</td>
+</tr>
+<tr>
+<td>SQL</td>
+<td>Structured Query Language</td>
+<td>结构化查询语言</td>
+<td>查询关系型数据库的语言。</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>Portable Document Format</td>
+<td>可移植文档格式</td>
+<td>企业文档和报告常见格式。</td>
+</tr>
+<tr>
+<td>HTML</td>
+<td>HyperText Markup Language</td>
+<td>超文本标记语言</td>
+<td>网页文档常见格式。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Optical Character Recognition</td>
+<td>光学字符识别</td>
+<td>从扫描件或图片中识别文字。</td>
+</tr>
+<tr>
+<td>FAQ</td>
+<td>Frequently Asked Questions</td>
+<td>常见问题</td>
+<td>企业知识库常见文档类型。</td>
+</tr>
+<tr>
+<td>HR</td>
+<td>Human Resources</td>
+<td>人力资源</td>
+<td>权限敏感文档常见来源之一。</td>
+</tr>
+<tr>
+<td>BM25</td>
+<td>Best Matching 25</td>
+<td>BM25 排序函数</td>
+<td>经典 sparse retrieval 关键词匹配方法。</td>
+</tr>
+<tr>
+<td>Dense Retrieval</td>
+<td>Dense Retrieval</td>
+<td>稠密检索</td>
+<td>用 embedding 向量相似度检索语义相关文档。</td>
+</tr>
+<tr>
+<td>Sparse Retrieval</td>
+<td>Sparse Retrieval</td>
+<td>稀疏检索</td>
+<td>用词项、倒排索引、BM25 等方法检索。</td>
+</tr>
+<tr>
+<td>Hybrid Search</td>
+<td>Hybrid Search</td>
+<td>混合检索</td>
+<td>组合 sparse 和 dense retrieval。</td>
+</tr>
+<tr>
+<td>Embedding</td>
+<td>Embedding</td>
+<td>向量表示</td>
+<td>文本、图片或多模态对象的稠密向量。</td>
+</tr>
+<tr>
+<td>Vector DB</td>
+<td>Vector Database</td>
+<td>向量数据库</td>
+<td>存储 embedding 并支持近邻搜索的数据库。</td>
+</tr>
+<tr>
+<td>Chunking</td>
+<td>Chunking</td>
+<td>文档切块</td>
+<td>把文档切成可检索片段。</td>
+</tr>
+<tr>
+<td>Query Rewrite</td>
+<td>Query Rewrite</td>
+<td>查询改写</td>
+<td>将用户问题改写成更适合检索的查询。</td>
+</tr>
+<tr>
+<td>Multi-query</td>
+<td>Multi-query Retrieval</td>
+<td>多查询检索</td>
+<td>为同一问题生成多个检索查询，提高召回。</td>
+</tr>
+<tr>
+<td>HyDE</td>
+<td>Hypothetical Document Embeddings</td>
+<td>假设文档向量</td>
+<td>先生成假设答案/文档，再用它做向量检索。</td>
+</tr>
+<tr>
+<td>Reranker</td>
+<td>Reranker</td>
+<td>重排序模型</td>
+<td>对初召回结果重新排序，提高 top-k 证据质量。</td>
+</tr>
+<tr>
+<td>Cross-encoder</td>
+<td>Cross-encoder Reranker</td>
+<td>交叉编码重排序器</td>
+<td>同时编码 query 和 document 计算相关性。</td>
+</tr>
+<tr>
+<td>GraphRAG</td>
+<td>Graph Retrieval-Augmented Generation</td>
+<td>图检索增强生成</td>
+<td>用知识图谱、实体关系和社区摘要增强检索。</td>
+</tr>
+<tr>
+<td>Agentic RAG</td>
+<td>Agentic Retrieval-Augmented Generation</td>
+<td>智能体式 RAG</td>
+<td>让 agent 动态规划、检索、验证和补充证据。</td>
+</tr>
+<tr>
+<td>Long-context RAG</td>
+<td>Long-context Retrieval-Augmented Generation</td>
+<td>长上下文 RAG</td>
+<td>检索后把更大证据包交给长上下文模型。</td>
+</tr>
+<tr>
+<td>ACL</td>
+<td>Access Control List</td>
+<td>访问控制列表</td>
+<td>决定用户可访问哪些文档或字段的权限配置。</td>
+</tr>
+<tr>
+<td>PII</td>
+<td>Personally Identifiable Information</td>
+<td>个人可识别信息</td>
+<td>需要脱敏和权限保护的敏感信息。</td>
+</tr>
+<tr>
+<td>Groundedness</td>
+<td>Groundedness</td>
+<td>有根据性</td>
+<td>答案是否被给定证据支持。</td>
+</tr>
+<tr>
+<td>Faithfulness</td>
+<td>Faithfulness</td>
+<td>忠实性</td>
+<td>生成内容是否忠实于检索证据。</td>
+</tr>
+<tr>
+<td>Citation Precision</td>
+<td>Citation Precision</td>
+<td>引用精确率</td>
+<td>引用是否真正支持对应答案句。</td>
+</tr>
+<tr>
+<td>Recall@k</td>
+<td>Recall at k</td>
+<td>前 k 召回率</td>
+<td>gold evidence 是否出现在前 k 个结果中。</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>Mean Reciprocal Rank</td>
+<td>平均倒数排名</td>
+<td>第一个相关结果排名的倒数均值。</td>
+</tr>
+<tr>
+<td>nDCG</td>
+<td>Normalized Discounted Cumulative Gain</td>
+<td>归一化折损累计增益</td>
+<td>考虑排序位置和相关性等级的检索指标。</td>
+</tr>
+<tr>
+<td>RAGAS</td>
+<td>RAG Assessment</td>
+<td>RAG 评估工具</td>
+<td>常用于 RAG answer faithfulness、context relevance 等自动评测。</td>
+</tr>
+<tr>
+<td>REALM</td>
+<td>Retrieval-Augmented Language Model Pre-Training</td>
+<td>检索增强语言模型预训练</td>
+<td>早期把检索接入语言模型预训练的代表工作。</td>
+</tr>
+<tr>
+<td><span class="math-text">q</span></td>
+<td>Query</td>
+<td>查询</td>
+<td>用户问题或检索查询。</td>
+</tr>
+<tr>
+<td><span class="math-text">D</span></td>
+<td>Document Corpus</td>
+<td>文档库</td>
+<td>可检索的文档集合。</td>
+</tr>
+<tr>
+<td><span class="math-text">d<sub><span class="math-text">i</span></sub></span></td>
+<td>Document Chunk</td>
+<td>第 <span class="math-text">i</span> 个文档块</td>
+<td>文档切块后的检索单元。</td>
+</tr>
+<tr>
+<td><span class="math-text">S(q,d<sub><span class="math-text">i</span></sub>)</span></td>
+<td>Retrieval Score</td>
+<td>检索分数</td>
+<td>query 与文档块的相关性分数。</td>
+</tr>
+<tr>
+<td><span class="math-text">C<sub><span class="math-text">k</span></sub></span></td>
+<td>Retrieved Context</td>
+<td>前 k 个上下文</td>
+<td>检索后交给模型的证据集合。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>能把 RAG 讲成一个完整系统，而不是一句“向量库 + prompt”。</li>
+<li>能区分 retrieval error、rerank error、context packing error 和 generation error。</li>
+<li>能解释 GraphRAG、Agentic RAG、long-context RAG 的使用场景。</li>
+<li>能设计 RAG 评测集、指标、线上监控和权限边界。</li>
+<li>能回答“长上下文模型是不是替代 RAG”这类面试追问。</li>
+</ul>
+<h2>为什么 2026 年仍然要会 RAG</h2>
+<p>长上下文模型越来越强，但 RAG 没有消失。原因很简单：</p>
+<ul>
+<li>企业知识经常更新，不能每次重新训练模型。</li>
+<li>私有文档需要权限隔离，而不是把所有内容塞进 prompt。</li>
+<li>生产系统需要 citation、audit log、可回放和版本控制。</li>
+<li>很多问题需要从结构化系统、数据库、网页、代码仓库实时读取。</li>
+<li>长上下文更贵，且模型不一定能在长证据里稳定找到关键事实。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Long context 解决的是“能不能塞进去”，RAG 解决的是“从哪里找、谁有权限看、证据是否支持、结果能否审计”。两者不是替代关系，生产里常见组合是 retrieval + rerank + long-context packing + citation verification。</p>
+</blockquote>
+<h2>RAG Pipeline</h2>
+<p>一个生产级 RAG 通常分为两条链路。</p>
+<p>离线索引链路：</p>
+<ol>
+<li>文档接入：PDF、HTML、Markdown、数据库、工单、代码仓库、表格。</li>
+<li>解析清洗：去噪、版面恢复、表格结构、图片 OCR。</li>
+<li>权限绑定：把 document、chunk、metadata 和 ACL 绑定。</li>
+<li>Chunking：按标题、语义段、表格、代码符号或页面结构切块。</li>
+<li>Embedding：生成 dense vector。</li>
+<li>Sparse index：建立倒排索引或 BM25。</li>
+<li>Metadata index：保留时间、作者、部门、版本、权限、来源。</li>
+</ol>
+<p>在线查询链路：</p>
+<ol>
+<li>Query understanding：识别意图、语言、实体、时间范围。</li>
+<li>Query rewrite / decomposition：改写或拆成子问题。</li>
+<li>Hybrid retrieval：BM25 + dense retrieval。</li>
+<li>Rerank：cross-encoder 或 LLM rerank。</li>
+<li>Context packing：去重、压缩、保留结构、控制 token budget。</li>
+<li>Generation：基于证据回答。</li>
+<li>Citation verification：检查答案句和引用是否一致。</li>
+<li>Refusal / abstention：证据不足时拒答或要求澄清。</li>
+</ol>
+<p>抽象公式：</p>
+<div class="math-block"><span class="math-text">C<sub><span class="math-text">k</span></sub> = TopK<sub><span class="math-text">d<sub><span class="math-text">i</span></sub> ∈ D</span></sub> S(q,d<sub><span class="math-text">i</span></sub>)</span></div>
+
+<div class="math-block"><span class="math-text">ŷ = LLM(q, C<sub><span class="math-text">k</span></sub>)</span></div>
+
+<p>这里 <span class="math-text">C<sub><span class="math-text">k</span></sub></span> 是检索上下文，不等于“越多越好”。上下文太多会增加成本，也可能把模型注意力从关键证据上稀释掉。</p>
+<h2>Chunking 怎么设计</h2>
+<p>Chunking 是 RAG 里最容易被低估的环节。</p>
+<table class="wide-table">
+<thead>
+<tr>
+<th>策略</th>
+<th>English</th>
+<th>中文</th>
+<th>适合场景</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fixed-size Chunking</td>
+<td>Fixed-size Chunking</td>
+<td>固定长度切块</td>
+<td>快速 baseline</td>
+<td>切断语义和表格。</td>
+</tr>
+<tr>
+<td>Recursive Chunking</td>
+<td>Recursive Chunking</td>
+<td>递归切块</td>
+<td>按标题、段落、句子逐级切</td>
+<td>依赖解析质量。</td>
+</tr>
+<tr>
+<td>Semantic Chunking</td>
+<td>Semantic Chunking</td>
+<td>语义切块</td>
+<td>FAQ、制度文档、知识库</td>
+<td>成本更高，边界不稳定。</td>
+</tr>
+<tr>
+<td>Layout-aware Chunking</td>
+<td>Layout-aware Chunking</td>
+<td>版面感知切块</td>
+<td>PDF、报告、票据、表格</td>
+<td>需要 OCR/layout 模型。</td>
+</tr>
+<tr>
+<td>Code-aware Chunking</td>
+<td>Code-aware Chunking</td>
+<td>代码感知切块</td>
+<td>函数、类、调用关系</td>
+<td>需要语法树或符号索引。</td>
+</tr>
+<tr>
+<td>Small-to-big Retrieval</td>
+<td>Small-to-big Retrieval</td>
+<td>小块召回大块扩展</td>
+<td>先精确召回，再补上下文</td>
+<td>扩展窗口过大可能污染。</td>
+</tr>
+</tbody></table>
+<p>面试重点：</p>
+<blockquote>
+<p>Chunk 太小会丢上下文，chunk 太大会降低召回精度。生产里常用小块建索引、大块给模型，配合 metadata、标题路径和邻接窗口。</p>
+</blockquote>
+<h2>Retrieval：不要只会向量库</h2>
+<p>RAG 初召回通常要混合多种信号：</p>
+<table class="wide-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>English</th>
+<th>中文</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BM25</td>
+<td>Best Matching 25</td>
+<td>关键词检索</td>
+<td>精确匹配术语、编号、错误码</td>
+<td>同义词和语义泛化弱。</td>
+</tr>
+<tr>
+<td>Dense Retrieval</td>
+<td>Dense Retrieval</td>
+<td>稠密检索</td>
+<td>语义匹配强</td>
+<td>专有名词、数字、代码符号可能弱。</td>
+</tr>
+<tr>
+<td>Hybrid Search</td>
+<td>Hybrid Search</td>
+<td>混合检索</td>
+<td>同时覆盖关键词和语义</td>
+<td>分数融合需要调参。</td>
+</tr>
+<tr>
+<td>Metadata Filter</td>
+<td>Metadata Filtering</td>
+<td>元数据过滤</td>
+<td>时间、部门、权限、版本可控</td>
+<td>metadata 质量要求高。</td>
+</tr>
+<tr>
+<td>Graph Retrieval</td>
+<td>Graph Retrieval</td>
+<td>图检索</td>
+<td>适合实体关系、多跳问题</td>
+<td>构图和维护成本高。</td>
+</tr>
+<tr>
+<td>SQL / API Retrieval</td>
+<td>Structured Retrieval</td>
+<td>结构化检索</td>
+<td>精确、实时、可权限控制</td>
+<td>需要 schema 和工具调用能力。</td>
+</tr>
+</tbody></table>
+<p>分数融合可以简单写成：</p>
+<div class="math-block"><span class="math-text">S(q,d)=α S<sub><span class="math-text">dense</span></sub>(q,d)+(1-α)S<sub><span class="math-text">sparse</span></sub>(q,d)</span></div>
+
+<p>其中 <span class="math-text">α</span> 是 dense / sparse 的权重。工程上不一定线性融合，也可以用 rank fusion、learning-to-rank 或 reranker。</p>
+<h2>Reranking 与 Context Packing</h2>
+<p>初召回要追求 recall，rerank 要追求 precision。常见做法：</p>
+<ul>
+<li>初召回 top 50 到 top 200。</li>
+<li>reranker 压到 top 5 到 top 20。</li>
+<li>按来源去重，避免同一段重复占满上下文。</li>
+<li>保留标题路径、页码、表格 header、时间戳。</li>
+<li>对长文档做 section summary，再把原文关键段落保留给模型。</li>
+</ul>
+<p>Context packing 的目标不是塞满窗口，而是让模型看到：</p>
+<ol>
+<li>足够回答问题的证据。</li>
+<li>冲突证据和时间版本。</li>
+<li>每条证据的来源。</li>
+<li>不该看到的内容被权限过滤掉。</li>
+</ol>
+<h2>GraphRAG</h2>
+<p>GraphRAG 适合这些问题：</p>
+<ul>
+<li>需要跨文档、多实体、多跳关系。</li>
+<li>用户问的是主题、趋势、组织结构、事件链，而不是单点事实。</li>
+<li>文档量大，单纯 top-k chunk 容易碎片化。</li>
+</ul>
+<p>典型流程：</p>
+<ol>
+<li>从文档中抽取 entity、relation、claim。</li>
+<li>建图并做社区发现。</li>
+<li>生成社区摘要或实体摘要。</li>
+<li>查询时结合图邻域、社区摘要和原文证据。</li>
+</ol>
+<p>局限：</p>
+<ul>
+<li>构图成本高。</li>
+<li>抽取错误会传播。</li>
+<li>图摘要可能丢细节。</li>
+<li>权限和增量更新更复杂。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>GraphRAG 不是万能增强版 RAG，它更适合全局主题和多跳关系问题。对于精确政策条款、合同字段、错误码检索，普通 hybrid retrieval 可能更可靠。</p>
+</blockquote>
+<h2>Agentic RAG</h2>
+<p>Agentic RAG 让模型不再一次性检索，而是在循环中动态决定下一步：</p>
+<pre><code class="language-text">question -&gt; plan -&gt; retrieve -&gt; read -&gt; identify gap -&gt; retrieve again -&gt; verify -&gt; answer
+</code></pre>
+<p>它适合：</p>
+<ul>
+<li>复杂研究问题。</li>
+<li>多跳问答。</li>
+<li>需要查多个系统的企业问答。</li>
+<li>需要先澄清权限、时间范围或实体歧义的问题。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>延迟和成本更高。</li>
+<li>检索路径更难复现。</li>
+<li>如果没有 trace 和 verifier，agent 会把错误证据越滚越大。</li>
+<li>prompt injection 可以通过外部文档污染下一步工具调用。</li>
+</ul>
+<h2>RAG Evaluation</h2>
+<p>RAG 评测要拆开看：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>层级</th>
+<th>English</th>
+<th>中文</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Retrieval Eval</td>
+<td>Retrieval Evaluation</td>
+<td>检索评测</td>
+<td>Recall@k、MRR、nDCG、hit rate。</td>
+</tr>
+<tr>
+<td>Rerank Eval</td>
+<td>Reranking Evaluation</td>
+<td>重排序评测</td>
+<td>top-k precision、pairwise preference。</td>
+</tr>
+<tr>
+<td>Context Eval</td>
+<td>Context Evaluation</td>
+<td>上下文评测</td>
+<td>context relevance、context coverage、token waste。</td>
+</tr>
+<tr>
+<td>Generation Eval</td>
+<td>Generation Evaluation</td>
+<td>生成评测</td>
+<td>faithfulness、answer correctness、format。</td>
+</tr>
+<tr>
+<td>Citation Eval</td>
+<td>Citation Evaluation</td>
+<td>引用评测</td>
+<td>citation precision、unsupported claim rate。</td>
+</tr>
+<tr>
+<td>Permission Eval</td>
+<td>Permission Evaluation</td>
+<td>权限评测</td>
+<td>越权检索率、PII 泄漏率。</td>
+</tr>
+<tr>
+<td>System Eval</td>
+<td>System Evaluation</td>
+<td>系统评测</td>
+<td>端到端成功率、延迟、成本、拒答准确率。</td>
+</tr>
+</tbody></table>
+<p>一个常见误区：只用答案正确率评估 RAG。这样看不到错误来自哪里。</p>
+<p>更好的 eval set 至少包含：</p>
+<ul>
+<li>query。</li>
+<li>gold answer。</li>
+<li>gold evidence chunk。</li>
+<li>allowed document scope。</li>
+<li>expected citations。</li>
+<li>unanswerable questions。</li>
+<li>conflicting evidence cases。</li>
+<li>stale document cases。</li>
+<li>permission-denied cases。</li>
+</ul>
+<h2>RAGAS 类自动评测的价值和风险</h2>
+<p>RAGAS 类工具常评估：</p>
+<ul>
+<li>context relevance：检索上下文是否相关。</li>
+<li>faithfulness：答案是否被上下文支持。</li>
+<li>answer relevance：答案是否回答了问题。</li>
+<li>answer correctness：答案与标准答案是否一致。</li>
+</ul>
+<p>价值：</p>
+<ul>
+<li>快速回归。</li>
+<li>适合大量样本趋势分析。</li>
+<li>能把 retrieval 和 generation 问题拆开。</li>
+</ul>
+<p>风险：</p>
+<ul>
+<li>LLM judge 会有偏差。</li>
+<li>judge 可能看漏证据。</li>
+<li>没有权限、成本、延迟、线上分布就不完整。</li>
+<li>自动分数不能替代人工 gold set。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>RAG eval 不能只靠 LLM-as-a-judge。我会用人工 gold evidence 做 retrieval eval，用 citation verifier 做 grounding eval，用人工抽检校准 judge，并把权限、延迟、成本纳入 system eval。</p>
+</blockquote>
+<h2>常见失败模式</h2>
+<table class="wide-table">
+<thead>
+<tr>
+<th>失败模式</th>
+<th>English</th>
+<th>中文</th>
+<th>例子</th>
+<th>解决方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Missing Recall</td>
+<td>Missing Recall</td>
+<td>召回缺失</td>
+<td>关键文档没进 top-k</td>
+<td>query rewrite、hybrid search、chunk 重做。</td>
+</tr>
+<tr>
+<td>Wrong Evidence</td>
+<td>Wrong Evidence</td>
+<td>错误证据</td>
+<td>检到旧版本政策</td>
+<td>metadata filter、freshness、rerank。</td>
+</tr>
+<tr>
+<td>Context Pollution</td>
+<td>Context Pollution</td>
+<td>上下文污染</td>
+<td>无关段落塞满窗口</td>
+<td>rerank、去重、context packing。</td>
+</tr>
+<tr>
+<td>Lost in the Middle</td>
+<td>Lost in the Middle</td>
+<td>中间遗忘</td>
+<td>长上下文中忽略关键段</td>
+<td>证据排序、摘要、引用定位。</td>
+</tr>
+<tr>
+<td>Citation Drift</td>
+<td>Citation Drift</td>
+<td>引用漂移</td>
+<td>引用 A 但答案来自 B</td>
+<td>citation verification。</td>
+</tr>
+<tr>
+<td>Permission Leak</td>
+<td>Permission Leak</td>
+<td>权限泄漏</td>
+<td>普通用户检到 HR 文档</td>
+<td>ACL filter、query-time auth。</td>
+</tr>
+<tr>
+<td>Prompt Injection</td>
+<td>Prompt Injection</td>
+<td>提示注入</td>
+<td>文档要求模型泄露系统提示</td>
+<td>工具输出不可信、指令分层。</td>
+</tr>
+<tr>
+<td>Over-answering</td>
+<td>Over-answering</td>
+<td>过度回答</td>
+<td>无证据仍编答案</td>
+<td>abstention、confidence、verifier。</td>
+</tr>
+</tbody></table>
+<h2>面试高频问题</h2>
+<h3>1. RAG 为什么不能只用向量库？</h3>
+<p>向量检索语义泛化强，但对编号、时间、实体、代码符号和精确术语不一定稳定。生产里通常要 hybrid search、metadata filter、rerank、权限控制和 citation verification。</p>
+<h3>2. 长上下文模型会替代 RAG 吗？</h3>
+<p>不会完全替代。长上下文适合一次性阅读大材料；RAG 适合动态知识、权限隔离、引用审计和成本控制。实际系统经常组合使用。</p>
+<h3>3. 怎么定位 RAG 答错原因？</h3>
+<p>先看 gold evidence 是否被召回，再看 rerank 排名，再看 context 是否被正确打包，最后看生成是否忠实。不要直接把错误归因给 LLM。</p>
+<h3>4. Agentic RAG 比普通 RAG 强在哪里？</h3>
+<p>它能动态拆问题、多轮检索、发现证据缺口并补查。代价是更慢、更贵、更难复现，所以需要 trace、预算和 verifier。</p>
+<h3>5. 企业 RAG 最重要的工程风险是什么？</h3>
+<p>权限和证据。用户不能检到无权限内容，答案必须能被引用支持。否则系统即使看起来聪明，也不适合上线。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></li>
+<li><a href="https://arxiv.org/abs/2002.08909">REALM: Retrieval-Augmented Language Model Pre-Training</a></li>
+<li><a href="https://github.com/microsoft/graphrag">Microsoft GraphRAG</a></li>
+<li><a href="https://github.com/vibrantlabsai/ragas">RAGAS</a></li>
+<li><a href="https://arxiv.org/abs/2501.09136">Agentic Retrieval-Augmented Generation: A Survey on Agentic RAG</a></li>
+<li><a href="https://arxiv.org/abs/2506.00054">Retrieval-Augmented Generation: A Comprehensive Survey of Architectures, Enhancements, and Robustness Frontiers</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./11-sota-tech-reports-2026.html">← 上一章</a><a href="./13-eval-harness-benchmarking.html">下一章 →</a></nav></main></body>
+</html>

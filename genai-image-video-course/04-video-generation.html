@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>文生图与文生视频面试课程 · 第 4 章：文生视频、Temporal Consistency、World Model 与音视频生成</title>
+  <style>
+  @page {
+    size: A4;
+    margin: 19mm 19mm 18mm 19mm;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: #eef2f7;
+  }
+  body {
+    margin: 0;
+    padding: 48px 28px;
+    background: #eef2f7;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 54px 70px 68px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  h1, h2, h3 {
+    color: #111827;
+    line-height: 1.25;
+    margin: 1.05em 0 0.45em;
+  }
+  h1 {
+    font-size: 22pt;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 7px;
+    page-break-before: always;
+  }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h3 { font-size: 12pt; }
+  p { margin: 0.55em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 0.95em;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.9em 0 1.15em;
+    page-break-inside: auto;
+    table-layout: auto;
+    border: 1px solid #d8dee4;
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 0.94em;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th, td {
+    border: 0;
+    border-right: 1px solid #d8dee4;
+    border-bottom: 1px solid #d8dee4;
+    padding: 7px 9px;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+  th:last-child,
+  td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    background: #f6f8fb;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .symbol-table th:nth-child(1), .symbol-table td:nth-child(1) { width: 16%; }
+  .symbol-table th:nth-child(2), .symbol-table td:nth-child(2) { width: 25%; }
+  .symbol-table th:nth-child(3), .symbol-table td:nth-child(3) { width: 25%; }
+  .symbol-table th:nth-child(4), .symbol-table td:nth-child(4) { width: 34%; }
+  .roadmap-table th:nth-child(1), .roadmap-table td:nth-child(1) { width: 13%; white-space: nowrap; }
+  .roadmap-table th:nth-child(2), .roadmap-table td:nth-child(2) { width: 34%; }
+  .roadmap-table th:nth-child(3), .roadmap-table td:nth-child(3) { width: 53%; }
+  .three-col-table th:nth-child(1), .three-col-table td:nth-child(1) { width: 22%; }
+  .three-col-table th:nth-child(2), .three-col-table td:nth-child(2),
+  .three-col-table th:nth-child(3), .three-col-table td:nth-child(3) { width: 39%; }
+  .wide-table th:first-child,
+  .wide-table td:first-child { width: 15%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 0.08em 0.28em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+  }
+  ul, ol { padding-left: 1.35em; }
+  li { margin: 0.25em 0; }
+  .math-text {
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .math-text .op, .math-text .roman { font-style: normal; }
+  .math-block {
+    margin: 0.7em auto;
+    padding: 0.5em 0.65em;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+    font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
+    font-size: 11.2pt;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    page-break-inside: avoid;
+  }
+  .math-block.multi { text-align: left; padding-left: 20%; }
+  sub, sup { line-height: 0; font-size: 0.72em; }
+  .frac {
+    display: inline-grid;
+    grid-template-rows: auto auto;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.05;
+    margin: 0 0.12em;
+  }
+  .frac > span:first-child {
+    border-bottom: 1px solid currentColor;
+    padding: 0 0.12em 0.08em;
+  }
+  .frac > span:last-child { padding: 0.08em 0.12em 0; }
+  a { color: #2563eb; text-decoration: none; }
+  .chapter-index {
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+  .chapter-index li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .chapter-index .chapter-source {
+    color: #6b7280;
+    font-size: 0.88em;
+  }
+  .chapter-nav {
+    margin: 0 0 1.25em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.92em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chapter-nav a { font-weight: 600; }
+  .chapter-nav .spacer { flex: 1 1 auto; }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .doc-shell {
+      max-width: none;
+      min-height: 100vh;
+      padding: 28px 18px 40px;
+      border: 0;
+      box-shadow: none;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+    .chapter-index li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+  @media print {
+    html, body {
+      background: #ffffff;
+    }
+    body {
+      padding: 0;
+      font-size: 10.2pt;
+      line-height: 1.55;
+    }
+    .doc-shell {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+    }
+    table { font-size: 9.3pt; }
+    li { margin: 0.14em 0; }
+  }
+</style>
+</head>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./03-conditioning-editing-control.html">← 上一章</a><a href="./05-video-data-training-control.html">下一章 →</a></nav><h1>第 4 章：文生视频、Temporal Consistency、World Model 与音视频生成</h1>
+<h2>本章符号说明</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>符号/缩写</th>
+<th>English</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T2V</td>
+<td>Text-to-Video</td>
+<td>文生视频</td>
+<td>根据文本生成视频。</td>
+</tr>
+<tr>
+<td>I2V</td>
+<td>Image-to-Video</td>
+<td>图生视频</td>
+<td>根据图像起点生成视频。</td>
+</tr>
+<tr>
+<td>V2V</td>
+<td>Video-to-Video</td>
+<td>视频到视频</td>
+<td>根据输入视频做风格化或编辑。</td>
+</tr>
+<tr>
+<td>T2AV</td>
+<td>Text-to-Audio-Video</td>
+<td>文生音视频</td>
+<td>文本输入同时生成画面和声音。</td>
+</tr>
+<tr>
+<td>SVD</td>
+<td>Stable Video Diffusion</td>
+<td>稳定视频扩散</td>
+<td>Stability AI 的 latent video diffusion 模型。</td>
+</tr>
+<tr>
+<td>DiT</td>
+<td>Diffusion Transformer</td>
+<td>扩散 Transformer</td>
+<td>视频模型常用的时空 token backbone。</td>
+</tr>
+<tr>
+<td>VAE</td>
+<td>Variational Autoencoder</td>
+<td>变分自编码器</td>
+<td>视频模型常用的空间或时空压缩器。</td>
+</tr>
+<tr>
+<td>FPS</td>
+<td>Frames Per Second</td>
+<td>每秒帧数</td>
+<td>视频时间分辨率。</td>
+</tr>
+<tr>
+<td>FVD</td>
+<td>Fréchet Video Distance</td>
+<td>Fréchet Video 距离</td>
+<td>视频生成分布质量指标。</td>
+</tr>
+<tr>
+<td>VBench</td>
+<td>Video Benchmark</td>
+<td>视频生成基准</td>
+<td>从多个维度评估 T2V 质量的 benchmark。</td>
+</tr>
+<tr>
+<td><span class="math-text">F</span></td>
+<td>Frames</td>
+<td>帧序列</td>
+<td>视频由多帧图像组成。</td>
+</tr>
+<tr>
+<td><span class="math-text">T</span></td>
+<td>Time Length</td>
+<td>时间长度</td>
+<td>视频时长或帧数。</td>
+</tr>
+<tr>
+<td><span class="math-text">H</span> / <span class="math-text">W</span></td>
+<td>Height / Width</td>
+<td>高 / 宽</td>
+<td>视频空间分辨率。</td>
+</tr>
+<tr>
+<td><span class="math-text">z<sub><span class="math-text">t,h,w</span></sub></span></td>
+<td>Spacetime Latent Token</td>
+<td>时空 latent token</td>
+<td>视频压缩后在时间和空间上的 token。</td>
+</tr>
+</tbody></table>
+<h2>本章目标</h2>
+<ul>
+<li>理解视频生成相比图像生成多出的难点。</li>
+<li>掌握 Make-A-Video、Imagen Video、Stable Video Diffusion 的思路。</li>
+<li>理解 Sora 的 spacetime patch 和 variable aspect ratio。</li>
+<li>理解 Veo、Movie Gen、Runway Gen-4、HunyuanVideo、Seedance 2.0 的系统趋势。</li>
+<li>能讨论视频生成评测、安全、音视频同步和产品化难点。</li>
+</ul>
+<h2>视频比图像难在哪里</h2>
+<p>视频生成需要同时满足：</p>
+<ul>
+<li>单帧质量。</li>
+<li>帧间一致性。</li>
+<li>运动自然。</li>
+<li>物体永久性。</li>
+<li>镜头运动。</li>
+<li>角色身份一致。</li>
+<li>物理和因果关系。</li>
+<li>长时程 coherence。</li>
+</ul>
+<p>文生图只需要生成 <span class="math-text">H × W</span> 的空间结构；文生视频要生成 <span class="math-text">T × H × W</span> 的时空结构。</p>
+<h2>Make-A-Video</h2>
+<p>Make-A-Video 的思路是把 text-to-image 进展迁移到 text-to-video：</p>
+<ul>
+<li>从 text-image 数据学外观和语义。</li>
+<li>从无文本视频学运动。</li>
+<li>使用时空模块扩展图像生成模型。</li>
+</ul>
+<p>核心观点：</p>
+<blockquote>
+<p>不一定需要大量 paired text-video data，也可以把图像语义和视频运动分开学习。</p>
+</blockquote>
+<h2>Imagen Video</h2>
+<p>Imagen Video 使用级联 video diffusion：</p>
+<ul>
+<li>base video generation。</li>
+<li>spatial super-resolution。</li>
+<li>temporal super-resolution。</li>
+<li>progressive distillation 加速采样。</li>
+</ul>
+<p>直觉：</p>
+<blockquote>
+<p>先生成低分辨率、低帧率视频，再逐步提升空间和时间分辨率，类似 Imagen 图像生成中的 cascade 思路。</p>
+</blockquote>
+<h2>Stable Video Diffusion</h2>
+<p>SVD 强调 latent video diffusion 的训练流程：</p>
+<ol>
+<li>text-to-image pretraining。</li>
+<li>video pretraining。</li>
+<li>high-quality video finetuning。</li>
+</ol>
+<p>它说明视频数据质量和 curation 非常关键。视频不是简单把图像数据堆起来，因为帧间运动、剪辑、字幕、镜头切换都会影响训练。</p>
+<h2>Sora：Spacetime Patch</h2>
+<p>Sora 技术报告里，一个关键思想是把视觉数据统一成 patch：</p>
+<ul>
+<li>先把视频压缩到 latent space。</li>
+<li>再切成 spacetime patches。</li>
+<li>用 diffusion transformer 在 patch token 上训练。</li>
+<li>支持不同分辨率、时长、宽高比。</li>
+</ul>
+<p>可以抽象成：</p>
+<div class="math-block"><span class="math-text">video → latent → spacetime patches → DiT</span></div>
+
+<p>这和 LLM 里的 tokenization 有相似之处：用统一 token 表示复杂数据，从而更容易 scale。</p>
+<h2>Veo 与产品化趋势</h2>
+<p>以 Veo、Sora、Runway 等系统为代表，产品化视频生成更关注：</p>
+<ul>
+<li>更长时长。</li>
+<li>更高分辨率。</li>
+<li>音频同步。</li>
+<li>镜头语言。</li>
+<li>角色一致性。</li>
+<li>可编辑性。</li>
+<li>安全和 provenance。</li>
+</ul>
+<p>面试时不要只说“模型更大”。要说明：</p>
+<ul>
+<li>数据 curation。</li>
+<li>captioning。</li>
+<li>temporal architecture。</li>
+<li>controllability。</li>
+<li>evaluation。</li>
+<li>safety filter。</li>
+<li>serving cost。</li>
+</ul>
+<h2>本章面试高频问题</h2>
+<h3>1. 文生视频相比文生图最大难点是什么？</h3>
+<p>除了单帧质量，还要保证时间一致性、运动自然、角色和物体持续存在、物理因果关系合理，以及长视频的全局 coherence。</p>
+<h3>2. 为什么视频生成适合 spacetime patch？</h3>
+<p>spacetime patch 把时间和空间统一成 token，让模型能在同一架构里处理不同分辨率、宽高比和时长的视频，也便于 Transformer scaling。</p>
+<h3>3. 视频数据 curation 为什么重要？</h3>
+<p>低质量视频、剪辑跳变、字幕水印、运动模糊、错误 caption 都会污染模型。视频生成对数据的时序一致性和 caption 质量更敏感。</p>
+<h3>4. Sora 仍有哪些限制？</h3>
+<p>官方技术报告提到它仍可能不能准确模拟复杂物理、因果和状态变化，长时程也可能出现不一致或物体自发出现。</p>
+<h2>Sora 2：音频、对话与可控性</h2>
+<p>Sora 2 的公开产品说明把方向从“能生成视频”推进到“更像可交互视频创作工具”：</p>
+<ul>
+<li>更强的物理一致性和失败后状态延续。</li>
+<li>同步对话、音效和背景声。</li>
+<li>更好的可控性和多镜头叙事。</li>
+<li>支持真实人物 cameo 类功能，但也带来更强的身份、同意和安全要求。</li>
+</ul>
+<p>注意一个时间点：OpenAI 页面显示 Sora 产品已在 2026 年 4 月 26 日停止提供，但 Sora / Sora 2 的技术方向仍然是面试里理解视频生成演进的好材料。回答时不要把“产品仍可用”当作事实。</p>
+<h2>Veo 3.1：音频和剪辑控制</h2>
+<p>Veo 3.1 的产品方向强调：</p>
+<ul>
+<li>文生视频和图生视频。</li>
+<li>更强 prompt adherence 和 realism。</li>
+<li>audio across features，即在多个功能里支持声音。</li>
+<li>Ingredients to Video、Frames to Video、Extend、Insert/remove 等编辑能力。</li>
+<li>用 SynthID 标记生成内容。</li>
+</ul>
+<p>面试表达：</p>
+<blockquote>
+<p>Veo 的重点不是单个模型参数，而是把视频生成做成可控工作流：参考图、首尾帧、扩展、局部插入、移除、音频同步、安全水印。</p>
+</blockquote>
+<h2>Movie Gen：统一视频、音频、编辑和个性化</h2>
+<p>Meta Movie Gen 的公开材料强调四类能力：</p>
+<ul>
+<li>text-to-video。</li>
+<li>personalized video。</li>
+<li>precise video editing。</li>
+<li>synchronized audio generation。</li>
+</ul>
+<p>Movie Gen 报告里的高频关键词：</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>关键词</th>
+<th>English</th>
+<th>中文</th>
+<th>面试解读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1080p</td>
+<td>Full HD Resolution</td>
+<td>全高清分辨率</td>
+<td>视频模型开始逼近生产级素材质量。</td>
+</tr>
+<tr>
+<td>16 fps</td>
+<td>Frames Per Second</td>
+<td>每秒 16 帧</td>
+<td>说明时间分辨率仍是成本和质量 trade-off。</td>
+</tr>
+<tr>
+<td>Audio</td>
+<td>Audio Generation</td>
+<td>音频生成</td>
+<td>音效、音乐、环境声要和画面事件一致。</td>
+</tr>
+<tr>
+<td>Personalization</td>
+<td>Personalization</td>
+<td>个性化</td>
+<td>参考人物或主体生成新视频，安全要求更高。</td>
+</tr>
+<tr>
+<td>Editing</td>
+<td>Instruction-based Editing</td>
+<td>指令式编辑</td>
+<td>不只是生成，还要能改现有视频。</td>
+</tr>
+</tbody></table>
+<h2>Runway Gen-4：一致性和生产工作流</h2>
+<p>Runway Gen-4 的公开材料把“world consistency”放在中心：用参考图和指令，在不同镜头中保持角色、地点、物体和风格一致。</p>
+<p>对面试很有用的点：</p>
+<ul>
+<li>长视频不是一次生成一整段，而常常是分镜 + 镜头生成 + 编辑拼接。</li>
+<li>产品级视频工具需要角色库、场景库、参考资产和版本管理。</li>
+<li>生成模型要服务导演式工作流，而不是只做 demo prompt。</li>
+</ul>
+<h2>HunyuanVideo、Open-Sora、Seedance：开源和产业化路线</h2>
+<p>闭源模型质量很强，但面试时也要了解开放技术报告，因为它们会披露更多训练细节。</p>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>模型/报告</th>
+<th>English</th>
+<th>中文</th>
+<th>重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HunyuanVideo</td>
+<td>HunyuanVideo</td>
+<td>混元视频</td>
+<td>13B 级开源视频基础模型，强调数据、架构、训练和推理框架。</td>
+</tr>
+<tr>
+<td>Open-Sora 2.0</td>
+<td>Open-Sora 2.0</td>
+<td>开放 Sora 2.0</td>
+<td>强调用有限预算训练商业级视频模型的工程路线。</td>
+</tr>
+<tr>
+<td>Seedance 1.0</td>
+<td>Seedance 1.0</td>
+<td>即梦/Seed 视频 1.0</td>
+<td>强调数据 curation、caption、视频 RLHF、多阶段蒸馏和速度优化。</td>
+</tr>
+<tr>
+<td>Seedance 2.0</td>
+<td>Seedance 2.0</td>
+<td>即梦/Seed 视频 2.0</td>
+<td>强调文本、图像、音频、视频多模态输入和音视频联合生成。</td>
+</tr>
+</tbody></table>
+<p>Seedance 1.0 报告尤其适合面试，因为它明确提到：</p>
+<ul>
+<li>multi-source data curation。</li>
+<li>precision video captioning。</li>
+<li>native multi-shot generation。</li>
+<li>joint T2V / I2V learning。</li>
+<li>fine-grained SFT。</li>
+<li>video-specific RLHF。</li>
+<li>multi-stage distillation。</li>
+</ul>
+<p>这些关键词能把你的回答从“会讲模型”拉到“知道产业系统怎么训、怎么快、怎么稳”。</p>
+<h2>视频生成系统的通用 pipeline</h2>
+<pre><code class="language-text">需求 / prompt
+→ LLM 拆分成 storyboard / shots / camera plan
+→ 生成关键帧或参考图
+→ T2V / I2V 生成每个镜头
+→ 一致性检查：角色、物体、场景、文字、品牌
+→ 音频生成或配音
+→ 剪辑、转场、字幕、调色
+→ 安全审核、版权审核、watermark / provenance
+</code></pre>
+<p>这也是项目面试里最推荐的表达方式：不要说“我调用了一个视频模型”，要说“我搭了一个可评测、可回滚、可审核的创意生产 pipeline”。</p>
+<h2>视频生成失败模式</h2>
+<table class="symbol-table">
+<thead>
+<tr>
+<th>失败模式</th>
+<th>English</th>
+<th>中文</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Temporal Flicker</td>
+<td>Temporal Flicker</td>
+<td>时间闪烁</td>
+<td>背景或纹理帧间跳动。</td>
+</tr>
+<tr>
+<td>Identity Drift</td>
+<td>Identity Drift</td>
+<td>身份漂移</td>
+<td>人物、商品、角色越生成越不像。</td>
+</tr>
+<tr>
+<td>Object Disappearance</td>
+<td>Object Disappearance</td>
+<td>物体消失</td>
+<td>关键物体中途消失或变形。</td>
+</tr>
+<tr>
+<td>Physics Violation</td>
+<td>Physics Violation</td>
+<td>物理违背</td>
+<td>碰撞、重力、液体、反射不合理。</td>
+</tr>
+<tr>
+<td>Camera Incoherence</td>
+<td>Camera Incoherence</td>
+<td>镜头不连贯</td>
+<td>镜头运动和空间关系冲突。</td>
+</tr>
+<tr>
+<td>Audio-Visual Mismatch</td>
+<td>Audio-Visual Mismatch</td>
+<td>音画不匹配</td>
+<td>动作和音效不同步。</td>
+</tr>
+<tr>
+<td>Text Degradation</td>
+<td>Text Degradation</td>
+<td>文字退化</td>
+<td>字幕、logo、标牌随时间变形。</td>
+</tr>
+</tbody></table>
+<h2>本章补充面试高频问题</h2>
+<h3>5. 为什么视频模型更依赖 caption？</h3>
+<p>视频 caption 不只要描述主体，还要描述动作、镜头、时间变化、场景转移、因果关系和声音。caption 粗糙时，模型很难学到 prompt 到运动的对应关系。</p>
+<h3>6. 什么是多镜头生成？</h3>
+<p>多镜头生成不是简单延长时长，而是生成多个 shot，并保持角色、场景、风格和叙事连续。它更接近真实创作流程，也更考验 planning、reference consistency 和后处理评测。</p>
+<h3>7. 音视频联合生成为什么难？</h3>
+<p>因为声音要同时满足语义、时间点、物理因果和空间感。比如脚步、碰撞、口型、环境声都要和画面事件同步，单独评估视频质量不够。</p>
+<h2>本章 References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2209.14792">Make-A-Video: Text-to-Video Generation without Text-Video Data</a></li>
+<li><a href="https://arxiv.org/abs/2210.02303">Imagen Video: High Definition Video Generation with Diffusion Models</a></li>
+<li><a href="https://arxiv.org/abs/2311.15127">Stable Video Diffusion</a></li>
+<li><a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video generation models as world simulators</a></li>
+<li><a href="https://openai.com/index/sora-2/">Sora 2</a></li>
+<li><a href="https://deepmind.google/models/veo/">Veo official page</a></li>
+<li><a href="https://blog.google/innovation-and-ai/products/veo-updates-flow/">Veo 3.1 and Flow updates</a></li>
+<li><a href="https://ai.meta.com/research/movie-gen/">Movie Gen</a></li>
+<li><a href="https://ai.meta.com/research/publications/movie-gen-a-cast-of-media-foundation-models/">Movie Gen paper page</a></li>
+<li><a href="https://runwayml.com/research/introducing-runway-gen-4">Introducing Runway Gen-4</a></li>
+<li><a href="https://arxiv.org/abs/2412.03603">HunyuanVideo</a></li>
+<li><a href="https://arxiv.org/abs/2503.09642">Open-Sora 2.0</a></li>
+<li><a href="https://arxiv.org/abs/2506.09113">Seedance 1.0</a></li>
+<li><a href="https://arxiv.org/abs/2604.14148">Seedance 2.0</a></li>
+</ul>
+<nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./03-conditioning-editing-control.html">← 上一章</a><a href="./05-video-data-training-control.html">下一章 →</a></nav></main></body>
+</html>
