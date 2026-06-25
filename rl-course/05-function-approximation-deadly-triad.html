@@ -395,6 +395,16 @@
 <li>gradient clipping。</li>
 <li>Double DQN 降低 overestimation bias。</li>
 </ul>
+<h2>从 Deadly Triad 到 DQN 稳定化</h2>
+<p>下面的 replay buffer 和 target network 不应该理解成孤立技巧，而是第 6 章 DQN 的铺垫。逻辑是：</p>
+<pre><code class="language-text">Q-learning + neural network
+  -&gt; function approximation
+  -&gt; bootstrap target
+  -&gt; off-policy replay data
+  -&gt; Deadly Triad risk
+  -&gt; replay buffer / target network / Double DQN
+</code></pre>
+<p>所以第 5 章先解释“不稳定从哪里来”，第 6 章再系统讲“DQN 如何把这些稳定化设计组合成算法”。</p>
 <h2>Experience Replay 的稳定作用</h2>
 <p>Replay buffer 存储历史 transition：</p>
 <pre><code class="language-text">(s, a, r, s&#39;, done)

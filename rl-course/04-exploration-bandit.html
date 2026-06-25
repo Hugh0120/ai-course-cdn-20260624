@@ -374,6 +374,38 @@ receive reward R_t
 </code></pre>
 <p>它可以看成没有状态或只有单一状态的 RL 问题。</p>
 <p>Bandit 在推荐系统、广告投放、A/B testing 中非常常见。</p>
+<h2>Bandit 和完整 RL 的关系</h2>
+<p>本章先讲 bandit，不是因为 bandit 比 RL 更重要，而是因为它把“探索”从复杂的状态转移里单独抽出来。</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>Bandit</th>
+<th>完整 RL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态</td>
+<td>通常没有状态，或只有单一状态</td>
+<td>有状态 <span class="math-text">s</span></td>
+</tr>
+<tr>
+<td>动作影响</td>
+<td>主要影响当前 reward</td>
+<td>同时影响当前 reward 和未来状态</td>
+</tr>
+<tr>
+<td>学习目标</td>
+<td>找到平均 reward 高的动作</td>
+<td>找到长期 return 高的策略</td>
+</tr>
+<tr>
+<td>探索难点</td>
+<td>试哪个 arm</td>
+<td>在什么状态试什么动作</td>
+</tr>
+</tbody></table>
+<p>所以 bandit 是完整 RL 的一个局部视角：先把“动作选择的不确定性”讲清楚，再回到有状态转移的长期决策问题。</p>
 <h2>Regret</h2>
 <p>Regret 衡量由于没有总是选择最优动作而损失的收益。</p>
 <p>如果最优动作的期望奖励是 <span class="math-text">μ<sup><span class="math-text">*</span></sup></span>，第 <span class="math-text">t</span> 步选择动作的期望奖励是 <span class="math-text">μ<sub><span class="math-text">a<sub><span class="math-text">t</span></sub></span></sub></span>，则累计 regret：</p>
@@ -424,6 +456,37 @@ receive reward R_t
 <li>需要构造合适的概率模型。</li>
 <li>在复杂深度 RL 中实现和建模成本更高。</li>
 </ul>
+<h2>探索方法在完整 RL 中怎么落地</h2>
+<p>回到第 3 章的 SARSA 和 Q-learning，探索通常体现在 behavior policy 上。例如 Q-learning 可以用 epsilon-greedy 收集数据，再用 greedy target 做更新：</p>
+<pre><code class="language-text">behavior policy: epsilon-greedy
+target update:   max_a Q(s&#39;, a)
+</code></pre>
+<p>这说明探索机制和学习目标是两件事：</p>
+<ul>
+<li>探索机制决定 agent 看到什么数据。</li>
+<li>学习目标决定 value 或 policy 往哪里更新。</li>
+</ul>
+<p>后面的 DQN、PPO、SAC 也都要处理探索，只是方式不同：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>算法类型</th>
+<th>常见探索方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DQN</td>
+<td>epsilon-greedy、NoisyNet</td>
+</tr>
+<tr>
+<td>Policy Gradient / PPO</td>
+<td>stochastic policy、entropy bonus</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>maximum entropy objective</td>
+</tr>
+</tbody></table>
 <h2>NoisyNet 与参数空间探索</h2>
 <p>深度 RL 中还可以在参数空间探索。例如 NoisyNet 在网络参数中加入可学习噪声。</p>
 <p>直觉：</p>

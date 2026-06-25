@@ -437,7 +437,7 @@ repeat:
 <li>Monte Carlo return 方差很大。</li>
 <li>sample efficiency 较低。</li>
 </ul>
-<h2>为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></h2>
+<h2>Reward-to-go：为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></h2>
 <p>基础推导中，每个时间步都乘整条轨迹回报 <span class="math-text">R(τ)</span>。但动作 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 不可能影响 <span class="math-text">t</span> 之前已经发生的 reward，所以更合理的学习信号是从当前时间开始的 reward-to-go：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+...</span></div>
 
@@ -445,6 +445,13 @@ repeat:
 <div class="math-block"><span class="math-text">∇ J(θ)=𝔼[∑<sub><span class="math-text">t</span></sub>∇logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)G<sub><span class="math-text">t</span></sub>]</span></div>
 
 <p>这样做不会丢掉由 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 影响的未来回报，反而去掉了和 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 无关的过去 reward，因此方差更低。</p>
+<p>顺序上可以这样记：</p>
+<pre><code class="language-text">full trajectory return R(tau)
+  -&gt; reward-to-go G_t
+  -&gt; G_t - baseline
+  -&gt; advantage
+  -&gt; actor-critic / GAE
+</code></pre>
 <h2>Baseline</h2>
 <p>为了降低方差，可以从 return 中减去 baseline：</p>
 <div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) (G<sub><span class="math-text">t</span></sub> - b(s<sub><span class="math-text">t</span></sub>))]</span></div></div>
@@ -495,12 +502,6 @@ Actor-Critic:  用 critic 估计 baseline / advantage
 GAE/PPO:        用更稳定的 advantage 和受限策略更新
 </code></pre>
 <p>所以第 7 章和第 8/9 章不是割裂的：后面的 actor-critic、GAE、PPO 都是在让 policy gradient 的学习信号更稳。</p>
-<h2>Reward-to-go</h2>
-<p>原始 REINFORCE 可能用整条轨迹 return <span class="math-text">R(τ)</span> 更新每个时间步。<br>更合理的是使用从当前时间步开始的 return：</p>
-<div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = ∑<sub><span class="math-text">k=t</span></sub><sup><span class="math-text">T</span></sup> γ<sup><span class="math-text">k-t</span></sup> R<sub><span class="math-text">k+1</span></sub></span></div>
-
-<p>原因：</p>
-<p>时间 <span class="math-text">t</span> 的 action 不会影响过去已经发生的 reward，因此不需要用过去 reward 作为学习信号。</p>
 <h2>Entropy Regularization</h2>
 <p>为了鼓励探索，常在目标中加入 entropy：</p>
 <div class="math-block"><span class="math-text">J(θ) = 𝔼[return] + β 𝔼[H(π<sub><span class="math-text">θ</span></sub>(· ∣ s))]</span></div>

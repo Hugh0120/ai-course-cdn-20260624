@@ -358,6 +358,43 @@
 </ul>
 <h2>本章主线</h2>
 <p>前 10 章主要讨论在线 model-free 学习。本章换成四类现实约束：能不能学或使用环境模型，能不能继续交互，能不能从专家示范学，能不能用人类偏好定义 reward。Model-based RL、Offline RL、Imitation Learning、RLHF 分别对应这些约束，是面试里从经典 RL 扩展到真实系统和大模型对齐的关键桥梁。</p>
+<h2>四类进阶主题的边界</h2>
+<p>这一章主题多，先用边界表把它们分开：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>主题</th>
+<th>核心问题</th>
+<th>数据来源</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Model-based RL</td>
+<td>能不能学一个环境模型来 planning</td>
+<td>在线交互数据或模拟器</td>
+<td>model bias 和长 horizon 误差累积</td>
+</tr>
+<tr>
+<td>Offline RL</td>
+<td>能不能只用历史数据学新策略</td>
+<td>固定日志数据集</td>
+<td>OOD action 和 extrapolation error</td>
+</tr>
+<tr>
+<td>Imitation Learning</td>
+<td>能不能不设计 reward，直接模仿专家</td>
+<td>专家状态-动作数据</td>
+<td>compounding error</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>能不能用人类偏好构造 reward</td>
+<td>prompt-response 偏好比较</td>
+<td>reward hacking、偏好噪声、KL 约束</td>
+</tr>
+</tbody></table>
+<p>它们共同点是：真实交互昂贵、危险或不充分，因此不能只靠“在线试错 + model-free 更新”解决。</p>
 <h2>Model-free vs Model-based</h2>
 <p>Model-free RL 不显式学习环境模型，直接学习 value 或 policy：</p>
 <ul>
@@ -376,7 +413,7 @@
 <li>收集环境交互数据。</li>
 <li>学习 dynamics model：</li>
 </ol>
-<div class="math-block"><span class="math-text">s<sub><span class="math-text">t+1</span></sub> ≈ f<sub><span class="math-text">p</span></sub>hi(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">s<sub><span class="math-text">t+1</span></sub> ≈ f<sub><span class="math-text">φ</span></sub>(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span></div>
 
 <ol start="3">
 <li>用模型进行 planning 或 rollout。</li>
