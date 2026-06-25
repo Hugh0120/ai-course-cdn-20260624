@@ -303,6 +303,8 @@
 <li>off-policy learning 的分布问题。</li>
 <li>Deadly Triad。</li>
 </ul>
+<h2>本章主线</h2>
+<p>前面几章默认可以为每个状态或状态-动作对存一个表格值。真实任务里状态空间通常巨大或连续，所以必须用参数化函数近似 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 <span class="math-text">π(a∣ s)</span>。本章先建立函数逼近的训练形式，再解释为什么 bootstrapping、off-policy learning 和 function approximation 同时出现时会带来稳定性问题。</p>
 <h2>为什么需要函数逼近</h2>
 <p>表格型方法为每个状态或状态动作对存一个值：</p>
 <div class="math-block multi"><div><span class="math-text">V(s)</span></div><div><span class="math-text">Q(s, a)</span></div></div>

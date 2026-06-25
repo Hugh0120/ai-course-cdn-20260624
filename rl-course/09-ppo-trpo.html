@@ -327,6 +327,8 @@
 <li>PPO 的训练细节。</li>
 <li>PPO 的优缺点。</li>
 </ul>
+<h2>本章主线</h2>
+<p>Actor-Critic 解决了 policy gradient 高方差问题，但策略更新仍可能一步走太大，导致新策略和采样数据对应的旧策略差异过大。本章专门处理“更新幅度控制”：TRPO 用 trust region 和 KL 约束，PPO 用 clipping objective 做更易实现的近似。</p>
 <h2>为什么要限制策略更新</h2>
 <p>Policy Gradient 直接更新策略参数：</p>
 <div class="math-block"><span class="math-text">θ ← θ + α ∇ J(θ)</span></div>

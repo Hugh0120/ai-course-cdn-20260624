@@ -453,6 +453,77 @@
 <li>理解 offline RL、imitation learning、RLHF 的基础问题。</li>
 <li>准备一套可以在面试中讲清楚的 RL 项目。</li>
 </ul>
+<h2>全课程主线</h2>
+<p>这套课按“问题建模 -&gt; 精确求解 -&gt; 采样估计 -&gt; 函数逼近 -&gt; 策略优化 -&gt; 进阶约束”的顺序组织。每章不是孤立算法，而是在回答上一个阶段留下的问题：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>章节</th>
+<th>主要问题</th>
+<th>逻辑位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 章</td>
+<td>RL 问题如何写成 MDP、return、value 和 Bellman 方程</td>
+<td>建立统一语言</td>
+</tr>
+<tr>
+<td>第 2 章</td>
+<td>如果环境模型已知，怎样用 DP 精确做 evaluation 和 improvement</td>
+<td>Bellman 方程的精确求解原型</td>
+</tr>
+<tr>
+<td>第 3 章</td>
+<td>如果模型未知，怎样用采样做 prediction 和 control</td>
+<td>从 DP 过渡到 model-free tabular RL</td>
+</tr>
+<tr>
+<td>第 4 章</td>
+<td>学 Q 或 policy 时，数据从哪里来，如何平衡探索和利用</td>
+<td>解释采样数据质量</td>
+</tr>
+<tr>
+<td>第 5 章</td>
+<td>表格法放不下真实状态空间时，怎样用函数逼近</td>
+<td>进入 deep RL 的必要前提</td>
+</tr>
+<tr>
+<td>第 6 章</td>
+<td>Q-learning 加神经网络为什么会不稳，DQN 如何稳定它</td>
+<td>value-based deep RL</td>
+</tr>
+<tr>
+<td>第 7 章</td>
+<td>不想通过 argmax Q 选动作时，如何直接优化 policy</td>
+<td>policy-based RL</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>如何同时利用 policy gradient 和 value learning</td>
+<td>actor-critic 框架</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>policy 更新太大导致崩溃时，如何限制更新幅度</td>
+<td>现代 on-policy 稳定训练</td>
+</tr>
+<tr>
+<td>第 10 章</td>
+<td>连续动作下无法枚举动作时，如何做 off-policy actor-critic</td>
+<td>连续控制</td>
+</tr>
+<tr>
+<td>第 11 章</td>
+<td>交互、模型、离线数据、人类反馈带来哪些新约束</td>
+<td>高级 RL 与 LLM 对齐接口</td>
+</tr>
+<tr>
+<td>第 12 章</td>
+<td>面试中如何横向比较、推公式、讲项目</td>
+<td>收束成可表达知识体系</td>
+</tr>
+</tbody></table>
 <h2>推荐学习节奏</h2>
 <p>建议周期：6 到 8 周。<br>建议投入：每周 8 到 10 小时。</p>
 <p>每章建议按这个顺序学习：</p>

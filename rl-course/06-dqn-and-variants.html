@@ -340,6 +340,8 @@
 <li>Prioritized Experience Replay。</li>
 <li>DQN 的适用场景和局限。</li>
 </ul>
+<h2>本章主线</h2>
+<p>本章把第 3 章的 Q-learning 和第 5 章的神经网络函数逼近接起来。直接用网络拟合 Q-learning target 会因为样本相关、target 移动、过估计等问题不稳定。DQN 的 replay buffer、target network、Double DQN、Dueling DQN 和 Prioritized Replay 都是在修正这些具体不稳定来源。</p>
 <h2>DQN 解决什么问题</h2>
 <p>Q-learning 的表格更新是：</p>
 <div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>

@@ -338,6 +338,8 @@
 <li>A2C 和 A3C。</li>
 <li>Generalized Advantage Estimation。</li>
 </ul>
+<h2>本章主线</h2>
+<p>第 7 章的纯 policy gradient 可以直接优化策略，但 Monte Carlo return 方差高。第 3 章的 TD value learning 方差低但主要解决估值。本章把两者合并：actor 负责更新策略，critic 负责估计 value 或 advantage。GAE 则进一步在 MC 和 TD 之间调节 bias/variance。</p>
 <h2>Actor-Critic 基本思想</h2>
 <p>Actor-Critic 有两个部分：</p>
 <ul>

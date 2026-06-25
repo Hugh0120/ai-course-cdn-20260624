@@ -322,6 +322,8 @@
 <li>baseline。</li>
 <li>advantage function。</li>
 </ul>
+<h2>本章主线</h2>
+<p>Value-based 方法先学 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。这个思路在连续动作、随机策略或需要直接控制动作分布时不够自然。本章转向 policy-based RL：直接参数化 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，推导如何对期望 return 求梯度，并用 baseline 和 advantage 降低方差。</p>
 <h2>为什么需要 Policy Gradient</h2>
 <p>Value-based 方法学习 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。它在离散动作空间中很自然，但在以下场景中不够方便：</p>
 <ul>

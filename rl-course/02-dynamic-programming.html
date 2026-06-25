@@ -328,6 +328,8 @@
 <li>Generalized Policy Iteration。</li>
 <li>DP 方法的局限性。</li>
 </ul>
+<h2>本章主线</h2>
+<p>本章回答一个理想化问题：如果 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span> 都已知，Bellman equation 能不能直接求解？答案是可以。Policy Evaluation 负责“评估固定策略”，Policy Improvement 负责“按价值改进策略”，两者交替就是 GPI。第 3 章会把这里的精确 Bellman backup 换成采样 backup。</p>
 <h2>动态规划适用前提</h2>
 <p>动态规划类方法通常假设环境模型已知：</p>
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>

@@ -363,6 +363,20 @@
 <li>Q-learning。</li>
 <li>on-policy 与 off-policy。</li>
 </ul>
+<h2>本章主线</h2>
+<p>第 2 章的 DP 依赖完整环境模型。本章去掉这个假设，只允许 agent 从真实交互中拿到样本。</p>
+<p>主线分两步：</p>
+<ol>
+<li>Prediction：先学会评估一个固定策略的价值。MC 用完整 return 做 target，TD 用一步 reward 加下一状态估计做 bootstrap target。</li>
+<li>Control：再把价值估计用于改进策略。为了直接比较动作，需要从 <span class="math-text">V(s)</span> 转到 <span class="math-text">Q(s,a)</span>。SARSA 和 Q-learning 不是突然出现的新主题，而是 TD 思想在 action-value control 上的两个版本：SARSA 是 on-policy TD control，Q-learning 是 off-policy TD control。</li>
+</ol>
+<p>所以本章的逻辑是：</p>
+<pre><code class="language-text">DP exact backup
+  -&gt; model-free sample backup
+  -&gt; MC/TD prediction
+  -&gt; TD control with Q(s,a)
+  -&gt; SARSA vs Q-learning
+</code></pre>
 <h2>Model-free 的含义</h2>
 <p>Model-free 指的是不需要显式知道环境转移模型：</p>
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
@@ -723,15 +737,68 @@ TD target = 即时 reward + 下一状态价值估计
 <li>每次交互后都能更新。</li>
 <li>适合 continuing task 或长 episode 任务。</li>
 </ul>
-<h3>例子 3：Cliff Walking 解释 SARSA 和 Q-learning</h3>
-<p>Cliff Walking 中，最短路径贴着悬崖走，但 epsilon-greedy 探索可能让 agent 掉下去。</p>
-<p>SARSA 学当前带探索策略的价值，所以会考虑“我未来还可能乱走一步”的风险，倾向选择远离悬崖的安全路径。</p>
-<p>Q-learning 学 greedy target policy，更新时假设未来都选最优动作，所以更容易学到贴近悬崖的最短路径。</p>
-<p>面试讲法：</p>
+<h2>从 Prediction 到 Control：为什么接 SARSA 和 Q-learning</h2>
+<p>到这里为止，MC 和 TD 主要解决的是 prediction：</p>
 <blockquote>
-<p>SARSA 和 Q-learning 的区别不是公式表面不同，而是学习目标不同。SARSA 评估实际行为策略，Q-learning 用探索数据学习贪心目标策略。</p>
+<p>给定一个策略 <span class="math-text">π</span>，估计它的价值。</p>
 </blockquote>
-<h2>SARSA</h2>
+<p>但强化学习最终要做 control：</p>
+<blockquote>
+<p>找到一个更好的策略。</p>
+</blockquote>
+<p>两者的区别是：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>任务</th>
+<th>学什么</th>
+<th>策略是否固定</th>
+<th>典型问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">V</span> prediction</td>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></td>
+<td>固定</td>
+<td>当前策略下，状态 <span class="math-text">s</span> 值多少钱</td>
+</tr>
+<tr>
+<td><span class="math-text">Q</span> prediction</td>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>固定</td>
+<td>当前策略下，在 <span class="math-text">s</span> 做 <span class="math-text">a</span> 值多少钱</td>
+</tr>
+<tr>
+<td>control</td>
+<td><span class="math-text">Q(s,a)</span> 并改进 <span class="math-text">π</span></td>
+<td>不固定</td>
+<td>在 <span class="math-text">s</span> 应该选哪个动作</td>
+</tr>
+</tbody></table>
+<p>为什么 control 常从 <span class="math-text">Q(s,a)</span> 入手？</p>
+<p>如果已知环境模型，可以用 <span class="math-text">V(s)</span> 加上 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span> 做一步 lookahead：</p>
+<div class="math-block"><span class="math-text">∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V(s')]</span></div>
+
+<p>但 model-free 场景下，模型未知，agent 不能直接对所有下一状态求和。此时更自然的是直接学习每个动作的长期价值：</p>
+<div class="math-block"><span class="math-text">Q(s,a)</span></div>
+
+<p>有了 <span class="math-text">Q(s,a)</span>，策略改进就很直接：</p>
+<pre><code class="language-text">choose action with larger Q(s, a)
+</code></pre>
+<p>所以 SARSA 和 Q-learning 的位置应该理解为：</p>
+<pre><code class="language-text">TD prediction learns V_pi(s)
+TD control learns Q(s,a) and improves policy
+SARSA and Q-learning are two TD control algorithms
+</code></pre>
+<p>它们都沿用 TD 的更新骨架：</p>
+<pre><code class="language-text">new estimate = old estimate + alpha * (TD target - old estimate)
+</code></pre>
+<p>区别只在 TD target 怎么定义：</p>
+<ul>
+<li>SARSA：target 跟随实际行为策略采样到的下一个动作。</li>
+<li>Q-learning：target 假设下一步执行 greedy action。</li>
+</ul>
+<h2>TD Control 1：SARSA</h2>
 <p>SARSA 是 on-policy TD control 方法。名字来自一次更新用到的五元组：</p>
 <div class="math-block"><span class="math-text">(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub>, A<sub><span class="math-text">t+1</span></sub>)</span></div>
 
@@ -755,7 +822,7 @@ TD target = 即时 reward + 下一状态价值估计
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ Q(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>它把“探索可能造成的后果”也学进去。这就是为什么在 cliff walking 里 SARSA 更保守：它知道自己未来还可能因为 epsilon 探索而掉下去。</p>
-<h2>Q-learning</h2>
+<h2>TD Control 2：Q-learning</h2>
 <p>Q-learning 是 off-policy TD control 方法。</p>
 <p>更新公式：</p>
 <div class="math-block multi"><div><span class="math-text">Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>) ← Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+ α [R<sub><span class="math-text">t+1</span></sub> + γ max<sub><span class="math-text">a</span></sub> Q(S<sub><span class="math-text">t+1</span></sub>, a) - Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)]</span></div></div>
@@ -821,11 +888,25 @@ TD target = 即时 reward + 下一状态价值估计
 <td>最优 greedy 策略</td>
 </tr>
 </tbody></table>
-<p>经典 cliff walking 例子：</p>
+<h2>本章例子：Cliff Walking 解释 SARSA 和 Q-learning</h2>
+<p>Cliff Walking 中，起点到终点的最短路径贴着悬崖走，但 epsilon-greedy 探索可能让 agent 随机走错一步掉下去。</p>
+<p>SARSA 学当前带探索行为策略的价值，所以它会把“未来仍可能探索并掉下悬崖”的风险计入 target：</p>
+<pre><code class="language-text">r + gamma * Q(s&#39;, actual a&#39;)
+</code></pre>
+<p>因此 SARSA 往往学到更保守、更远离悬崖的安全路径。</p>
+<p>Q-learning 学 greedy target policy 的价值。虽然行为时仍用 epsilon-greedy 探索，但更新 target 假设下一步会选择当前最优动作：</p>
+<pre><code class="language-text">r + gamma * max_a Q(s&#39;, a)
+</code></pre>
+<p>因此 Q-learning 更容易学到贴近悬崖的最短路径。</p>
+<p>这个例子对应的逻辑是：</p>
 <ul>
 <li>SARSA 会考虑 epsilon-greedy 探索可能掉下悬崖，因此倾向选择更安全路径。</li>
 <li>Q-learning 更新时假设未来总能选最优动作，因此更倾向学习贴近悬崖的最短路径。</li>
 </ul>
+<p>面试讲法：</p>
+<blockquote>
+<p>SARSA 和 Q-learning 都是 TD control。SARSA 的 target 来自行为策略实际采样到的下一动作，所以是 on-policy；Q-learning 的 target 来自 greedy max，所以是 off-policy。Cliff Walking 中 SARSA 更保守，Q-learning 更贪心。</p>
+</blockquote>
 <h2>On-policy vs Off-policy</h2>
 <p>On-policy：</p>
 <p>学习和评估的是当前实际采样的行为策略。</p>
@@ -867,14 +948,16 @@ TD target = 即时 reward + 下一状态价值估计
 <p>MC 用完整 episode 的真实 return 更新，不 bootstrap，bias 小但 variance 大。TD 用 <span class="math-text">r + γ V(s&#39;)</span> 这种一步 bootstrap target 更新，可以在线学习，variance 小但有 bias。</p>
 <h3>2. SARSA 和 Q-learning 的区别？</h3>
 <p>SARSA 是 on-policy，target 使用实际采样到的下一个动作 <span class="math-text">a&#39;</span>。Q-learning 是 off-policy，target 使用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>，学习 greedy target policy。</p>
-<h3>3. 为什么 Q-learning 是 off-policy？</h3>
+<h3>3. SARSA/Q-learning 和 TD 有什么关系？</h3>
+<p>SARSA 和 Q-learning 都是 TD control。TD prediction 更新 <span class="math-text">V(s)</span>，用于评估固定策略；SARSA/Q-learning 更新 <span class="math-text">Q(s,a)</span>，用于边估值边改进策略。两者都使用一步 bootstrap target，只是 SARSA 用实际采样的 <span class="math-text">a&#39;</span>，Q-learning 用 greedy max。</p>
+<h3>4. 为什么 Q-learning 是 off-policy？</h3>
 <p>因为采样数据可以来自 epsilon-greedy 行为策略，但更新目标是假设下一步选择 greedy action 的价值，即 target policy 和 behavior policy 不同。</p>
-<h3>4. TD error 是什么？</h3>
+<h3>5. TD error 是什么？</h3>
 <p>TD error 是当前价值估计和 bootstrap target 之间的差：</p>
 <div class="math-block"><span class="math-text">δ = r + γ V(s') - V(s)</span></div>
 
 <p>它衡量当前估计需要被修正的方向和大小。</p>
-<h3>5. 为什么 TD 可以不等 episode 结束？</h3>
+<h3>6. 为什么 TD 可以不等 episode 结束？</h3>
 <p>因为 TD target 只需要一步 reward 和下一状态的当前价值估计，不需要完整轨迹 return。</p>
 <h2>本章练习</h2>
 <ol>
