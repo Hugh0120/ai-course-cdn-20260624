@@ -8,15 +8,53 @@
     size: A4;
     margin: 19mm 19mm 18mm 19mm;
   }
+  :root {
+    color-scheme: light;
+    --page-bg: #eef2f7;
+    --surface-bg: #ffffff;
+    --text-color: #1f2328;
+    --heading-color: #111827;
+    --muted-color: #6b7280;
+    --border-color: #d8dee4;
+    --surface-border: #dbe3ee;
+    --table-head-bg: #f6f8fb;
+    --soft-bg: #f8fafc;
+    --inline-code-bg: #f3f4f6;
+    --pre-bg: #0f172a;
+    --pre-text: #e5e7eb;
+    --quote-border: #64748b;
+    --link-color: #2563eb;
+    --shell-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page-bg: #0b1020;
+      --surface-bg: #111827;
+      --text-color: #e5e7eb;
+      --heading-color: #f8fafc;
+      --muted-color: #94a3b8;
+      --border-color: #334155;
+      --surface-border: #334155;
+      --table-head-bg: #182235;
+      --soft-bg: #0f172a;
+      --inline-code-bg: #1f2937;
+      --pre-bg: #020617;
+      --pre-text: #e5e7eb;
+      --quote-border: #60a5fa;
+      --link-color: #93c5fd;
+      --shell-shadow: none;
+    }
+  }
   * { box-sizing: border-box; }
   html {
-    background: #eef2f7;
+    background: var(--page-bg);
   }
   body {
     margin: 0;
     padding: 48px 28px;
-    background: #eef2f7;
-    color: #1f2328;
+    background: var(--page-bg);
+    color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", Arial, sans-serif;
     font-size: 15px;
     line-height: 1.68;
@@ -25,30 +63,30 @@
     max-width: 980px;
     margin: 0 auto;
     padding: 54px 70px 68px;
-    background: #ffffff;
-    border: 1px solid #dbe3ee;
-    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shell-shadow);
   }
   h1, h2, h3 {
-    color: #111827;
+    color: var(--heading-color);
     line-height: 1.25;
     margin: 1.05em 0 0.45em;
   }
   h1 {
     font-size: 22pt;
-    border-bottom: 2px solid #111827;
+    border-bottom: 2px solid var(--heading-color);
     padding-bottom: 7px;
     page-break-before: always;
   }
   h1:first-of-type { page-break-before: avoid; }
-  h2 { font-size: 15pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; }
+  h2 { font-size: 15pt; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
   h3 { font-size: 12pt; }
   p { margin: 0.55em 0; }
   blockquote {
     margin: 0.9em 0;
     padding: 0.6em 0.95em;
-    border-left: 4px solid #64748b;
-    background: #f8fafc;
+    border-left: 4px solid var(--quote-border);
+    background: var(--soft-bg);
   }
   table {
     width: 100%;
@@ -57,7 +95,7 @@
     margin: 0.9em 0 1.15em;
     page-break-inside: auto;
     table-layout: auto;
-    border: 1px solid #d8dee4;
+    border: 1px solid var(--border-color);
     border-radius: 7px;
     overflow: hidden;
     font-size: 0.94em;
@@ -66,8 +104,8 @@
   tr { page-break-inside: avoid; }
   th, td {
     border: 0;
-    border-right: 1px solid #d8dee4;
-    border-bottom: 1px solid #d8dee4;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     padding: 7px 9px;
     vertical-align: top;
     overflow-wrap: break-word;
@@ -76,7 +114,7 @@
   td:last-child { border-right: 0; }
   tbody tr:last-child td { border-bottom: 0; }
   th {
-    background: #f6f8fb;
+    background: var(--table-head-bg);
     font-weight: 700;
     white-space: nowrap;
   }
@@ -94,14 +132,14 @@
   .wide-table td:first-child { width: 15%; }
   code {
     font-family: "SFMono-Regular", Consolas, Menlo, monospace;
-    background: #f3f4f6;
+    background: var(--inline-code-bg);
     border-radius: 4px;
     padding: 0.08em 0.28em;
     font-size: 0.9em;
   }
   pre {
-    background: #0f172a;
-    color: #e5e7eb;
+    background: var(--pre-bg);
+    color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
     overflow-wrap: anywhere;
@@ -124,8 +162,8 @@
   .math-block {
     margin: 0.7em auto;
     padding: 0.5em 0.65em;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
+    background: var(--soft-bg);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     text-align: center;
     font-family: "Times New Roman", "STIX Two Math", "Cambria Math", serif;
@@ -149,7 +187,7 @@
     padding: 0 0.12em 0.08em;
   }
   .frac > span:last-child { padding: 0.08em 0.12em 0; }
-  a { color: #2563eb; text-decoration: none; }
+  a { color: var(--link-color); text-decoration: none; }
   .chapter-index {
     margin: 1.1em 0 1.4em;
     padding: 0;
@@ -161,17 +199,17 @@
     gap: 10px;
     align-items: center;
     padding: 9px 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
   }
   .chapter-index .chapter-source {
-    color: #6b7280;
+    color: var(--muted-color);
     font-size: 0.88em;
   }
   .chapter-nav {
     margin: 0 0 1.25em;
     padding: 0.55em 0;
-    border-bottom: 1px solid #e5e7eb;
-    color: #6b7280;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--muted-color);
     font-size: 0.92em;
     display: flex;
     gap: 10px;
@@ -201,13 +239,32 @@
     }
   }
   @media print {
+    :root {
+      color-scheme: light;
+      --page-bg: #ffffff;
+      --surface-bg: #ffffff;
+      --text-color: #1f2328;
+      --heading-color: #111827;
+      --muted-color: #6b7280;
+      --border-color: #d8dee4;
+      --surface-border: #dbe3ee;
+      --table-head-bg: #f6f8fb;
+      --soft-bg: #f8fafc;
+      --inline-code-bg: #f3f4f6;
+      --pre-bg: #0f172a;
+      --pre-text: #e5e7eb;
+      --quote-border: #64748b;
+      --link-color: #2563eb;
+      --shell-shadow: none;
+    }
     html, body {
-      background: #ffffff;
+      background: var(--page-bg);
     }
     body {
       padding: 0;
       font-size: 10.2pt;
       line-height: 1.55;
+      color: var(--text-color);
     }
     .doc-shell {
       max-width: none;
