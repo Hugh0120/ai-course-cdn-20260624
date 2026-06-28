@@ -329,6 +329,62 @@
 </ul>
 <h2>本章主线</h2>
 <p>前面几章默认可以为每个状态或状态-动作对存一个表格值。真实任务里状态空间通常巨大或连续，所以必须用参数化函数近似 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 <span class="math-text">π(a∣ s)</span>。本章先建立函数逼近的训练形式，再解释为什么 bootstrapping、off-policy learning 和 function approximation 同时出现时会带来稳定性问题。</p>
+<h2>本章新增概念说明</h2>
+<p>本章开始进入 deep RL，先把稳定性相关名词放在一起：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>function approximation</td>
+<td>函数逼近</td>
+<td>用参数化模型近似 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 <span class="math-text">π(a∣ s)</span>，不再为每个状态单独建表。</td>
+</tr>
+<tr>
+<td>value function approximation</td>
+<td>价值函数逼近</td>
+<td>用模型预测价值函数，例如 <span class="math-text">Q(s,a;w)</span>。</td>
+</tr>
+<tr>
+<td>bootstrapping</td>
+<td>自举</td>
+<td>target 里用了模型当前自己的估计，例如 <span class="math-text">r+γ V(s&#39;)</span>。</td>
+</tr>
+<tr>
+<td>off-policy distribution shift</td>
+<td>异策略分布偏移</td>
+<td>数据来自一个策略，学习目标却是另一个策略，导致训练分布和目标分布不一致。</td>
+</tr>
+<tr>
+<td>Deadly Triad</td>
+<td>致命三角</td>
+<td>function approximation、bootstrapping、off-policy 同时出现时，训练容易不稳定。</td>
+</tr>
+<tr>
+<td>replay buffer</td>
+<td>经验回放池</td>
+<td>存历史 transition，训练时随机采样，打破连续样本相关性。</td>
+</tr>
+<tr>
+<td>target network</td>
+<td>目标网络</td>
+<td>滞后更新的网络，用来让 Bellman target 更稳定。</td>
+</tr>
+<tr>
+<td>overestimation bias</td>
+<td>过估计偏差</td>
+<td>max 操作容易选择被噪声高估的动作，导致 Q 值偏高。</td>
+</tr>
+<tr>
+<td>reward clipping / gradient clipping</td>
+<td>奖励截断 / 梯度截断</td>
+<td>工程稳定化技巧，用来限制训练信号或梯度过大。</td>
+</tr>
+</tbody></table>
 <h2>为什么需要函数逼近</h2>
 <p>表格型方法为每个状态或状态动作对存一个值：</p>
 <div class="math-block multi"><div><span class="math-text">V(s)</span></div><div><span class="math-text">Q(s, a)</span></div></div>

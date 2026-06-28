@@ -346,6 +346,62 @@
 </ul>
 <h2>本章主线</h2>
 <p>第 7 章的纯 policy gradient 可以直接优化策略，但 Monte Carlo return 方差高。第 3 章的 TD value learning 方差低但主要解决估值。本章把两者合并：actor 负责更新策略，critic 负责估计 value 或 advantage。GAE 则进一步在 MC 和 TD 之间调节 bias/variance。</p>
+<h2>本章新增概念说明</h2>
+<p>Actor-Critic 的词容易混在一起，先按角色定义：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>actor</td>
+<td>行动者 / 策略网络</td>
+<td>负责输出动作或动作分布。</td>
+</tr>
+<tr>
+<td>critic</td>
+<td>评价者 / 价值网络</td>
+<td>负责估计 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 advantage，给 actor 提供学习信号。</td>
+</tr>
+<tr>
+<td>actor-critic</td>
+<td>Actor-Critic 框架</td>
+<td>actor 学策略，critic 学价值，用 critic 降低 policy gradient 方差。</td>
+</tr>
+<tr>
+<td>TD error</td>
+<td>时序差分误差</td>
+<td>一步 target 和当前价值估计的差，可近似 advantage。</td>
+</tr>
+<tr>
+<td>A2C</td>
+<td>Advantage Actor-Critic</td>
+<td>同步采样和更新的 actor-critic 方法。</td>
+</tr>
+<tr>
+<td>A3C</td>
+<td>Asynchronous Advantage Actor-Critic</td>
+<td>多 worker 异步采样和更新的 actor-critic 方法。</td>
+</tr>
+<tr>
+<td>n-step return</td>
+<td>n 步回报</td>
+<td>用未来 n 步真实 reward 加 bootstrap target 构造学习信号。</td>
+</tr>
+<tr>
+<td>GAE</td>
+<td>广义优势估计</td>
+<td>把多个步数的 TD residual 加权平均，平衡 bias 和 variance。</td>
+</tr>
+<tr>
+<td>shared network / separate network</td>
+<td>共享网络 / 分离网络</td>
+<td>actor 和 critic 共用一部分网络，或各自用独立网络。</td>
+</tr>
+</tbody></table>
 <h2>Actor-Critic 基本思想</h2>
 <p>Actor-Critic 有两个部分：</p>
 <ul>

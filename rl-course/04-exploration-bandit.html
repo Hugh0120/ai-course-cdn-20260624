@@ -312,6 +312,77 @@
 </ul>
 <h2>本章主线</h2>
 <p>第 3 章默认 agent 能持续拿到交互样本，但样本本身由策略决定。策略如果只选当前最优动作，可能永远发现不了更好动作；如果一直随机试，又会牺牲收益。本章把探索问题抽出来，先在 bandit 里研究最小版本，再把 epsilon-greedy、UCB、Thompson Sampling 的思想带回 RL。</p>
+<h2>本章新增概念说明</h2>
+<p>先把本章会反复出现的探索名词说明清楚：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>exploration</td>
+<td>探索</td>
+<td>尝试还不确定的动作，目的是发现潜在更优选择。</td>
+</tr>
+<tr>
+<td>exploitation</td>
+<td>利用</td>
+<td>选择当前估计最好的动作，目的是获得已知收益。</td>
+</tr>
+<tr>
+<td>epsilon-greedy</td>
+<td>epsilon-greedy 策略</td>
+<td>以 <span class="math-text">ε</span> 概率随机探索，否则选择当前 <span class="math-text">Q</span> 最大的动作。</td>
+</tr>
+<tr>
+<td>greedy action</td>
+<td>贪心动作</td>
+<td>当前价值估计下最好的动作，即 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span>。</td>
+</tr>
+<tr>
+<td>softmax exploration</td>
+<td>softmax 探索</td>
+<td>按价值大小分配采样概率，价值越高越容易被选中。</td>
+</tr>
+<tr>
+<td>temperature</td>
+<td>温度参数</td>
+<td>控制 softmax 分布平滑程度；温度高更随机，温度低更贪心。</td>
+</tr>
+<tr>
+<td>bandit / arm</td>
+<td>多臂老虎机 / 拉杆</td>
+<td>只考虑动作和即时 reward、暂时不考虑状态转移的探索问题。</td>
+</tr>
+<tr>
+<td>regret</td>
+<td>后悔值</td>
+<td>因为没总选最优动作而损失的累计收益。</td>
+</tr>
+<tr>
+<td>UCB</td>
+<td>置信上界</td>
+<td>当前平均收益加不确定性 bonus，偏向探索不确定动作。</td>
+</tr>
+<tr>
+<td>Thompson Sampling</td>
+<td>Thompson 采样</td>
+<td>从每个动作的后验分布采样，用概率匹配方式探索。</td>
+</tr>
+<tr>
+<td>posterior</td>
+<td>后验分布</td>
+<td>看到历史数据后，对某个动作真实收益的概率估计。</td>
+</tr>
+<tr>
+<td>NoisyNet</td>
+<td>噪声网络</td>
+<td>在网络参数中加入噪声，让探索发生在参数或策略层面。</td>
+</tr>
+</tbody></table>
 <h2>探索与利用</h2>
 <p>强化学习中，agent 面临两个目标：</p>
 <ul>

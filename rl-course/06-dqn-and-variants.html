@@ -342,6 +342,72 @@
 </ul>
 <h2>本章主线</h2>
 <p>本章把第 3 章的 Q-learning 和第 5 章的神经网络函数逼近接起来。直接用网络拟合 Q-learning target 会因为样本相关、target 移动、过估计等问题不稳定。DQN 的 replay buffer、target network、Double DQN、Dueling DQN 和 Prioritized Replay 都是在修正这些具体不稳定来源。</p>
+<h2>本章新增概念说明</h2>
+<p>DQN 章节名词很多，先按“基础结构 -&gt; 稳定技巧 -&gt; 改进算法”分清楚：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Q-table</td>
+<td>Q 表</td>
+<td>表格 Q-learning 中为每个 <span class="math-text">(s,a)</span> 存一个值。</td>
+</tr>
+<tr>
+<td>Q network</td>
+<td>Q 网络</td>
+<td>DQN 用神经网络输出 <span class="math-text">Q(s,a)</span>，替代 Q-table。</td>
+</tr>
+<tr>
+<td>online network</td>
+<td>在线网络</td>
+<td>当前正在训练、负责预测 Q 值的网络。</td>
+</tr>
+<tr>
+<td>target network</td>
+<td>目标网络</td>
+<td>滞后于 online network，用来计算较稳定的 TD target。</td>
+</tr>
+<tr>
+<td>replay buffer / experience replay</td>
+<td>回放池 / 经验回放</td>
+<td>存历史 transition，随机采样 mini-batch 训练。</td>
+</tr>
+<tr>
+<td>TD target / Bellman target</td>
+<td>TD 目标 / Bellman 目标</td>
+<td>当前 Q 网络要拟合的监督信号，例如 <span class="math-text">r+γmax Q(s&#39;,a&#39;)</span>。</td>
+</tr>
+<tr>
+<td>Huber loss</td>
+<td>Huber 损失</td>
+<td>对异常 TD error 比平方损失更稳的回归损失。</td>
+</tr>
+<tr>
+<td>Double DQN</td>
+<td>双网络 DQN 改进</td>
+<td>online network 选动作，target network 估值，降低过估计。</td>
+</tr>
+<tr>
+<td>Dueling DQN</td>
+<td>Dueling 架构</td>
+<td>把 <span class="math-text">Q(s,a)</span> 拆成状态价值 <span class="math-text">V(s)</span> 和动作优势 <span class="math-text">A(s,a)</span>。</td>
+</tr>
+<tr>
+<td>Prioritized Replay</td>
+<td>优先经验回放</td>
+<td>更常采样 TD error 大的样本。</td>
+</tr>
+<tr>
+<td>importance sampling weight</td>
+<td>重要性采样权重</td>
+<td>修正 Prioritized Replay 非均匀采样带来的偏差。</td>
+</tr>
+</tbody></table>
 <h2>DQN 解决什么问题</h2>
 <p>Q-learning 的表格更新是：</p>
 <div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>

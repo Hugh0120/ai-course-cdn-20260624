@@ -353,6 +353,72 @@
 </ul>
 <h2>本章主线</h2>
 <p>Actor-Critic 解决了 policy gradient 高方差问题，但策略更新仍可能一步走太大，导致新策略和采样数据对应的旧策略差异过大。本章专门处理“更新幅度控制”：TRPO 用 trust region 和 KL 约束，PPO 用 clipping objective 做更易实现的近似。</p>
+<h2>本章新增概念说明</h2>
+<p>本章核心是“限制策略更新幅度”，先把 PPO/TRPO 相关名词定义清楚：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>old policy</td>
+<td>旧策略</td>
+<td>采样 rollout 时使用的策略。</td>
+</tr>
+<tr>
+<td>new policy</td>
+<td>新策略</td>
+<td>当前正在优化、准备替换旧策略的策略。</td>
+</tr>
+<tr>
+<td>behavior policy</td>
+<td>行为策略</td>
+<td>在 PPO 里通常就是采样数据的 old policy。</td>
+</tr>
+<tr>
+<td>target policy</td>
+<td>目标策略</td>
+<td>当前想优化得到的 new policy。</td>
+</tr>
+<tr>
+<td>KL divergence</td>
+<td>KL 散度</td>
+<td>衡量新旧策略分布差异，越大说明策略变化越大。</td>
+</tr>
+<tr>
+<td>trust region</td>
+<td>信赖域</td>
+<td>限制策略每次只能在可信范围内小步更新。</td>
+</tr>
+<tr>
+<td>importance sampling ratio</td>
+<td>重要性采样比率</td>
+<td>新策略概率除以旧策略概率，用旧数据估计新策略目标。</td>
+</tr>
+<tr>
+<td>surrogate objective</td>
+<td>替代目标</td>
+<td>用已有 rollout 近似优化真实策略目标的目标函数。</td>
+</tr>
+<tr>
+<td>clipping</td>
+<td>截断</td>
+<td>限制 ratio 过大或过小，防止策略更新过猛。</td>
+</tr>
+<tr>
+<td>entropy bonus</td>
+<td>熵奖励</td>
+<td>鼓励策略保持一定随机性，避免过早收敛。</td>
+</tr>
+<tr>
+<td>advantage normalization</td>
+<td>优势归一化</td>
+<td>把 advantage 标准化，让训练尺度更稳定。</td>
+</tr>
+</tbody></table>
 <h2>为什么要限制策略更新</h2>
 <p>Policy Gradient 直接更新策略参数：</p>
 <div class="math-block"><span class="math-text">θ ← θ + α ∇ J(θ)</span></div>

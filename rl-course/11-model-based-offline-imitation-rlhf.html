@@ -358,6 +358,112 @@
 </ul>
 <h2>本章主线</h2>
 <p>前 10 章主要讨论在线 model-free 学习。本章换成四类现实约束：能不能学或使用环境模型，能不能继续交互，能不能从专家示范学，能不能用人类偏好定义 reward。Model-based RL、Offline RL、Imitation Learning、RLHF 分别对应这些约束，是面试里从经典 RL 扩展到真实系统和大模型对齐的关键桥梁。</p>
+<h2>本章新增概念说明</h2>
+<p>这一章主题最多，先把容易混的名词集中定义：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>model-free RL</td>
+<td>无模型强化学习</td>
+<td>不显式学习环境模型，直接学 value 或 policy。</td>
+</tr>
+<tr>
+<td>model-based RL</td>
+<td>基于模型的强化学习</td>
+<td>学习或使用环境 dynamics/reward model，再用模型 planning 或 rollout。</td>
+</tr>
+<tr>
+<td>dynamics model</td>
+<td>动力学模型</td>
+<td>预测执行动作后的下一状态，例如 <span class="math-text">s<sub><span class="math-text">t+1</span></sub>≈ f<sub><span class="math-text">φ</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>。</td>
+</tr>
+<tr>
+<td>planning</td>
+<td>规划</td>
+<td>在模型里搜索或评估未来动作序列。</td>
+</tr>
+<tr>
+<td>model bias</td>
+<td>模型偏差</td>
+<td>学到的模型不准，规划时会放大误差。</td>
+</tr>
+<tr>
+<td>offline RL</td>
+<td>离线强化学习</td>
+<td>只用固定历史数据集学习策略，不继续探索收集新数据。</td>
+</tr>
+<tr>
+<td>behavior policy</td>
+<td>行为策略</td>
+<td>产生离线数据的旧策略、人类策略或混合策略。</td>
+</tr>
+<tr>
+<td>OOD action</td>
+<td>分布外动作</td>
+<td>历史数据中很少出现或没出现过的动作。</td>
+</tr>
+<tr>
+<td>extrapolation error</td>
+<td>外推误差</td>
+<td>critic 对没数据覆盖的动作估值不可靠。</td>
+</tr>
+<tr>
+<td>imitation learning</td>
+<td>模仿学习</td>
+<td>从专家数据中学习行为。</td>
+</tr>
+<tr>
+<td>behavior cloning</td>
+<td>行为克隆</td>
+<td>把专家动作当监督学习标签来模仿。</td>
+</tr>
+<tr>
+<td>compounding error</td>
+<td>误差累积</td>
+<td>模型犯小错后进入未见状态，后续错误继续放大。</td>
+</tr>
+<tr>
+<td>DAgger</td>
+<td>数据集聚合</td>
+<td>让专家给 learner 实际访问到的状态继续标注，缓解分布偏移。</td>
+</tr>
+<tr>
+<td>IRL</td>
+<td>逆强化学习</td>
+<td>不直接模仿动作，而是从专家行为反推 reward。</td>
+</tr>
+<tr>
+<td>reward model</td>
+<td>奖励模型</td>
+<td>根据偏好或标注预测 response/action 质量的模型。</td>
+</tr>
+<tr>
+<td>preference data</td>
+<td>偏好数据</td>
+<td>人类对两个或多个 response 的好坏比较。</td>
+</tr>
+<tr>
+<td>reference model</td>
+<td>参考模型</td>
+<td>RLHF 中用来约束新 policy 不要偏离太远的原始模型。</td>
+</tr>
+<tr>
+<td>reward hacking</td>
+<td>奖励黑客</td>
+<td>policy 利用 reward model 漏洞拿高分，但真实质量变差。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>直接偏好优化</td>
+<td>直接用偏好数据优化 policy，不显式跑 PPO。</td>
+</tr>
+</tbody></table>
 <h2>四类进阶主题的边界</h2>
 <p>这一章主题多，先用边界表把它们分开：</p>
 <table class="standard-table">

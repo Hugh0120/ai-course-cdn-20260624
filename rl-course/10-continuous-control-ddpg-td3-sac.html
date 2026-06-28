@@ -329,6 +329,82 @@
 </ul>
 <h2>本章主线</h2>
 <p>第 6 章的 DQN 依赖离散动作枚举，第 9 章的 PPO 是 on-policy，样本效率相对低。连续控制通常既需要 actor 直接输出连续动作，又希望 off-policy 复用 replay buffer。本章围绕这个目标讲 DDPG、TD3、SAC：它们都是连续动作下的 off-policy actor-critic，只是稳定性和探索处理不同。</p>
+<h2>本章新增概念说明</h2>
+<p>连续控制章节的核心是“动作不能枚举”，相关名词先放这里：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>continuous action</td>
+<td>连续动作</td>
+<td>动作是连续数值，例如力矩、速度、角度，不能像 DQN 那样枚举。</td>
+</tr>
+<tr>
+<td>deterministic actor</td>
+<td>确定性 actor</td>
+<td>输入状态后直接输出一个连续动作。</td>
+</tr>
+<tr>
+<td>stochastic actor</td>
+<td>随机 actor</td>
+<td>输出动作分布，再从分布中采样动作。</td>
+</tr>
+<tr>
+<td>critic</td>
+<td>评价网络</td>
+<td>估计 <span class="math-text">Q(s,a)</span>，告诉 actor 哪些动作价值高。</td>
+</tr>
+<tr>
+<td>DDPG</td>
+<td>深度确定性策略梯度</td>
+<td>用 deterministic actor 处理连续动作的 off-policy actor-critic。</td>
+</tr>
+<tr>
+<td>TD3</td>
+<td>双延迟 DDPG</td>
+<td>通过双 Q、延迟 actor 更新、target policy smoothing 稳定 DDPG。</td>
+</tr>
+<tr>
+<td>SAC</td>
+<td>软 Actor-Critic</td>
+<td>用最大熵目标训练 stochastic actor，探索更稳定。</td>
+</tr>
+<tr>
+<td>exploration noise</td>
+<td>探索噪声</td>
+<td>DDPG/TD3 中加到动作上的噪声，用来探索连续动作空间。</td>
+</tr>
+<tr>
+<td>target actor / target critic</td>
+<td>目标 actor / 目标 critic</td>
+<td>滞后更新的 actor/critic，用来构造更稳定的 target。</td>
+</tr>
+<tr>
+<td>clipped double Q</td>
+<td>截断双 Q</td>
+<td>两个 critic 取较小值，缓解过估计。</td>
+</tr>
+<tr>
+<td>delayed policy update</td>
+<td>延迟策略更新</td>
+<td>critic 多更新几次后再更新 actor，让评价更可靠。</td>
+</tr>
+<tr>
+<td>target policy smoothing</td>
+<td>目标策略平滑</td>
+<td>给 target action 加小噪声，让 critic 不过拟合尖锐 Q 峰值。</td>
+</tr>
+<tr>
+<td>maximum entropy objective</td>
+<td>最大熵目标</td>
+<td>同时最大化 reward 和策略熵，让策略保持探索。</td>
+</tr>
+</tbody></table>
 <h2>连续动作空间的挑战</h2>
 <p>DQN 需要计算：</p>
 <div class="math-block"><span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s', a)</span></div>

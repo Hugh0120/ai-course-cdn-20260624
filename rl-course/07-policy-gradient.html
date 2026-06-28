@@ -324,6 +324,87 @@
 </ul>
 <h2>本章主线</h2>
 <p>Value-based 方法先学 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。这个思路在连续动作、随机策略或需要直接控制动作分布时不够自然。本章转向 policy-based RL：直接参数化 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，推导如何对期望 return 求梯度，并用 baseline 和 advantage 降低方差。</p>
+<h2>本章新增概念说明</h2>
+<p>本章从 value-based 转到 policy-based，先定义这些词：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>先记住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>value-based</td>
+<td>基于价值的方法</td>
+<td>先学 <span class="math-text">Q(s,a)</span> 或 <span class="math-text">V(s)</span>，再用价值选动作。</td>
+</tr>
+<tr>
+<td>policy-based</td>
+<td>基于策略的方法</td>
+<td>直接学习 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，让策略本身输出动作或动作分布。</td>
+</tr>
+<tr>
+<td>stochastic policy</td>
+<td>随机策略</td>
+<td>输出动作概率分布，采样动作；天然带探索。</td>
+</tr>
+<tr>
+<td>deterministic policy</td>
+<td>确定性策略</td>
+<td>给定状态直接输出一个动作。</td>
+</tr>
+<tr>
+<td>categorical distribution</td>
+<td>类别分布</td>
+<td>离散动作空间常用的动作概率分布。</td>
+</tr>
+<tr>
+<td>Gaussian policy</td>
+<td>高斯策略</td>
+<td>连续动作空间常用的动作分布，输出均值和方差。</td>
+</tr>
+<tr>
+<td>trajectory</td>
+<td>轨迹</td>
+<td>一整段 state-action-reward 序列。</td>
+</tr>
+<tr>
+<td>log-derivative trick</td>
+<td>对数导数技巧</td>
+<td>把 <span class="math-text">∇ p</span> 改写成 <span class="math-text">p∇log p</span>，用于对采样分布求梯度。</td>
+</tr>
+<tr>
+<td>policy gradient theorem</td>
+<td>策略梯度定理</td>
+<td>说明如何对期望 return 关于策略参数求梯度。</td>
+</tr>
+<tr>
+<td>REINFORCE</td>
+<td>REINFORCE 算法</td>
+<td>最基础的 Monte Carlo policy gradient 算法。</td>
+</tr>
+<tr>
+<td>reward-to-go</td>
+<td>从当前步开始的回报</td>
+<td>只用当前动作之后的 reward 更新当前动作，降低方差。</td>
+</tr>
+<tr>
+<td>baseline</td>
+<td>基线</td>
+<td>从 return 中减掉的 action-independent 参考值，用来降方差。</td>
+</tr>
+<tr>
+<td>advantage</td>
+<td>优势函数</td>
+<td>动作比该状态平均水平好多少，即 <span class="math-text">Q(s,a)-V(s)</span>。</td>
+</tr>
+<tr>
+<td>entropy regularization</td>
+<td>熵正则</td>
+<td>鼓励策略保持随机性，避免过早确定。</td>
+</tr>
+</tbody></table>
 <h2>为什么需要 Policy Gradient</h2>
 <p>Value-based 方法学习 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。它在离散动作空间中很自然，但在以下场景中不够方便：</p>
 <ul>
