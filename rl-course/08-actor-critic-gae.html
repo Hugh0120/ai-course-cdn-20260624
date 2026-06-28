@@ -305,6 +305,12 @@
 <td>控制 bias 和 variance 的折中。</td>
 </tr>
 <tr>
+<td>on-policy</td>
+<td>On-policy Learning</td>
+<td>同策略学习</td>
+<td>数据来自当前正在更新的策略。</td>
+</tr>
+<tr>
 <td>TD</td>
 <td>Temporal Difference</td>
 <td>时序差分</td>
@@ -465,7 +471,7 @@
 <li>每个 worker 异步更新共享全局网络。</li>
 <li>不同 worker 产生的数据降低样本相关性。</li>
 </ul>
-<p>A3C 在 replay buffer 不常用的 on-policy 场景中，通过并行采样改善数据多样性。</p>
+<p>A3C 在 replay buffer 不常用的 on-policy 场景中，通过并行采样改善数据多样性。这里 on-policy 指数据来自当前正在更新的策略，因此不能像 DQN 那样随意复用很旧的数据。</p>
 <p>A2C 可以看作 A3C 的同步版本：</p>
 <ul>
 <li>A3C：asynchronous。</li>

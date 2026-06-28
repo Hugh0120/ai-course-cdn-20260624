@@ -273,10 +273,40 @@
 <td>用一步 reward 加下一状态估计值做 bootstrap 更新。</td>
 </tr>
 <tr>
+<td>epsilon-greedy</td>
+<td>Epsilon-greedy Policy</td>
+<td>epsilon-greedy 策略 / epsilon 贪心策略</td>
+<td>以 <span class="math-text">ε</span> 概率随机探索，否则选择当前价值最大的动作。</td>
+</tr>
+<tr>
+<td>behavior policy</td>
+<td>Behavior Policy</td>
+<td>行为策略</td>
+<td>实际和环境交互、产生训练样本的策略。</td>
+</tr>
+<tr>
+<td>target policy</td>
+<td>Target Policy</td>
+<td>目标策略</td>
+<td>算法真正想评估或优化的策略。</td>
+</tr>
+<tr>
+<td>on-policy</td>
+<td>On-policy Learning</td>
+<td>同策略学习</td>
+<td>behavior policy 和 target policy 是同一个策略。</td>
+</tr>
+<tr>
+<td>off-policy</td>
+<td>Off-policy Learning</td>
+<td>异策略学习</td>
+<td>用 behavior policy 的数据学习另一个 target policy。</td>
+</tr>
+<tr>
 <td>SARSA</td>
 <td>State-Action-Reward-State-Action</td>
 <td>状态-动作-奖励-状态-动作</td>
-<td>on-policy TD control 算法。</td>
+<td>使用实际下一动作更新的 TD control 算法。</td>
 </tr>
 <tr>
 <td>REINFORCE</td>
@@ -312,7 +342,7 @@
 <td>DDPG</td>
 <td>Deep Deterministic Policy Gradient</td>
 <td>深度确定性策略梯度</td>
-<td>连续动作空间的 off-policy actor-critic 算法。</td>
+<td>连续动作空间的 actor-critic 算法，通常用异策略数据训练。</td>
 </tr>
 <tr>
 <td>TD3</td>
@@ -545,6 +575,15 @@
 <li>最后看稳定化：baseline、critic、GAE、target network、replay、PPO clipping、SAC entropy 都是在处理方差、偏差、分布漂移或探索。</li>
 </ol>
 <p>面试里如果一时忘公式，可以从这条链路往回推：目标是什么，target 是什么，target 为什么可靠，更新过大或估计不准会出什么问题。</p>
+<h2>新名词阅读约定</h2>
+<p>本套笔记后续按一个硬规则写：一个新名词第一次进入推导前，必须先说明它的英文、中文、解决什么问题，以及它和当前公式的关系。</p>
+<p>读到算法段落时，建议先检查四件事：</p>
+<ol>
+<li>当前数据是谁采出来的，也就是 behavior policy。</li>
+<li>当前算法想学谁，也就是 target policy。</li>
+<li>当前 target 用的是完整 return、实际下一动作，还是 greedy max。</li>
+<li>因此它是 on-policy 还是 off-policy。</li>
+</ol>
 <h2>例子阅读方式</h2>
 <p>每章都补了“本章例子”或“典型例子”。读例子时不要只记场景名，要把它映射回四件事：</p>
 <ol>

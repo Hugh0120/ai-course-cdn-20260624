@@ -314,7 +314,7 @@
 <td>SARSA</td>
 <td>State-Action-Reward-State-Action</td>
 <td>状态-动作-奖励-状态-动作</td>
-<td>on-policy TD control 算法。</td>
+<td>第 3 章会讲的采样式 TD control 算法。</td>
 </tr>
 </tbody></table>
 <h2>本章目标</h2>
@@ -429,7 +429,7 @@ derive pi from V
 <ul>
 <li>Policy Iteration：完整 evaluation + 贪心 improvement。</li>
 <li>Value Iteration：每一步都做截断 evaluation + improvement。</li>
-<li>SARSA：用采样做 on-policy evaluation 和 improvement。</li>
+<li>SARSA：用同一套采样策略同时做 evaluation 和 improvement；第 3 章会把这类方法称为 on-policy。</li>
 <li>Q-learning：用采样逼近 optimal Bellman backup。</li>
 <li>Actor-Critic：critic 做 evaluation，actor 做 improvement。</li>
 </ul>

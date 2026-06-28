@@ -305,6 +305,42 @@
 <td>控制未来 reward 权重。</td>
 </tr>
 <tr>
+<td><span class="math-text">ε</span></td>
+<td>Epsilon</td>
+<td>探索概率</td>
+<td>epsilon-greedy 中随机探索的概率。</td>
+</tr>
+<tr>
+<td>greedy action</td>
+<td>Greedy Action</td>
+<td>贪心动作</td>
+<td>当前估计下 <span class="math-text">Q(s,a)</span> 最大的动作。</td>
+</tr>
+<tr>
+<td>behavior policy</td>
+<td>Behavior Policy</td>
+<td>行为策略</td>
+<td>实际负责采样数据、和环境交互的策略。</td>
+</tr>
+<tr>
+<td>target policy</td>
+<td>Target Policy</td>
+<td>目标策略</td>
+<td>算法真正想评估或优化的策略。</td>
+</tr>
+<tr>
+<td>on-policy</td>
+<td>On-policy Learning</td>
+<td>同策略学习</td>
+<td>behavior policy 和 target policy 是同一个策略。</td>
+</tr>
+<tr>
+<td>off-policy</td>
+<td>Off-policy Learning</td>
+<td>异策略学习</td>
+<td>用 behavior policy 的数据学习另一个 target policy。</td>
+</tr>
+<tr>
 <td>RL</td>
 <td>Reinforcement Learning</td>
 <td>强化学习</td>
@@ -798,8 +834,90 @@ SARSA and Q-learning are two TD control algorithms
 <li>SARSA：target 跟随实际行为策略采样到的下一个动作。</li>
 <li>Q-learning：target 假设下一步执行 greedy action。</li>
 </ul>
+<h2>先定义：greedy、epsilon-greedy、on-policy、off-policy</h2>
+<p>下面马上要讲 SARSA 和 Q-learning。这里先把几个词定义清楚，否则后面的“因此是 on-policy / off-policy”没有意义。</p>
+<h3>Greedy action / greedy policy</h3>
+<p>Greedy action 指当前 <span class="math-text">Q(s,a)</span> 估计下价值最大的动作：</p>
+<div class="math-block"><span class="math-text">a<sub><span class="math-text">greedy</span></sub>=argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+
+<p>Greedy policy 指每个状态都选择当前看起来最好的动作：</p>
+<pre><code class="language-text">choose argmax_a Q(s, a)
+</code></pre>
+<p>它的问题是：如果早期 <span class="math-text">Q</span> 估计错了，agent 可能一直选错动作，永远不探索其他动作。</p>
+<h3>Epsilon-greedy behavior policy</h3>
+<p>Epsilon-greedy 是一种带探索的行为策略。<span class="math-text">ε</span> 表示随机探索的概率：</p>
+<pre><code class="language-text">with probability epsilon:
+    choose a random action
+otherwise:
+    choose argmax_a Q(s, a)
+</code></pre>
+<p>例如 <span class="math-text">ε=0.1</span>：</p>
+<ul>
+<li>10% 概率随机选动作，用来探索。</li>
+<li>90% 概率选当前 <span class="math-text">Q(s,a)</span> 最大的动作，用来利用当前知识。</li>
+</ul>
+<p>所以 epsilon-greedy 不是一个新算法，而是一种“采样数据时怎么选动作”的策略。</p>
+<h3>Behavior policy 和 target policy</h3>
+<p>在 control 问题里要分清两个策略：</p>
+<table class="three-col-table">
+<thead>
+<tr>
+<th>名词</th>
+<th>中文</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>behavior policy</td>
+<td>行为策略</td>
+<td>实际和环境交互、产生样本的策略。</td>
+</tr>
+<tr>
+<td>target policy</td>
+<td>目标策略</td>
+<td>算法真正想评估或优化的策略。</td>
+</tr>
+</tbody></table>
+<p>如果 agent 用 epsilon-greedy 和环境交互，那么 behavior policy 就是 epsilon-greedy。</p>
+<p>如果算法更新时假设“未来都选 <span class="math-text">Q</span> 最大的动作”，那么 target policy 就是 greedy policy。</p>
+<h3>On-policy 和 off-policy</h3>
+<p>On-policy，中文可以叫同策略学习：</p>
+<blockquote>
+<p>用当前实际采样的 behavior policy，同时作为学习目标。</p>
+</blockquote>
+<p>也就是：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">behavior</span></sub> = π<sub><span class="math-text">target</span></sub></span></div>
+
+<p>如果 behavior policy 是 epsilon-greedy，on-policy 算法学到的就是“我继续按这套 epsilon-greedy 策略行动时，长期价值是多少”。</p>
+<p>Off-policy，中文可以叫异策略学习：</p>
+<blockquote>
+<p>用一个 behavior policy 采样数据，但学习另一个 target policy。</p>
+</blockquote>
+<p>也就是：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">behavior</span></sub> ≠ π<sub><span class="math-text">target</span></sub></span></div>
+
+<p>例如：用 epsilon-greedy 采样，保持探索；但更新 target 时假设下一步走 greedy action。这个就是 off-policy。</p>
+<p>一句话判断：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>判断问题</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>target 用实际采样到的下一个动作 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 吗？</td>
+<td>通常是 on-policy。</td>
+</tr>
+<tr>
+<td>target 跳过实际动作，直接用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span> 吗？</td>
+<td>通常是 off-policy。</td>
+</tr>
+</tbody></table>
 <h2>TD Control 1：SARSA</h2>
-<p>SARSA 是 on-policy TD control 方法。名字来自一次更新用到的五元组：</p>
+<p>现在再看 SARSA。SARSA 是 on-policy TD control 方法。</p>
+<p>这里的 on-policy 含义是：SARSA 用当前行为策略采样数据，也学习这个当前行为策略本身的价值。如果行为策略是 epsilon-greedy，那么 SARSA 学的就是“继续按这套 epsilon-greedy 策略行动时，长期回报是多少”。</p>
+<p>SARSA 名字来自一次更新用到的五元组：</p>
 <div class="math-block"><span class="math-text">(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub>, A<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>更新公式：</p>
@@ -807,9 +925,10 @@ SARSA and Q-learning are two TD control algorithms
 
 <p>关键点：</p>
 <ul>
-<li><span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 是当前行为策略实际选择的动作。</li>
-<li>如果行为策略是 epsilon-greedy，那么 SARSA 的 target 也包含探索动作的影响。</li>
-<li>因此 SARSA 是 on-policy。</li>
+<li><span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 是 behavior policy 在下一状态真实采样出来的动作。</li>
+<li>如果 behavior policy 是 epsilon-greedy，那么 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 可能是 greedy action，也可能是随机探索动作。</li>
+<li>SARSA 的 target 使用这个真实采样的 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span>，所以它学习的 target policy 就是当前 behavior policy。</li>
+<li>因此 SARSA 是 on-policy：采样用谁，学习目标就是谁。</li>
 </ul>
 <p>直觉：</p>
 <p>SARSA 学的是“我按照当前这套带探索的策略行动，长期回报会是多少”。</p>
@@ -817,13 +936,14 @@ SARSA and Q-learning are two TD control algorithms
 <p>对 action-value 来说，Bellman expectation 可以理解成：</p>
 <div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ Q<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)]</span></div>
 
-<p>SARSA 在采样时真的执行了下一步动作 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span>。如果当前行为策略是 epsilon-greedy，那么 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 可能是 greedy action，也可能是探索动作。</p>
+<p>SARSA 在采样时真的执行了下一步动作 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span>。如果当前 behavior policy 是 epsilon-greedy，那么 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span> 可能是 greedy action，也可能是随机探索动作。</p>
 <p>所以 SARSA 的 target 是：</p>
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ Q(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)</span></div>
 
-<p>它把“探索可能造成的后果”也学进去。这就是为什么在 cliff walking 里 SARSA 更保守：它知道自己未来还可能因为 epsilon 探索而掉下去。</p>
+<p>它把“探索可能造成的后果”也学进去。这就是为什么在 Cliff Walking 里 SARSA 更保守：它知道自己未来还可能因为 <span class="math-text">ε</span> 探索而掉下去。</p>
 <h2>TD Control 2：Q-learning</h2>
 <p>Q-learning 是 off-policy TD control 方法。</p>
+<p>这里的 off-policy 含义是：Q-learning 可以用 epsilon-greedy 这种 behavior policy 去探索和采样，但它更新时学习的是 greedy target policy，也就是“未来都选当前 <span class="math-text">Q</span> 最大动作”的策略。</p>
 <p>更新公式：</p>
 <div class="math-block multi"><div><span class="math-text">Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>) ← Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+ α [R<sub><span class="math-text">t+1</span></sub> + γ max<sub><span class="math-text">a</span></sub> Q(S<sub><span class="math-text">t+1</span></sub>, a) - Q(S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)]</span></div></div>
 
@@ -832,7 +952,7 @@ SARSA and Q-learning are two TD control algorithms
 <li>行为时可以用 epsilon-greedy 探索。</li>
 <li>更新 target 时直接用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>。</li>
 <li>学习目标是 greedy policy 的价值，而不完全等于行为策略。</li>
-<li>因此 Q-learning 是 off-policy。</li>
+<li>因此 Q-learning 是 off-policy：采样策略可以带探索，但学习目标是 greedy policy。</li>
 </ul>
 <p>直觉：</p>
 <p>Q-learning 学的是“如果未来都选当前估计下最优的动作，长期回报会是多少”。</p>
@@ -907,7 +1027,8 @@ SARSA and Q-learning are two TD control algorithms
 <blockquote>
 <p>SARSA 和 Q-learning 都是 TD control。SARSA 的 target 来自行为策略实际采样到的下一动作，所以是 on-policy；Q-learning 的 target 来自 greedy max，所以是 off-policy。Cliff Walking 中 SARSA 更保守，Q-learning 更贪心。</p>
 </blockquote>
-<h2>On-policy vs Off-policy</h2>
+<h2>On-policy vs Off-policy 总结</h2>
+<p>前面已经先定义过一次，这里只做总结。</p>
 <p>On-policy：</p>
 <p>学习和评估的是当前实际采样的行为策略。</p>
 <div class="math-block"><span class="math-text">π<sub><span class="math-text">behavior</span></sub> = π<sub><span class="math-text">target</span></sub></span></div>
