@@ -471,7 +471,8 @@
 <td>同时最大化 reward 和策略熵，让策略保持探索。</td>
 </tr>
 </tbody></table>
-<h2>10.5 连续动作空间的挑战</h2>
+<h2>10.5 连续动作问题和 Actor 思路</h2>
+<h3>10.5.1 连续动作空间的挑战</h3>
 <p>DQN 需要计算：</p>
 <div class="math-block"><span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s', a)</span></div>
 
@@ -482,7 +483,7 @@
 <p>或者输出动作分布：</p>
 <div class="math-block"><span class="math-text">a ~ π<sub><span class="math-text">θ</span></sub>(. ∣ s)</span></div>
 
-<h2>10.6 从 DQN 到 Actor 的推理过程</h2>
+<h3>10.5.2 从 DQN 到 Actor 的推理过程</h3>
 <p>DQN 在离散动作中可以做：</p>
 <div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>=argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
 
@@ -492,7 +493,8 @@
 actor:   产生让 Q(s, a) 尽量大的动作
 </code></pre>
 <p>所以连续控制里的 actor 不是装饰，它是在替代 DQN 中对动作的显式枚举或 argmax。</p>
-<h2>10.7 DDPG</h2>
+<h2>10.6 DDPG：确定性 Actor-Critic</h2>
+<h3>10.6.1 DDPG</h3>
 <p>DDPG 是 Deep Deterministic Policy Gradient。</p>
 <p>它适用于连续动作空间，是 off-policy actor-critic。</p>
 <p>组件：</p>
@@ -531,7 +533,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <p>DDPG 的策略是 deterministic，因此训练时通常给动作加噪声：</p>
 <div class="math-block"><span class="math-text">a<sub><span class="math-text">t</span></sub> = μ<sub><span class="math-text">θ</span></sub>(s<sub><span class="math-text">t</span></sub>) + ε<sub><span class="math-text">t</span></sub></span></div>
 
-<h2>10.8 DDPG 的问题</h2>
+<h3>10.6.2 DDPG 的问题</h3>
 <p>DDPG 比较脆弱，常见问题：</p>
 <ul>
 <li>Q 值过估计。</li>
@@ -541,7 +543,8 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <li>训练容易不稳定。</li>
 </ul>
 <p>TD3 就是针对 DDPG 的几个问题做改进。</p>
-<h2>10.9 TD3</h2>
+<h2>10.7 TD3：修正 DDPG 的过估计和不稳定</h2>
+<h3>10.7.1 TD3</h3>
 <p>TD3 是 Twin Delayed DDPG。</p>
 <p>核心改进：</p>
 <ol>
@@ -549,7 +552,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <li>Delayed policy update。</li>
 <li>Target policy smoothing。</li>
 </ol>
-<h3>10.9.1 Clipped Double Q-learning</h3>
+<h4>10.7.1.1 Clipped Double Q-learning</h4>
 <p>TD3 学两个 critic：</p>
 <div class="math-block"><span class="math-text">Q<sub><span class="math-text">1</span></sub>(s,a), Q<sub><span class="math-text">2</span></sub>(s,a)</span></div>
 
@@ -557,18 +560,18 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <div class="math-block"><span class="math-text">y = r + γ min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a')</span></div>
 
 <p>这样可以缓解 overestimation bias。</p>
-<h3>10.9.2 Delayed Policy Update</h3>
+<h4>10.7.1.2 Delayed Policy Update</h4>
 <p>Critic 更新多次后，actor 再更新一次。</p>
 <p>直觉：</p>
 <p>critic 估计更可靠后，再用它指导 actor，减少 actor 被错误 Q 值带偏。</p>
-<h3>10.9.3 Target Policy Smoothing</h3>
+<h4>10.7.1.3 Target Policy Smoothing</h4>
 <p>target action 加入 clipped noise：</p>
 <div class="math-block"><span class="math-text">a' = μ<sup><span class="math-text">-</span></sup>(s') + ε<sub><span class="math-text">clip</span></sub></span></div>
 
 <p>再用 <span class="math-text">a&#39;</span> 计算 target。</p>
 <p>直觉：</p>
 <p>让 critic 不要对动作空间中的尖锐错误峰值过拟合，使 Q 函数更平滑。</p>
-<h2>10.10 TD3 三个改进的共同逻辑</h2>
+<h3>10.7.2 TD3 三个改进的共同逻辑</h3>
 <p>TD3 的三个 trick 都围绕同一个问题：actor 很容易利用 critic 的错误。</p>
 <table class="three-col-table">
 <thead>
@@ -598,7 +601,8 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <blockquote>
 <p>TD3 不是三个孤立技巧，而是在防止 deterministic actor 钻 critic 估计误差的空子。</p>
 </blockquote>
-<h2>10.11 SAC</h2>
+<h2>10.8 SAC：最大熵 Actor-Critic</h2>
+<h3>10.8.1 SAC</h3>
 <p>SAC 是 Soft Actor-Critic，是现代连续控制中非常常用的算法。</p>
 <p>核心思想：</p>
 <blockquote>
@@ -611,7 +615,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <div class="math-block"><span class="math-text">𝔼[∑<sub><span class="math-text">t</span></sub> γ<sup><span class="math-text">t</span></sup> (r<sub><span class="math-text">t</span></sub> - α log π(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
 
 <p>其中 <span class="math-text">α</span> 是 temperature，控制 entropy 权重。</p>
-<h2>10.12 SAC 的组件</h2>
+<h3>10.8.2 SAC 的组件</h3>
 <p>SAC 通常包含：</p>
 <ul>
 <li>Stochastic actor：<span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>。</li>
@@ -630,7 +634,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ) = 𝔼[α log π<sub><span class="math-text">θ</span></sub>(a∣ s) - min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
 
 <p>最小化这个 loss 等价于选择高 Q 且高 entropy 的动作分布。</p>
-<h2>10.13 SAC Soft Target 的推理过程</h2>
+<h3>10.8.3 SAC Soft Target 的推理过程</h3>
 <p>普通 Bellman target 是：</p>
 <div class="math-block"><span class="math-text">y=r+γ Q(s',a')</span></div>
 
@@ -655,7 +659,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <blockquote>
 <p>SAC 把探索写进目标函数，而不是只靠外加噪声。Soft target 中的 <span class="math-text">-αlogπ</span> 会奖励更高熵的动作分布，因此策略既追求高 Q，也保持足够随机性。</p>
 </blockquote>
-<h2>10.14 Entropy Regularization 的意义</h2>
+<h3>10.8.4 Entropy Regularization 的意义</h3>
 <p>SAC 不只是把 entropy 当作训练 trick，而是把它放进目标函数。</p>
 <p>好处：</p>
 <ul>
@@ -670,7 +674,8 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <li><span class="math-text">α</span> 小：更重视 reward，策略更确定。</li>
 </ul>
 <p>现代 SAC 常自动调节 <span class="math-text">α</span>，让策略 entropy 接近 target entropy。</p>
-<h2>10.15 DDPG vs TD3 vs SAC</h2>
+<h2>10.9 连续控制算法对比和选型</h2>
+<h3>10.9.1 DDPG vs TD3 vs SAC</h3>
 <table class="standard-table">
 <thead>
 <tr>
@@ -717,23 +722,23 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <td>连续控制、鲁棒训练</td>
 </tr>
 </tbody></table>
-<h2>10.16 本章例子：连续控制怎么选算法</h2>
-<h3>10.16.1 例子 1：机械臂控制</h3>
+<h3>10.9.2 本章例子：连续控制怎么选算法</h3>
+<h4>10.9.2.1 例子 1：机械臂控制</h4>
 <p>机械臂每个关节输出连续力矩：</p>
 <pre><code class="language-text">a = [torque_shoulder, torque_elbow, torque_wrist]
 </code></pre>
 <p>DQN 不适合，因为动作不是离散的。DDPG、TD3、SAC 可以直接输出连续动作。</p>
-<h3>10.16.2 例子 2：DDPG 的问题</h3>
+<h4>10.9.2.2 例子 2：DDPG 的问题</h4>
 <p>如果 critic 对某个连续动作附近估值过高，actor 会被 critic 引导到这个错误高值区域。</p>
 <p>这就是 DDPG 容易不稳定的原因：</p>
 <pre><code class="language-text">critic 估错 -&gt; actor 追错 -&gt; 数据分布变差 -&gt; critic 更难学准
 </code></pre>
-<h3>10.16.3 例子 3：TD3 怎么修</h3>
+<h4>10.9.2.3 例子 3：TD3 怎么修</h4>
 <p>TD3 用两个 critic：</p>
 <div class="math-block"><span class="math-text">min(Q<sub><span class="math-text">1</span></sub>,Q<sub><span class="math-text">2</span></sub>)</span></div>
 
 <p>如果一个 critic 过高估计，另一个没那么高，取 min 可以降低过估计传播。</p>
-<h3>10.16.4 例子 4：SAC 为什么适合探索</h3>
+<h4>10.9.2.4 例子 4：SAC 为什么适合探索</h4>
 <p>如果机器人需要学会走路，早期策略不能太确定，否则很容易卡在局部动作模式。SAC 的 entropy 项鼓励策略保持随机性：</p>
 <pre><code class="language-text">既要拿高 reward，也要保持足够探索
 </code></pre>
@@ -741,18 +746,18 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <blockquote>
 <p>DDPG、TD3、SAC 都处理连续动作。DDPG 是基础 actor-critic，TD3 主要修过估计和不稳定，SAC 用最大熵目标把探索写进优化目标。</p>
 </blockquote>
-<h2>10.17 本章面试高频问题</h2>
-<h3>10.17.1 为什么 DQN 不适合连续动作？</h3>
+<h2>10.10 本章面试高频问题</h2>
+<h3>10.10.1 为什么 DQN 不适合连续动作？</h3>
 <p>DQN 需要对动作枚举并取 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>。连续动作空间无法枚举，直接求 argmax 也通常很难，因此需要 actor 直接输出连续动作。</p>
-<h3>10.17.2 DDPG 的核心是什么？</h3>
+<h3>10.10.2 DDPG 的核心是什么？</h3>
 <p>DDPG 是连续动作空间下的 off-policy actor-critic。Actor 输出确定性动作，critic 评估 <span class="math-text">Q(s,a)</span>，actor 通过最大化 critic 给出的 Q 值来更新。</p>
-<h3>10.17.3 TD3 相比 DDPG 做了哪些改进？</h3>
+<h3>10.10.3 TD3 相比 DDPG 做了哪些改进？</h3>
 <p>TD3 使用双 critic 取最小值缓解过估计，延迟 actor 更新提高稳定性，并使用 target policy smoothing 平滑 Q 函数。</p>
-<h3>10.17.4 SAC 为什么稳定？</h3>
+<h3>10.10.4 SAC 为什么稳定？</h3>
 <p>SAC 使用最大熵目标，鼓励高 reward 和高 entropy 的策略；同时使用双 Q 网络、target network 和 replay buffer。Entropy regularization 带来更好的探索和鲁棒性。</p>
-<h3>10.17.5 SAC 中 <span class="math-text">α</span> 是什么？</h3>
+<h3>10.10.5 SAC 中 <span class="math-text">α</span> 是什么？</h3>
 <p><span class="math-text">α</span> 是 entropy temperature，控制 reward 和 entropy 的权衡。<span class="math-text">α</span> 越大，策略越随机、探索越强；<span class="math-text">α</span> 越小，策略越偏向最大化 reward。</p>
-<h2>10.18 本章练习</h2>
+<h2>10.11 本章练习</h2>
 <ol>
 <li>写出 DDPG critic target 和 actor objective。</li>
 <li>解释 TD3 的三个 trick。</li>

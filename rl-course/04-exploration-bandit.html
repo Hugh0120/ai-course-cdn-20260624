@@ -595,6 +595,90 @@ receive reward R_t
 <li>选择采样后看起来最优的动作。</li>
 <li>根据实际 reward 更新 posterior。</li>
 </ol>
+<h4>4.8.2.1 具体例子：Beta-Bernoulli 广告点击</h4>
+<p>假设有 3 个广告候选，reward 是二值点击：</p>
+<pre><code class="language-text">click = 1
+no click = 0
+</code></pre>
+<p>每个广告的真实点击率未知，记作 <span class="math-text">θ<sub><span class="math-text">a</span></sub></span>。因为点击是 Bernoulli variable，所以可以给每个广告维护一个 Beta posterior：</p>
+<div class="math-block"><span class="math-text">θ<sub><span class="math-text">a</span></sub> ∼ Beta(α<sub><span class="math-text">a</span></sub>,β<sub><span class="math-text">a</span></sub>)</span></div>
+
+<p>初始化时，如果没有任何历史数据，可以用均匀先验：</p>
+<div class="math-block"><span class="math-text">α<sub><span class="math-text">a</span></sub>=1,  β<sub><span class="math-text">a</span></sub>=1</span></div>
+
+<p>含义是：一开始不知道广告好坏，所有点击率都可能。</p>
+<p>如果广告 <span class="math-text">a</span> 被展示后：</p>
+<ul>
+<li>用户点击了：<span class="math-text">α<sub><span class="math-text">a</span></sub> ← α<sub><span class="math-text">a</span></sub> + 1</span></li>
+<li>用户没点击：<span class="math-text">β<sub><span class="math-text">a</span></sub> ← β<sub><span class="math-text">a</span></sub> + 1</span></li>
+</ul>
+<p>因为 Beta 是 Bernoulli 的 conjugate prior，所以这个更新可以理解为：</p>
+<pre><code class="language-text">alpha = 1 + click_count
+beta  = 1 + no_click_count
+</code></pre>
+<p>某一轮开始时，假设 posterior 是：</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>广告</th>
+<th>历史点击 / 未点击</th>
+<th>Posterior</th>
+<th>后验均值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>7 / 3</td>
+<td>Beta(8, 4)</td>
+<td>0.67</td>
+</tr>
+<tr>
+<td>B</td>
+<td>2 / 2</td>
+<td>Beta(3, 3)</td>
+<td>0.50</td>
+</tr>
+<tr>
+<td>C</td>
+<td>1 / 5</td>
+<td>Beta(2, 6)</td>
+<td>0.25</td>
+</tr>
+</tbody></table>
+<p>如果只看均值，会选择 A。但 Thompson Sampling 不直接选均值，而是每轮从每个 posterior 里采样一个可能点击率：</p>
+<pre><code class="language-text">sample theta_A ~ Beta(8, 4)  -&gt; 0.62
+sample theta_B ~ Beta(3, 3)  -&gt; 0.78
+sample theta_C ~ Beta(2, 6)  -&gt; 0.20
+</code></pre>
+<p>这一轮采样结果里 B 最大，所以展示 B。</p>
+<p>如果展示 B 后用户点击了：</p>
+<pre><code class="language-text">Beta(3, 3) -&gt; Beta(4, 3)
+</code></pre>
+<p>如果用户没点击：</p>
+<pre><code class="language-text">Beta(3, 3) -&gt; Beta(3, 4)
+</code></pre>
+<p>这个例子里，B 的后验均值低于 A，但因为 B 的历史样本少，posterior 更宽，偶尔会采样出很高的点击率，因此仍有机会被探索。A 的样本多，posterior 更窄，如果它确实好，就会更稳定地被选中。</p>
+<p>伪代码：</p>
+<pre><code class="language-text">for each arm a:
+    alpha[a] = 1
+    beta[a] = 1
+
+for each round:
+    for each arm a:
+        theta[a] = sample_beta(alpha[a], beta[a])
+
+    a_t = argmax_a theta[a]
+    r_t = show(a_t)
+
+    if r_t == 1:
+        alpha[a_t] += 1
+    else:
+        beta[a_t] += 1
+</code></pre>
+<p>面试表达：</p>
+<blockquote>
+<p>Thompson Sampling 不是固定比例随机探索，而是“按不确定性自然探索”。每个动作维护一个收益分布，每轮从分布采样后选最大。数据少的动作 posterior 宽，偶尔会采样出高值，从而获得探索机会；数据多且表现好的动作 posterior 窄，会稳定获得利用机会。</p>
+</blockquote>
 <p>直觉：</p>
 <p>一个动作的不确定性越大，它在采样中偶尔成为最优的概率越大，因此会自然获得探索机会。</p>
 <p>优点：</p>
