@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-generative-models-and-diffusion.html">← 上一章</a><a href="./03-conditioning-editing-control.html">下一章 →</a></nav><h1>第 2 章：文生图架构：CLIP、Imagen、Stable Diffusion、DiT 与原生多模态生成</h1>
-<h2>本章符号说明</h2>
+<h2>2.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -416,7 +416,7 @@
 <td>输入 noisy latent、时间和条件，预测 flow 方向。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>2.2 本章目标</h2>
 <ul>
 <li>理解文生图如何把文本条件注入生成过程。</li>
 <li>掌握 DALL-E 2、Imagen、Stable Diffusion 的架构差异。</li>
@@ -424,7 +424,7 @@
 <li>理解 DiT / MMDiT / flow matching 为什么代表可扩展趋势。</li>
 <li>能讨论 GPT-4o Image、Gemini / Nano Banana、Qwen-Image、Seedream 这类原生编辑和多模态生成系统。</li>
 </ul>
-<h2>文本条件怎么进入图像生成</h2>
+<h2>2.3 文本条件怎么进入图像生成</h2>
 <p>文本 prompt 先经过 text encoder：</p>
 <div class="math-block"><span class="math-text">c = E<sub><span class="math-text">text</span></sub>(T)</span></div>
 
@@ -438,7 +438,7 @@
 <li>class/text embedding conditioning。</li>
 <li>拼接 image/text latent。</li>
 </ul>
-<h2>DALL-E 2 / unCLIP</h2>
+<h2>2.4 DALL-E 2 / unCLIP</h2>
 <p>DALL-E 2 使用 CLIP latent 作为桥：</p>
 <ol>
 <li>text encoder 得到 text embedding。</li>
@@ -449,13 +449,13 @@
 <blockquote>
 <p>CLIP embedding 捕捉语义和风格，先在语义空间规划图像，再由 diffusion decoder 生成像素。</p>
 </blockquote>
-<h2>Imagen</h2>
+<h2>2.5 Imagen</h2>
 <p>Imagen 的关键发现之一：强语言模型对文生图非常重要。它使用大规模 frozen T5 text encoder，再用级联 diffusion model 生成高分辨率图像。</p>
 <p>面试表达：</p>
 <blockquote>
 <p>Imagen 说明 text encoder 的语言理解能力会显著影响图文对齐。生成质量不只取决于 image diffusion backbone，也取决于 prompt 被理解得多好。</p>
 </blockquote>
-<h2>Stable Diffusion / LDM</h2>
+<h2>2.6 Stable Diffusion / LDM</h2>
 <p>像素空间 diffusion 成本高。Latent Diffusion 先用 VAE 把图像压缩：</p>
 <div class="math-block"><span class="math-text">x → z = E<sub><span class="math-text">VAE</span></sub>(x)</span></div>
 
@@ -477,7 +477,7 @@
 <li>细节和文字可能受 latent bottleneck 影响。</li>
 <li>需要额外维护 text encoder、VAE、denoiser。</li>
 </ul>
-<h2>DiT</h2>
+<h2>2.7 DiT</h2>
 <p>DiT 把 latent 切成 patch token，用 Transformer 做 denoiser。</p>
 <p>核心变化：</p>
 <ul>
@@ -489,7 +489,7 @@
 <blockquote>
 <p>DiT 的意义不只是把 U-Net 换成 Transformer，而是让 diffusion backbone 更符合大模型 scaling 经验，便于统一图像、视频和多模态生成。</p>
 </blockquote>
-<h2>Stable Diffusion 3 / 3.5：MMDiT 与 Rectified Flow</h2>
+<h2>2.8 Stable Diffusion 3 / 3.5：MMDiT 与 Rectified Flow</h2>
 <p>Stable Diffusion 3 系列的公开报告把两个词推到前台：MMDiT 和 rectified flow。</p>
 <p>MMDiT 的直觉：</p>
 <ul>
@@ -501,7 +501,7 @@
 <blockquote>
 <p>SD3 的核心不是“又一个 Stable Diffusion”，而是把 latent diffusion 从 U-Net 时代推进到多模态 Transformer 时代。它用更强的 text encoder、更可扩展的 MMDiT，以及 rectified flow 训练目标来提升 prompt adherence、文字渲染和复杂构图。</p>
 </blockquote>
-<h2>FLUX.1：Flow Matching 与编辑统一化</h2>
+<h2>2.9 FLUX.1：Flow Matching 与编辑统一化</h2>
 <p>FLUX.1 系列的代表意义在于把 flow matching、DiT 和高质量图像生成结合起来。FLUX.1 Kontext 进一步强调统一的图像生成和编辑：</p>
 <ul>
 <li>输入可以是文本，也可以是参考图和文本。</li>
@@ -512,7 +512,7 @@
 <blockquote>
 <p>新一代图像模型的竞争已经从“能不能生成漂亮图”转向“能不能按复杂意图稳定编辑，并在多轮交互里保持主体、文字、风格和布局一致”。</p>
 </blockquote>
-<h2>GPT-4o Image 与 Gemini / Nano Banana：原生多模态生成</h2>
+<h2>2.10 GPT-4o Image 与 Gemini / Nano Banana：原生多模态生成</h2>
 <p>传统文生图系统常是“语言模型写 prompt + 图像模型生成”。GPT-4o Image 和 Gemini / Nano Banana 这类系统代表另一个方向：把图像生成作为多模态模型的原生能力。</p>
 <p>它们的面试关注点：</p>
 <table class="symbol-table">
@@ -562,7 +562,7 @@
 <li>事实细节需要外部校验。</li>
 <li>真实人物、品牌和版权内容必须有更强安全策略。</li>
 </ul>
-<h2>Qwen-Image 与 Seedream 4.0：中文文字和多图编辑</h2>
+<h2>2.11 Qwen-Image 与 Seedream 4.0：中文文字和多图编辑</h2>
 <p>中文场景里，文字渲染和图像编辑是非常现实的面试点。Qwen-Image 技术报告强调中文和复杂文字渲染、图像编辑一致性；Seedream 4.0 报告强调统一 T2I、image editing、多图组合和高效 DiT / VAE。</p>
 <p>为什么这些点重要：</p>
 <ul>
@@ -571,7 +571,7 @@
 <li>多图参考让模型从“生成一张图”变成“理解素材库并合成新素材”。</li>
 <li>编辑模型要同时保持语义一致性和视觉保真度。</li>
 </ul>
-<h2>架构拆解模板</h2>
+<h2>2.12 架构拆解模板</h2>
 <p>看到任何新文生图报告，都按下面拆：</p>
 <table class="standard-table">
 <thead>
@@ -617,20 +617,20 @@
 <td>水印、C2PA、真人肖像、版权、训练数据合规怎么处理？</td>
 </tr>
 </tbody></table>
-<h2>本章面试高频问题</h2>
-<h3>1. 为什么 Stable Diffusion 在 latent space 做 diffusion？</h3>
+<h2>2.13 本章面试高频问题</h2>
+<h3>2.13.1 为什么 Stable Diffusion 在 latent space 做 diffusion？</h3>
 <p>因为直接在高分辨率像素空间做 diffusion 成本很高。VAE latent 保留主要语义和视觉结构，同时降低空间维度，使训练和推理更便宜。</p>
-<h3>2. DALL-E 2 和 Stable Diffusion 的差异？</h3>
+<h3>2.13.2 DALL-E 2 和 Stable Diffusion 的差异？</h3>
 <p>DALL-E 2 使用 CLIP latent prior + diffusion decoder；Stable Diffusion 使用 VAE latent space + U-Net denoiser + text cross-attention。二者都利用 diffusion，但条件路径和训练开放性不同。</p>
-<h3>3. Imagen 的核心启发是什么？</h3>
+<h3>2.13.3 Imagen 的核心启发是什么？</h3>
 <p>强 text encoder 对 prompt adherence 很关键。更好的语言理解可以提升图文对齐和复杂 prompt 的遵循。</p>
-<h3>4. DiT 为什么重要？</h3>
+<h3>2.13.4 DiT 为什么重要？</h3>
 <p>DiT 用 Transformer 做 denoiser，更适合 scaling，也更容易扩展到视频中的 spacetime token。</p>
-<h3>5. MMDiT 和普通 DiT 有什么区别？</h3>
+<h3>2.13.5 MMDiT 和普通 DiT 有什么区别？</h3>
 <p>普通 DiT 可以把文本条件作为 embedding 或 cross-attention 条件。MMDiT 更强调多模态 token 的联合建模：文本和图像有不同表示路径，并在 Transformer 内交互，因此更适合复杂 prompt、文字渲染和多模态生成。</p>
-<h3>6. 为什么原生多模态图像生成值得关注？</h3>
+<h3>2.13.6 为什么原生多模态图像生成值得关注？</h3>
 <p>因为真实产品不是一次性 prompt 生成，而是连续对话、上传参考图、要求局部修改、生成带文字的素材。原生多模态模型更容易把语言理解、视觉理解和图像生成放到同一个交互闭环里。</p>
-<h2>本章 References</h2>
+<h2>2.14 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2103.00020">Learning Transferable Visual Models From Natural Language Supervision</a></li>
 <li><a href="https://arxiv.org/abs/2204.06125">Hierarchical Text-Conditional Image Generation with CLIP Latents</a></li>

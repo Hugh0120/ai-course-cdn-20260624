@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><span>← 上一章</span><a href="./01-transformer-tokenization-pretraining.html">下一章 →</a></nav><h1>LLM / VLM 进阶面试课程 Roadmap</h1>
 <p>这套笔记面向 AI（Artificial Intelligence，人工智能）算法工程师的 LLM（Large Language Model，大语言模型）与 VLM（Vision-Language Model，视觉语言模型）面试准备。当前版本按 2026-06-23 的技术格局重写：不只讲 Transformer 和 RAG（Retrieval-Augmented Generation，检索增强生成），还覆盖 reasoning model、post-training、RLVR（Reinforcement Learning with Verifiable Rewards，可验证奖励强化学习）、agentic tool use、long-horizon coding agent、eval harness、VLM 数据和评测实操、SOTA（State of the Art，当前最优）技术报告阅读和系统安全。</p>
-<h2>全局符号和缩写说明</h2>
+<h2>0.1 全局符号和缩写说明</h2>
 <p>阅读约定：大写字母通常表示矩阵、随机变量、模块、数据集或模型族；小写字母通常表示样本、token、向量或标量。第一次遇到公式前，先把常用符号列清楚。</p>
 <table class="symbol-table">
 <thead>
@@ -784,7 +784,7 @@
 <td>智谱 / Z.ai GLM 系列模型名称中的缩写。</td>
 </tr>
 </tbody></table>
-<h2>学习路线</h2>
+<h2>0.2 学习路线</h2>
 <table class="roadmap-table">
 <thead>
 <tr>
@@ -864,7 +864,7 @@
 <td>用于深入阅读和面试前补引用。</td>
 </tr>
 </tbody></table>
-<h2>推荐学习顺序</h2>
+<h2>0.3 推荐学习顺序</h2>
 <ol>
 <li>先学第 1 章，能手写 attention 公式和 next-token prediction。</li>
 <li>第 2 章理解现代 LLM 的 post-training pipeline：SFT、preference、RL、safety tuning。</li>
@@ -875,7 +875,7 @@
 <li>第 4-7 章转向 VLM/MLLM：图文对齐、视觉 token 接入 LLM、多模态指令微调、数据构造、评测 harness。</li>
 <li>第 8 章用于面试前压缩复习。</li>
 </ol>
-<h2>面试目标</h2>
+<h2>0.4 面试目标</h2>
 <p>学完后你应该能清楚回答：</p>
 <ul>
 <li>Transformer attention 为什么是 <span class="math-text">QK<sup><span class="math-text">⊤</span></sup> / √(d<sub><span class="math-text">k</span></sub>)</span>。</li>

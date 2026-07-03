@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-eval-harness-and-benchmarking.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav><h1>第 10 章：训练、对齐、安全、Provenance 与产品化</h1>
 <p>最后一章回答真实工作里的问题：模型怎么训，怎么对齐，怎么防滥用，怎么上线。面试官越资深，越会从“模型原理”追到“你怎么把它做成可靠系统”。</p>
-<h2>本章符号说明</h2>
+<h2>10.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -369,7 +369,7 @@
 <td>产品调用生成、审核、评测和素材服务的接口。</td>
 </tr>
 </tbody></table>
-<h2>训练 Pipeline 总览</h2>
+<h2>10.2 训练 Pipeline 总览</h2>
 <p>一个产业级文生图/视频训练 pipeline 通常长这样：</p>
 <pre><code class="language-text">数据采集
 → 去重、质量过滤、安全过滤、版权/隐私过滤
@@ -387,7 +387,7 @@
 <blockquote>
 <p>文生图/视频的效果不是单纯由 backbone 决定。数据质量、caption、tokenizer、后训练、采样器、评测和安全共同决定最终产品体验。</p>
 </blockquote>
-<h2>数据与 Captioning</h2>
+<h2>10.3 数据与 Captioning</h2>
 <p>训练数据的关键问题：</p>
 <table class="standard-table">
 <thead>
@@ -436,7 +436,7 @@
 <li>音频事件和声源。</li>
 <li>安全敏感标签。</li>
 </ul>
-<h2>Base Training、SFT 与 Preference Optimization</h2>
+<h2>10.4 Base Training、SFT 与 Preference Optimization</h2>
 <p>训练阶段可以拆成：</p>
 <table class="symbol-table">
 <thead>
@@ -485,7 +485,7 @@
 </tr>
 </tbody></table>
 <p>视频报告里常见的 video-specific RLHF 特别值得关注。它说明视频不是只靠预训练，还要通过多维 reward 改善运动、时序、prompt adherence 和审美。</p>
-<h2>Reward 该怎么设计</h2>
+<h2>10.5 Reward 该怎么设计</h2>
 <p>图像 reward 可以拆成：</p>
 <ul>
 <li>prompt adherence。</li>
@@ -506,7 +506,7 @@
 <li>multi-shot narrative consistency。</li>
 </ul>
 <p>不要用单一 reward。单指标优化容易 reward hacking，比如 CLIPScore 变高但图像变丑，或者视频看起来清晰但动作僵硬。</p>
-<h2>安全策略分层</h2>
+<h2>10.6 安全策略分层</h2>
 <p>一个稳的安全系统通常分层：</p>
 <table class="standard-table">
 <thead>
@@ -548,7 +548,7 @@
 <td>持续构造绕过样例，更新策略和模型。</td>
 </tr>
 </tbody></table>
-<h2>Provenance：C2PA、SynthID 与 Watermark</h2>
+<h2>10.7 Provenance：C2PA、SynthID 与 Watermark</h2>
 <p>C2PA 的核心是给内容附加可验证的来源和编辑记录。它更像“内容营养标签”，告诉用户这个内容从哪里来、被怎样处理过。</p>
 <p>SynthID 的核心是不可见水印和检测能力。Google 公开材料强调 SynthID 可用于图像、音频、文本、视频，并设计为对裁剪、滤镜、压缩等变换有一定鲁棒性。</p>
 <p>注意它们不是万能安全：</p>
@@ -562,7 +562,7 @@
 <blockquote>
 <p>Provenance 是安全链路的一层，不是全部。真正可靠的系统需要输入审核、输出审核、行为风控、模型对齐、水印、日志、人工复核和申诉机制一起工作。</p>
 </blockquote>
-<h2>真人肖像、版权和 IP</h2>
+<h2>10.8 真人肖像、版权和 IP</h2>
 <p>文生图/视频最敏感的三类风险：</p>
 <table class="three-col-table">
 <thead>
@@ -596,7 +596,7 @@
 <li>用户只做个人娱乐。</li>
 </ul>
 <p>风险等级不同，审核强度也不同。</p>
-<h2>Serving 与成本</h2>
+<h2>10.9 Serving 与成本</h2>
 <p>上线时要关心：</p>
 <table class="standard-table">
 <thead>
@@ -640,7 +640,7 @@
 → safety review
 → deliver and archive provenance
 </code></pre>
-<h2>产品化架构</h2>
+<h2>10.10 产品化架构</h2>
 <p>一个推荐架构：</p>
 <pre><code class="language-text">API Gateway
 → Input Moderation
@@ -655,18 +655,18 @@
 → User Feedback + Badcase Store
 </code></pre>
 <p>其中 Asset Manager 很重要：它管理用户上传的参考图、角色图、品牌 logo、mask、首尾帧、视频片段、音频素材和授权状态。</p>
-<h2>面试高频问题</h2>
-<h3>1. 训练数据怎么过滤？</h3>
+<h2>10.11 面试高频问题</h2>
+<h3>10.11.1 训练数据怎么过滤？</h3>
 <p>先做去重、质量过滤、安全过滤、版权和隐私过滤，再做 caption / OCR / VLM 标注。视频还要过滤剪辑跳变、水印、字幕覆盖、低帧率、运动模糊和错误音频。</p>
-<h3>2. 为什么需要 recaptioning？</h3>
+<h3>10.11.2 为什么需要 recaptioning？</h3>
 <p>原始 alt-text 通常太短、噪声大，不描述布局、动作、文字和关系。recaptioning 能把训练信号和用户 prompt 更好对齐，提高 prompt adherence。</p>
-<h3>3. 图像生成也能做 RLHF 吗？</h3>
+<h3>10.11.3 图像生成也能做 RLHF 吗？</h3>
 <p>可以。常见做法是收集 pairwise preference，训练 reward model，然后优化模型或采样策略。视频还可以设计针对 motion、temporal consistency、prompt adherence 的 reward。</p>
-<h3>4. 安全水印能解决 deepfake 吗？</h3>
+<h3>10.11.4 安全水印能解决 deepfake 吗？</h3>
 <p>不能单独解决。水印和 provenance 有帮助，但还需要真人肖像策略、上传审核、输出审核、行为风控、平台治理和人工复核。</p>
-<h3>5. 线上模型升级如何避免退化？</h3>
+<h3>10.11.5 线上模型升级如何避免退化？</h3>
 <p>先跑离线 regression harness，再小流量灰度，对比质量、人评、安全失败率、延迟、成本和业务指标。发现安全或质量退化时能按模型版本和策略版本回滚。</p>
-<h2>本章 References</h2>
+<h2>10.12 本章 References</h2>
 <ul>
 <li><a href="https://cdn.openai.com/papers/DALL_E_3_System_Card.pdf">DALL-E 3 System Card</a></li>
 <li><a href="https://openai.com/index/introducing-4o-image-generation/">Introducing 4o Image Generation</a></li>

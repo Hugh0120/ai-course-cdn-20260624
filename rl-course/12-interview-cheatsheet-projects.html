@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1>第 12 章：强化学习面试速查与项目准备</h1>
-<h2>本章符号说明</h2>
+<h2>12.1 本章符号说明</h2>
 <p>本章是速查表，会集中复现前面章节的核心符号：</p>
 <table class="symbol-table">
 <thead>
@@ -429,7 +429,7 @@
 <td>直接优化策略参数的一类方法。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>12.2 本章目标</h2>
 <p>本章用于面试前快速复习。你需要整理：</p>
 <ul>
 <li>核心概念速查。</li>
@@ -438,9 +438,9 @@
 <li>高频问答。</li>
 <li>项目表达模板。</li>
 </ul>
-<h2>本章主线</h2>
+<h2>12.3 本章主线</h2>
 <p>本章不是引入新算法，而是把前面所有内容压缩成面试表达结构。复习顺序是：先用一张图串起 MDP、Bellman、DP、MC/TD、DQN、Policy Gradient、Actor-Critic、PPO/SAC；再横向比较算法；最后把项目按“问题建模、状态动作奖励、算法选择、训练稳定性、指标和失败案例”讲清楚。</p>
-<h2>本章使用方式</h2>
+<h2>12.4 本章使用方式</h2>
 <p>本章原则上不引入新算法名词，只做复习压缩。读本章时如果遇到陌生词，先回到对应章节：</p>
 <table class="standard-table">
 <thead>
@@ -490,7 +490,7 @@
 <td>第 11 章</td>
 </tr>
 </tbody></table>
-<h2>核心概念速查</h2>
+<h2>12.5 核心概念速查</h2>
 <p>MDP：</p>
 <div class="math-block"><span class="math-text">(S, A, P, R, γ)</span></div>
 
@@ -527,7 +527,7 @@
 <p>SAC soft target：</p>
 <div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α log π(a'∣ s')]</span></div>
 
-<h2>算法横向对比</h2>
+<h2>12.6 算法横向对比</h2>
 <table class="wide-table">
 <thead>
 <tr>
@@ -630,37 +630,37 @@
 <td>连续动作</td>
 </tr>
 </tbody></table>
-<h2>高频概念问答</h2>
-<h3>1. RL 为什么难？</h3>
+<h2>12.7 高频概念问答</h2>
+<h3>12.7.1 RL 为什么难？</h3>
 <p>因为 RL 同时面对 delayed reward、探索与利用、非 i.i.d. 数据、动作影响未来数据分布、credit assignment 和训练稳定性问题。</p>
-<h3>2. Bellman 方程为什么重要？</h3>
+<h3>12.7.2 Bellman 方程为什么重要？</h3>
 <p>Bellman 方程描述了价值函数的递归自洽关系：当前价值等于即时 reward 加未来价值。绝大多数 value-based 和 actor-critic 方法都直接或间接基于 Bellman backup。</p>
-<h3>3. On-policy 和 off-policy 区别？</h3>
+<h3>12.7.3 On-policy 和 off-policy 区别？</h3>
 <p>On-policy 学习当前采样策略的价值或改进当前策略。Off-policy 用 behavior policy 的数据学习另一个 target policy，样本效率更高，但有分布偏移风险。</p>
-<h3>4. MC 和 TD 区别？</h3>
+<h3>12.7.4 MC 和 TD 区别？</h3>
 <p>MC 用完整 episode 的真实 return，不 bootstrap，bias 小但 variance 大。TD 用一步 reward 加下一状态价值估计，能在线更新，variance 小但有 bootstrap bias。</p>
-<h3>5. SARSA 和 Q-learning 区别？</h3>
+<h3>12.7.5 SARSA 和 Q-learning 区别？</h3>
 <p>SARSA 是 on-policy，target 使用实际采样的下一个动作。Q-learning 是 off-policy，target 使用下一状态最大 Q 值。</p>
-<h3>6. DQN 的两个核心稳定技巧？</h3>
+<h3>12.7.6 DQN 的两个核心稳定技巧？</h3>
 <p>Experience replay 和 target network。前者打破样本相关性并复用样本，后者稳定 bootstrap target。</p>
-<h3>7. Double DQN 解决什么？</h3>
+<h3>12.7.7 Double DQN 解决什么？</h3>
 <p>缓解 DQN 中 <span class="math-text">max</span> 操作造成的 Q 值过估计。它用 online network 选动作，用 target network 评估动作。</p>
-<h3>8. Policy Gradient 怎么理解？</h3>
+<h3>12.7.8 Policy Gradient 怎么理解？</h3>
 <p>如果某个动作带来正 advantage，就增加该动作在该状态下的概率；如果 advantage 为负，就降低概率。公式是：</p>
 <div class="math-block"><span class="math-text">∇ J = 𝔼[∇ log π(a∣ s) A(s,a)]</span></div>
 
-<h3>9. Baseline 为什么不引入 bias？</h3>
+<h3>12.7.9 Baseline 为什么不引入 bias？</h3>
 <p>因为 baseline 不依赖 action，而：</p>
 <div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a~π</span></sub>[∇ log π(a∣ s)] = 0</span></div>
 
 <p>因此减去 baseline 只改变方差，不改变梯度期望。</p>
-<h3>10. PPO 为什么常用？</h3>
+<h3>12.7.10 PPO 为什么常用？</h3>
 <p>PPO 用 clipped objective 限制新旧策略差异，稳定性好、实现简单、适用面广，是 on-policy actor-critic 中非常常用的工程基线。</p>
-<h3>11. SAC 为什么适合连续控制？</h3>
+<h3>12.7.11 SAC 为什么适合连续控制？</h3>
 <p>SAC 是 off-policy，样本效率较高；最大熵目标鼓励探索并提升稳定性；双 Q 网络缓解过估计，因此在连续控制任务中表现稳定。</p>
-<h3>12. Offline RL 为什么难？</h3>
+<h3>12.7.12 Offline RL 为什么难？</h3>
 <p>因为不能继续探索收集数据。学习策略可能选择数据集中没覆盖的动作，critic 对这些动作估计不可靠，容易出现 extrapolation error。</p>
-<h2>面试中算法讲解模板</h2>
+<h2>12.8 面试中算法讲解模板</h2>
 <p>回答某个算法时，按这个顺序讲：</p>
 <pre><code class="language-text">1. 它解决什么问题？
 2. 是 value-based、policy-based 还是 actor-critic？
@@ -672,7 +672,7 @@
 </code></pre>
 <p>例如讲 DQN：</p>
 <p>DQN 是把 Q-learning 扩展到高维状态输入的 deep RL 算法。它用神经网络近似 Q(s,a)，适合离散动作空间。核心 target 是 r + \gamma max Q_{\mathrm{target}}(s&#39;,a&#39;)。为了稳定训练，它使用 replay buffer 打破样本相关性、复用历史经验，并使用 target network 稳定 Bellman target。它的局限是难以处理连续动作空间，并且存在 Q 值过估计问题，后续 Double DQN 对此做了改进。</p>
-<h2>项目准备建议</h2>
+<h2>12.9 项目准备建议</h2>
 <p>面试前建议至少准备一个可讲清楚的 RL 小项目。</p>
 <p>优先级：</p>
 <ol>
@@ -682,7 +682,7 @@
 <li>简化推荐系统 bandit。</li>
 <li>RLHF toy example，例如偏好数据训练 reward model。</li>
 </ol>
-<h2>面试例子索引</h2>
+<h2>12.10 面试例子索引</h2>
 <p>准备面试时，建议把算法和例子绑定记忆：</p>
 <table class="three-col-table">
 <thead>
@@ -772,7 +772,7 @@
 <blockquote>
 <p>CartPole 是离散动作控制任务，状态低维连续，动作是 left/right，reward 是存活步数。DQN 用 Q 网络输出两个动作价值，配合 replay buffer 和 target network 稳定训练。</p>
 </blockquote>
-<h2>项目表达模板</h2>
+<h2>12.11 项目表达模板</h2>
 <pre><code class="language-text">项目背景：
 任务建模：
 状态空间：
@@ -785,7 +785,7 @@
 遇到的问题：
 改进方向：
 </code></pre>
-<h2>CartPole DQN 项目讲法</h2>
+<h2>12.12 CartPole DQN 项目讲法</h2>
 <p>任务建模：</p>
 <ul>
 <li>State：小车位置、速度、杆角度、角速度。</li>
@@ -809,7 +809,7 @@
 <li>loss 曲线不稳定是否正常。</li>
 <li>reward 是否能达到环境上限。</li>
 </ul>
-<h2>LunarLander PPO 项目讲法</h2>
+<h2>12.13 LunarLander PPO 项目讲法</h2>
 <p>任务建模：</p>
 <ul>
 <li>State：位置、速度、角度、角速度、腿部接触信息。</li>
@@ -829,7 +829,7 @@
 <li>但训练稳定，调参相对友好。</li>
 <li>advantage normalization 对训练很重要。</li>
 </ul>
-<h2>推荐系统 Bandit 项目讲法</h2>
+<h2>12.14 推荐系统 Bandit 项目讲法</h2>
 <p>任务建模：</p>
 <ul>
 <li>State/context：用户画像、上下文、历史行为。</li>
@@ -847,7 +847,7 @@
 <li>reward 延迟和偏差要处理。</li>
 <li>离线评估有 selection bias。</li>
 </ul>
-<h2>面试前最终检查清单</h2>
+<h2>12.15 面试前最终检查清单</h2>
 <ul>
 <li>能手写 Bellman expectation 和 optimality equation。</li>
 <li>能解释 MC、TD、DP 的区别。</li>
@@ -862,7 +862,7 @@
 <li>能说明 offline RL 的 extrapolation error。</li>
 <li>能讲一个完整 RL 项目。</li>
 </ul>
-<h2>30 分钟口述复习路线</h2>
+<h2>12.16 30 分钟口述复习路线</h2>
 <ol>
 <li>5 分钟：MDP、return、V/Q、Bellman。</li>
 <li>5 分钟：DP、MC、TD、SARSA、Q-learning。</li>

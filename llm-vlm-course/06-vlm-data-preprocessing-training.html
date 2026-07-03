@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-mllm-architectures-and-training.html">← 上一章</a><a href="./07-vlm-evaluation-harness-projects.html">下一章 →</a></nav><h1>第 6 章：VLM 数据构造、预处理与训练实操</h1>
 <p>这一章把 VLM（Vision-Language Model，视觉语言模型）从“模型结构”推进到“怎么训”。面试里如果只说 CLIP、LLaVA、Qwen2.5-VL，很容易停在概念层；真正能拉开差距的是说明多模态数据如何构造、清洗、打标、打包，以及每个训练阶段解决什么问题。</p>
-<h2>本章符号说明</h2>
+<h2>6.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -429,14 +429,14 @@
 <td>模型需要生成的目标回答。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>6.2 本章目标</h2>
 <ul>
 <li>能讲清 VLM 数据从原始资产到训练样本的完整 pipeline。</li>
 <li>能区分 image-text pretraining、instruction tuning、preference tuning、RLVR 数据。</li>
 <li>能解释 dynamic resolution、tiling、OCR、document parsing 为什么重要。</li>
 <li>能设计一个 VLM 项目的数据 schema、质量过滤和训练阶段。</li>
 </ul>
-<h2>VLM 数据为什么要单独拆</h2>
+<h2>6.3 VLM 数据为什么要单独拆</h2>
 <p>LLM 的数据主要是 token 序列，VLM 的数据同时包含视觉内容、文本描述、布局、时间、坐标和任务格式。问题不只是“有没有图”，而是：</p>
 <ul>
 <li>图像是否清晰、完整、无水印、无隐私风险。</li>
@@ -450,7 +450,7 @@
 <blockquote>
 <p>VLM 的训练效果很大一部分来自数据工程。视觉输入不是普通文本 token，必须先处理分辨率、裁剪、版面、OCR、caption、坐标和任务 schema，否则模型很容易在 OCR、图表、空间关系和细粒度 grounding 上掉链子。</p>
 </blockquote>
-<h2>数据类型地图</h2>
+<h2>6.4 数据类型地图</h2>
 <table class="wide-table">
 <thead>
 <tr>
@@ -532,7 +532,7 @@
 <td>judge 偏差、偏好维度混淆</td>
 </tr>
 </tbody></table>
-<h2>从原始数据到训练样本</h2>
+<h2>6.5 从原始数据到训练样本</h2>
 <p>一个 VLM 数据 pipeline 可以这样讲：</p>
 <pre><code class="language-text">原始图片 / 视频 / PDF / 截图
 -&gt; 去重、质量过滤、安全过滤、版权和隐私过滤
@@ -544,7 +544,7 @@
 -&gt; SFT / preference / RLVR / eval harness
 </code></pre>
 <p>这里每一步都可能决定模型上线质量。比如 OCR 数据如果没有保留坐标，模型可能能“读字”，但不能回答“右上角表格第二列是多少”；视频 caption 如果只写“一个人在走路”，模型很难学到镜头、动作变化和事件顺序。</p>
-<h2>图像预处理：分辨率、裁剪和 visual token</h2>
+<h2>6.6 图像预处理：分辨率、裁剪和 visual token</h2>
 <p>图像进入 VLM 前通常会被切成 patch 或由 vision encoder 编码。对于 ViT 类模型，粗略可以理解成：</p>
 <div class="math-block"><span class="math-text">N<sub><span class="math-text">v</span></sub> ≈ H / p × W / p</span></div>
 
@@ -607,7 +607,7 @@
 <blockquote>
 <p>高分辨率 VLM 不是简单把图片放大。真正的问题是如何在有限 visual token budget 里同时保留全局布局和局部细节，所以 dynamic resolution、tiling、ROI crop 和多尺度策略会直接影响 OCR、文档和图表能力。</p>
 </blockquote>
-<h2>Caption 与 Recaption</h2>
+<h2>6.7 Caption 与 Recaption</h2>
 <p>早期图文对 caption 很粗，例如“a dog on grass”。现代 VLM 训练更需要 rich caption：</p>
 <ul>
 <li>主体、属性、数量、颜色、材质。</li>
@@ -620,7 +620,7 @@
 </ul>
 <p>常用做法是用强 VLM 或人工标注生成 recaption，再用规则和 judge 过滤低质量描述。</p>
 <p>高质量 caption 不是越长越好，而是要和任务相关。如果目标是文档 QA，就要保留版面、表格结构和 OCR；如果目标是商品理解，就要保留品牌、类目、材质、缺陷和使用场景。</p>
-<h2>训练样本 Schema</h2>
+<h2>6.8 训练样本 Schema</h2>
 <p>一个工程上常用的 VLM SFT 样本可以长这样：</p>
 <pre><code class="language-json">{
   &quot;id&quot;: &quot;docqa_000001&quot;,
@@ -657,7 +657,7 @@
 <li>schema 要稳定，否则训练和评测难复现。</li>
 <li>坐标格式必须明确，例如 normalized xyxy、pixel xyxy、center-width-height，混用会造成灾难性错误。</li>
 </ul>
-<h2>训练阶段怎么拆</h2>
+<h2>6.9 训练阶段怎么拆</h2>
 <table class="wide-table">
 <thead>
 <tr>
@@ -722,7 +722,7 @@
 <blockquote>
 <p>VLM 训练通常不是一步到位。先解决视觉-语言对齐，再解决指令遵循，再针对 OCR、文档、图表、grounding、视频和 agent 任务做专门数据，最后用偏好或可验证奖励修正输出质量。</p>
 </blockquote>
-<h2>VLM 数据质量检查清单</h2>
+<h2>6.10 VLM 数据质量检查清单</h2>
 <table class="standard-table">
 <thead>
 <tr>
@@ -767,7 +767,7 @@
 <td>坐标、messages、图片路径、metadata 字段必须稳定。</td>
 </tr>
 </tbody></table>
-<h2>实操项目：企业文档 VLM</h2>
+<h2>6.11 实操项目：企业文档 VLM</h2>
 <p>如果你要在面试里讲一个 VLM 项目，可以用企业文档 QA：</p>
 <ol>
 <li>数据：PDF、扫描件、表格、票据、PPT 截图。</li>
@@ -781,16 +781,16 @@
 <blockquote>
 <p>我不会把企业文档 VLM 做成单纯图片问答，而是会同时建 OCR/layout 结构、page image、检索和可验证问答数据，让模型既能看版面，也能输出可追溯答案。</p>
 </blockquote>
-<h2>本章面试高频问题</h2>
-<h3>1. VLM 数据和 LLM 数据最大的区别？</h3>
+<h2>6.12 本章面试高频问题</h2>
+<h3>6.12.1 VLM 数据和 LLM 数据最大的区别？</h3>
 <p>VLM 数据需要处理视觉质量、分辨率、版面、OCR、坐标、时间和多模态 schema。LLM 数据主要是文本序列，VLM 数据还要保证图文对齐、区域对齐和任务对齐。</p>
-<h3>2. 为什么 VLM 容易在 OCR 和图表上出错？</h3>
+<h3>6.12.2 为什么 VLM 容易在 OCR 和图表上出错？</h3>
 <p>OCR 和图表要求细粒度视觉识别、布局理解、数值读取和推理。普通 caption/VQA 数据不一定训练这些能力，高分辨率处理和结构化标注不足时，模型容易看错字、读错轴、算错数。</p>
-<h3>3. Dynamic resolution 有什么价值？</h3>
+<h3>6.12.3 Dynamic resolution 有什么价值？</h3>
 <p>它允许模型根据图片宽高比和任务复杂度使用不同视觉 token 数，在成本可控的情况下保留更多细节，尤其对文档、长图、截图、图表很重要。</p>
-<h3>4. VLM 为什么需要 preference 或 RLVR？</h3>
+<h3>6.12.4 VLM 为什么需要 preference 或 RLVR？</h3>
 <p>SFT 能让模型会回答，但不一定可靠。preference 可以优化回答风格、拒答和安全；RLVR 可以在 OCR、表格数值、UI 状态、数学图形等可验证任务上提供更强学习信号。</p>
-<h2>本章 References</h2>
+<h2>6.13 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2301.12597">BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models</a></li>
 <li><a href="https://arxiv.org/abs/2304.08485">Visual Instruction Tuning</a></li>

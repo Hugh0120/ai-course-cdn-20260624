@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-vlm-data-preprocessing-training.html">← 上一章</a><a href="./08-interview-cheatsheet-projects.html">下一章 →</a></nav><h1>第 7 章：VLM 评测 Harness、Benchmark 与项目实操</h1>
 <p>VLM（Vision-Language Model，视觉语言模型）的评测不能只看一个总分。一个模型可能 MMMU 很高，但 OCR 错；可能文档 QA 好，但空间关系差；可能单图强，但视频理解弱。面试里要把评测讲成 harness：固定数据、输入、模型版本、prompt、采样参数、工具、指标、judge 和 badcase 归因。</p>
-<h2>本章符号说明</h2>
+<h2>7.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -429,14 +429,14 @@
 <td>第 <span class="math-text">i</span> 个样本的得分。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>7.2 本章目标</h2>
 <ul>
 <li>能设计 VLM eval harness，而不是只引用 benchmark 分数。</li>
 <li>能按 OCR、文档、图表、空间、视频、GUI、推理拆分能力。</li>
 <li>能说明 VLM judge 的优缺点和校准方式。</li>
 <li>能把 VLM 项目讲成数据、模型、评测、上线闭环。</li>
 </ul>
-<h2>VLM 评测为什么容易误导</h2>
+<h2>7.3 VLM 评测为什么容易误导</h2>
 <p>VLM 评测有几个常见陷阱：</p>
 <ul>
 <li>单图 benchmark 高，不代表文档、图表、视频、UI 强。</li>
@@ -450,7 +450,7 @@
 <blockquote>
 <p>VLM 的核心不是报一个总分，而是按任务维度拆能力，再用固定 harness 控制输入分辨率、prompt、模型版本、工具和打分方式。否则很容易把模型能力、数据处理能力和评测脚手架混在一起。</p>
 </blockquote>
-<h2>能力矩阵</h2>
+<h2>7.4 能力矩阵</h2>
 <table class="wide-table">
 <thead>
 <tr>
@@ -525,7 +525,7 @@
 <td>violation rate、refusal quality</td>
 </tr>
 </tbody></table>
-<h2>一个 VLM Eval Harness 长什么样</h2>
+<h2>7.5 一个 VLM Eval Harness 长什么样</h2>
 <pre><code class="language-text">Dataset Registry
 -&gt; Input Renderer：图片、PDF 页面、视频帧、UI 截图
 -&gt; Prompt Builder：固定系统指令、问题模板、输出格式
@@ -546,7 +546,7 @@
 <li>badcase 标签。</li>
 </ul>
 <p>没有 trace，就很难解释“为什么这次模型变差了”。</p>
-<h2>VLM Judge 的使用边界</h2>
+<h2>7.6 VLM Judge 的使用边界</h2>
 <p>VLM judge 可以提高开放式评测效率，但不能无脑相信。</p>
 <p>适合：</p>
 <ul>
@@ -604,7 +604,7 @@
 <td>trace review</td>
 </tr>
 </tbody></table>
-<h2>Badcase 归因</h2>
+<h2>7.7 Badcase 归因</h2>
 <p>VLM 项目里，badcase 不能只写“回答错了”。建议至少分成：</p>
 <table class="three-col-table">
 <thead>
@@ -661,7 +661,7 @@
 </tr>
 </tbody></table>
 <p>这个标签体系能直接反推下一步改数据、改模型、改预处理还是改 harness。</p>
-<h2>项目实操一：文档理解助手</h2>
+<h2>7.8 项目实操一：文档理解助手</h2>
 <p>面试讲法：</p>
 <ol>
 <li>任务：企业 PDF、扫描件、报表、合同问答。</li>
@@ -675,7 +675,7 @@
 <blockquote>
 <p>文档 VLM 不应该让模型盲看整份 PDF。更稳的做法是把检索、OCR/layout 和 VLM 结合起来：先定位页和区域，再让 VLM 基于证据回答，并把 citation 和 page id 作为评测对象。</p>
 </blockquote>
-<h2>项目实操二：视觉质检和商品理解</h2>
+<h2>7.9 项目实操二：视觉质检和商品理解</h2>
 <p>适合电商、广告、内容审核场景：</p>
 <table class="standard-table">
 <thead>
@@ -706,7 +706,7 @@
 </tr>
 </tbody></table>
 <p>面试要强调：VLM 适合开放语义，硬安全和精确定位最好结合专用 detector、OCR、规则和人工复核。</p>
-<h2>项目实操三：GUI / Computer-use Agent</h2>
+<h2>7.10 项目实操三：GUI / Computer-use Agent</h2>
 <p>VLM 在 GUI agent 里的作用是读界面、定位控件、理解状态变化。</p>
 <p>一个可复现评测要记录：</p>
 <ul>
@@ -719,16 +719,16 @@
 <li>是否触发权限或安全边界。</li>
 </ul>
 <p>指标不要只看“模型说完成了”，而要看最终状态是否真的满足目标。</p>
-<h2>面试高频问题</h2>
-<h3>1. VLM benchmark 怎么选？</h3>
+<h2>7.11 面试高频问题</h2>
+<h3>7.11.1 VLM benchmark 怎么选？</h3>
 <p>先按业务能力拆分：OCR、文档、图表、空间、视频、GUI、安全。公开 benchmark 用来横向比较，自建 regression set 用来覆盖真实业务。二者都要有，不能只跑 leaderboard。</p>
-<h3>2. 为什么 VLM judge 需要校准？</h3>
+<h3>7.11.2 为什么 VLM judge 需要校准？</h3>
 <p>VLM judge 自身也会 hallucinate，对风格、长度和模型家族有偏好。需要用人工标注集校准，报告 judge-human agreement，并对精确任务使用程序化 oracle。</p>
-<h3>3. VLM 项目怎么证明有效？</h3>
+<h3>7.11.3 VLM 项目怎么证明有效？</h3>
 <p>用离线 benchmark 证明基础能力，用业务回归集证明场景覆盖，用线上 A/B 或人工复核指标证明收益。还要报告成本、延迟、失败类型和安全边界。</p>
-<h3>4. VLM 和 OCR/layout/RAG 怎么配合？</h3>
+<h3>7.11.4 VLM 和 OCR/layout/RAG 怎么配合？</h3>
 <p>对于文档和企业知识库，VLM 不一定替代 OCR 和 RAG。更稳的系统通常是 OCR/layout 提供结构，RAG 定位证据，VLM 负责跨模态理解和回答，最后用 citation 和 oracle 评测。</p>
-<h2>本章 References</h2>
+<h2>7.12 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2311.16502">MMMU: A Massive Multi-discipline Multimodal Understanding and Reasoning Benchmark</a></li>
 <li><a href="https://arxiv.org/abs/2306.13394">MME: A Comprehensive Evaluation Benchmark for Multimodal Large Language Models</a></li>

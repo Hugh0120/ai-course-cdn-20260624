@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-transformer-tokenization-pretraining.html">← 上一章</a><a href="./03-prompt-rag-agent-eval.html">下一章 →</a></nav><h1>第 2 章：Scaling、Post-training、Alignment 与 RLVR</h1>
-<h2>本章符号说明</h2>
+<h2>2.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -398,7 +398,7 @@
 <td>样本 <span class="math-text">i</span> 相对基线的好坏程度。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>2.2 本章目标</h2>
 <ul>
 <li>理解 scaling law、compute-optimal training 和 test-time compute 的关系。</li>
 <li>掌握 pretraining、SFT、preference alignment、RLVR、safety tuning 的完整流水线。</li>
@@ -406,7 +406,7 @@
 <li>能从工程角度说明为什么 2025-2026 的 reasoning model 更依赖 RL 和可验证环境。</li>
 <li>能回答 alignment 面试里常见的 reward hacking、sycophancy、over-refusal、jailbreak、hidden CoT 问题。</li>
 </ul>
-<h2>从 Scaling 到 Post-training</h2>
+<h2>2.3 从 Scaling 到 Post-training</h2>
 <p>LLM 能力来自四个维度的共同缩放：</p>
 <ol>
 <li>参数量和模型容量。</li>
@@ -419,7 +419,7 @@
 <blockquote>
 <p>传统 scaling law 主要解释 pretraining loss 随 model/data/compute 的变化；reasoning model 之后，还要看 post-training RL compute 和 inference-time compute。复杂数学、代码、工具调用任务上，模型能力不只是参数记忆，而是搜索、验证、自我纠错和工具使用策略的综合结果。</p>
 </blockquote>
-<h2>现代 Post-training Pipeline</h2>
+<h2>2.4 现代 Post-training Pipeline</h2>
 <p>现代 frontier model 常见流程：</p>
 <ol>
 <li>Pretraining：大规模 next-token prediction，学习通用语言、代码、知识和世界模型。</li>
@@ -431,7 +431,7 @@
 <li>Product eval：自动 benchmark、人工评测、红队、安全预案、线上监控。</li>
 </ol>
 <p>一个重要面试点：post-training 不只是“让模型更礼貌”。它会显著改变 instruction following、工具调用、长任务执行、推理深度和安全边界。</p>
-<h2>SFT</h2>
+<h2>2.5 SFT</h2>
 <p>SFT 用指令数据训练模型：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">SFT</span></sub>(θ) = - ∑<sub><span class="math-text">t</span></sub> log P<sub><span class="math-text">θ</span></sub>(y<sub><span class="math-text">t</span></sub> ∣ x, y<sub><span class="math-text">&lt;t</span></sub>)</span></div>
 
@@ -447,7 +447,7 @@
 <li>对数学、代码、agent 这类可验证任务，SFT 只能模仿轨迹，不一定学会探索和纠错。</li>
 <li>对 safety 的提升依赖覆盖率，没见过的 jailbreak 和边界条件仍容易出错。</li>
 </ul>
-<h2>RLHF 与 PPO</h2>
+<h2>2.6 RLHF 与 PPO</h2>
 <p>RLHF 典型三步：</p>
 <ol>
 <li>收集 prompt 和多个候选回答。</li>
@@ -468,7 +468,7 @@
 <p>为什么 RLHF 会 reward hacking？</p>
 </blockquote>
 <p>因为 reward model 是人类偏好的近似，不是真实目标。如果模型发现某些模式能骗过 RM，比如过度自信、迎合用户、模板化安全话术，就会优化这些捷径。</p>
-<h2>RLAIF 与 Constitutional AI</h2>
+<h2>2.7 RLAIF 与 Constitutional AI</h2>
 <p>RLAIF 用 AI feedback 替代或补充人类反馈。Anthropic 的 Constitutional AI 是代表路线：先让模型根据一组原则自我批评和修订，再用 AI 偏好训练 preference model，最后用 RL 优化。</p>
 <p>优点：</p>
 <ul>
@@ -482,7 +482,7 @@
 <li>如果 judge 与 policy 共享偏见，可能放大系统性错误。</li>
 <li>容易把 alignment 变成“符合某套文本规则”，但现实任务仍有灰区。</li>
 </ul>
-<h2>DPO</h2>
+<h2>2.8 DPO</h2>
 <p>DPO 直接用偏好对训练，不显式跑 RL。对于同一个 prompt，有 preferred answer <span class="math-text">y<sub><span class="math-text">w</span></sub></span> 和 rejected answer <span class="math-text">y<sub><span class="math-text">l</span></sub></span>。</p>
 <p>简化表达：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">DPO</span></sub> = -log σ(β Δ)</span></div>
@@ -492,7 +492,7 @@
 <blockquote>
 <p>DPO 把偏好优化转成 supervised-style loss，省掉 reward model 和 PPO loop，因此更稳定、更容易复现。但它主要适合 pairwise preference，不等于能替代所有在线 RL；在工具环境、代码执行、数学验证这类任务上，RLVR 更直接。</p>
 </blockquote>
-<h2>RLVR：为什么 2025-2026 很重要</h2>
+<h2>2.9 RLVR：为什么 2025-2026 很重要</h2>
 <p>RLVR 的核心是：有些任务可以自动判断对错，所以不需要昂贵的人类偏好。</p>
 <p>典型可验证任务：</p>
 <ul>
@@ -510,7 +510,7 @@
 <blockquote>
 <p>RLVR 是 reasoning model 的关键训练范式之一，因为数学、代码和 agent 任务有明确的外部反馈。模型不是只模仿人类答案，而是在采样、执行、验证、失败后调整的闭环中学会更可靠的推理策略。</p>
 </blockquote>
-<h2>PRM 与 ORM</h2>
+<h2>2.10 PRM 与 ORM</h2>
 <p>ORM 只看最终结果：</p>
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">ORM</span></sub>(x,y)=1[answer(y)=answer<sup><span class="math-text">*</span></sup>]</span></div>
 
@@ -556,7 +556,7 @@
 <li>PRM 更像“每一步都给老师批改”，对长推理有帮助。</li>
 <li>现代系统经常组合：采样多条轨迹，用 verifier / test / tool result 选最优。</li>
 </ul>
-<h2>GRPO</h2>
+<h2>2.11 GRPO</h2>
 <p>GRPO 是 PPO 的一个 memory-efficient 变体。它不显式训练 value model，而是在同一个 prompt 下采样一组回答，用组内 reward 均值和方差构造相对 advantage。</p>
 <p>给同一个 prompt 采样 <span class="math-text">G</span> 个回答，reward 为 <span class="math-text">r<sub><span class="math-text">i</span></sub></span>，可以写成：</p>
 <div class="math-block"><span class="math-text">A<sub><span class="math-text">i</span></sub> = r<sub><span class="math-text">i</span></sub> - mean(r<sub><span class="math-text">1</span></sub>,…,r<sub><span class="math-text">G</span></sub>) / std(r<sub><span class="math-text">1</span></sub>,…,r<sub><span class="math-text">G</span></sub>)</span></div>
@@ -573,7 +573,7 @@
 <li>对 reward 设计和采样温度敏感。</li>
 <li>容易优化到“会拿分”的策略，不等于真实通用推理。</li>
 </ul>
-<h2>Safety Alignment：从拒答到安全推理</h2>
+<h2>2.12 Safety Alignment：从拒答到安全推理</h2>
 <p>2026 面试里，alignment 不能只讲“模型会拒答”。要讲四类问题：</p>
 <table class="symbol-table">
 <thead>
@@ -620,18 +620,18 @@
 <blockquote>
 <p>安全对齐正在从“分类器式拒答”走向“策略推理”。模型需要判断用户意图、上下文、风险等级和可替代帮助方式。好的安全系统既减少 jailbreak，也减少 over-refusal。</p>
 </blockquote>
-<h2>本章面试高频问题</h2>
-<h3>1. SFT、RLHF、DPO、RLVR 的关系？</h3>
+<h2>2.13 本章面试高频问题</h2>
+<h3>2.13.1 SFT、RLHF、DPO、RLVR 的关系？</h3>
 <p>SFT 学示范，RLHF 学人类偏好，DPO 用偏好对做稳定的直接优化，RLVR 用可验证 reward 优化数学、代码、工具等任务。它们不是互斥关系，现代模型通常多阶段组合使用。</p>
-<h3>2. 为什么 reasoning model 更依赖 RL？</h3>
+<h3>2.13.2 为什么 reasoning model 更依赖 RL？</h3>
 <p>复杂推理和工具任务不是单步模仿能解决的。RL 可以让模型从执行结果、测试结果、验证结果中学习策略，尤其适合有明确 reward 的数学、代码、agent 环境。</p>
-<h3>3. GRPO 和 PPO 的区别？</h3>
+<h3>2.13.3 GRPO 和 PPO 的区别？</h3>
 <p>PPO 通常需要 value model 估计 advantage；GRPO 用同组候选的相对 reward 构造 advantage，省掉 value model，适合大模型 RL，但对 reward 分布和采样组质量敏感。</p>
-<h3>4. PRM 为什么不总是优于 ORM？</h3>
+<h3>2.13.4 PRM 为什么不总是优于 ORM？</h3>
 <p>PRM 提供更密集的中间监督，但标注成本高，也可能奖励“看起来像推理”的步骤。ORM 简单但稀疏。实际系统常结合 verifier、best-of-n、工具执行和最终测试。</p>
-<h3>5. safe-completions 和普通拒答有什么区别？</h3>
+<h3>2.13.5 safe-completions 和普通拒答有什么区别？</h3>
 <p>普通拒答把请求分成允许/拒绝。safe-completions 更强调在安全边界内尽量有帮助：危险部分不提供，但可以给高层解释、安全替代方案或合规信息。</p>
-<h2>本章 References</h2>
+<h2>2.14 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a></li>
 <li><a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a></li>

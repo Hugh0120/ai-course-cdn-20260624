@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-video-data-training-control.html">← 上一章</a><a href="./07-evaluation-safety-projects.html">下一章 →</a></nav><h1>第 6 章：文生视频工作流、控制、评测与项目实操</h1>
 <p>上一章讲视频模型怎么训练，这一章讲视频生成系统怎么用、怎么评测、怎么落地。文生视频的产品形态越来越不像“一条 prompt 生成一段视频”，而更像导演式工作流：分镜、参考图、首尾帧、镜头控制、局部编辑、音频、审核和版本管理。</p>
-<h2>本章符号说明</h2>
+<h2>6.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -405,14 +405,14 @@
 <td>分镜计划中的一个镜头。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>6.2 本章目标</h2>
 <ul>
 <li>能把文生视频讲成可控创作 workflow，而不是单次生成。</li>
 <li>能设计视频生成 eval harness 和 badcase 归因体系。</li>
 <li>能说明首尾帧、参考图、mask、camera control、audio control 的作用。</li>
 <li>能把项目表达成“生成、评测、安全、成本、线上反馈”的闭环。</li>
 </ul>
-<h2>产品级视频生成 Workflow</h2>
+<h2>6.3 产品级视频生成 Workflow</h2>
 <p>一个通用 pipeline：</p>
 <pre><code class="language-text">用户需求 / brief
 -&gt; LLM 拆分 storyboard、shot list、camera plan
@@ -429,7 +429,7 @@
 <blockquote>
 <p>真实文生视频系统不是一次 prompt 出片，而是把视频拆成 shot-level generation 和 edit-level control。模型负责生成候选，系统负责规划、参考资产管理、一致性校验、评测、审核和回滚。</p>
 </blockquote>
-<h2>控制信号地图</h2>
+<h2>6.4 控制信号地图</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -501,7 +501,7 @@
 </tr>
 </tbody></table>
 <p>这些控制信号可以组合，但组合越多，模型越容易出现冲突。比如首帧要求人物站着，prompt 要求人物从椅子上起身，尾帧又要求人物躺下，系统需要先做 prompt normalization 和冲突检查。</p>
-<h2>视频评测维度</h2>
+<h2>6.5 视频评测维度</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -572,7 +572,7 @@
 <td>肖像、版权、暴力、成人、误导性内容。</td>
 </tr>
 </tbody></table>
-<h2>视频 Eval Harness</h2>
+<h2>6.6 视频 Eval Harness</h2>
 <p>一个视频生成 harness 至少需要：</p>
 <table class="standard-table">
 <thead>
@@ -615,7 +615,7 @@
 </tr>
 </tbody></table>
 <p>注意：FVD 这种指标适合分布级比较，但不适合直接判断单条视频是否满足 prompt。产品评测必须有 prompt-level、人评和 badcase 维度。</p>
-<h2>Badcase 归因</h2>
+<h2>6.7 Badcase 归因</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -680,7 +680,7 @@
 <td>输入输出审核、拒绝策略、provenance。</td>
 </tr>
 </tbody></table>
-<h2>项目实操一：广告短视频生成</h2>
+<h2>6.8 项目实操一：广告短视频生成</h2>
 <ol>
 <li>输入：商品图、卖点、品牌规范、目标人群。</li>
 <li>规划：LLM 生成 3-5 个 shot，包含镜头、字幕、CTA。</li>
@@ -692,7 +692,7 @@
 <blockquote>
 <p>广告视频项目的核心不是“生成好看视频”，而是商品和品牌不能漂移，文字不能错，素材要可审核、可回滚，并且最终用 CTR/CVR 和人工审核通过率闭环。</p>
 </blockquote>
-<h2>项目实操二：影视分镜预览</h2>
+<h2>6.9 项目实操二：影视分镜预览</h2>
 <ol>
 <li>输入：剧本片段、人物设定、场景设定。</li>
 <li>规划：拆分 shot list、camera plan、情绪、动作。</li>
@@ -702,7 +702,7 @@
 <li>后处理：剪辑、配音、临时音乐、字幕。</li>
 </ol>
 <p>这个项目特别适合说明“视频生成越来越 agentic”：LLM 做规划，图像模型做 keyframe，视频模型做 shot，VLM/judge 做评测和回归。</p>
-<h2>项目实操三：视频编辑和合规审核</h2>
+<h2>6.10 项目实操三：视频编辑和合规审核</h2>
 <p>输入现有视频，做 object remove、背景替换、风格化、logo 清理或字幕修改。</p>
 <p>关键评测：</p>
 <ul>
@@ -714,16 +714,16 @@
 <li>是否引入版权、肖像、误导性风险。</li>
 </ul>
 <p>面试时强调：编辑任务比生成任务更需要 preserve 约束和 before/after 评测。</p>
-<h2>面试高频问题</h2>
-<h3>1. 为什么文生视频产品要分镜？</h3>
+<h2>6.11 面试高频问题</h2>
+<h3>6.11.1 为什么文生视频产品要分镜？</h3>
 <p>长视频一次生成成本高、可控性差、失败难修。分镜可以把复杂需求拆成短镜头，每个镜头独立生成和评测，再通过剪辑保持叙事连续。</p>
-<h3>2. 首尾帧控制有什么用？</h3>
+<h3>6.11.2 首尾帧控制有什么用？</h3>
 <p>首帧保证起始构图和主体，尾帧约束最终状态。它比纯文本 prompt 更适合控制转场、角色位置和动作结果。</p>
-<h3>3. 自动指标为什么不够？</h3>
+<h3>6.11.3 自动指标为什么不够？</h3>
 <p>视频质量包含美学、语义、运动、物理、身份、安全和业务偏好。单个自动指标很难覆盖，必须结合多维指标、VLM judge、人评和业务指标。</p>
-<h3>4. 文生视频项目怎么证明上线价值？</h3>
+<h3>6.11.4 文生视频项目怎么证明上线价值？</h3>
 <p>离线看 prompt adherence、时序一致性、身份一致性、安全通过率；线上看生成成功率、TTV、人工审核通过率、CTR/CVR、用户留存和成本。</p>
-<h2>本章 References</h2>
+<h2>6.12 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2311.17982">VBench: Comprehensive Benchmark Suite for Video Generative Models</a></li>
 <li><a href="https://arxiv.org/abs/2406.03520">VideoPhy: Evaluating Physical Commonsense for Video Generation</a></li>

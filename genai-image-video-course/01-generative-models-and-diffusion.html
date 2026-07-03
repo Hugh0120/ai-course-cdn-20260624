@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-text-to-image-architectures.html">下一章 →</a></nav><h1>第 1 章：生成模型、DDPM、Score 与 Flow Matching</h1>
-<h2>本章符号说明</h2>
+<h2>1.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -416,7 +416,7 @@
 <td>模型预测从噪声到数据的方向或速度。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>1.2 本章目标</h2>
 <ul>
 <li>理解生成模型要学习 <span class="math-text">p<sub><span class="math-text">data</span></sub>(x)</span>。</li>
 <li>掌握 diffusion 的 forward 和 reverse。</li>
@@ -424,7 +424,7 @@
 <li>能解释 score、v-prediction、flow matching、rectified flow 的关系。</li>
 <li>能解释 diffusion 和 GAN / VAE / AR 的直觉差异。</li>
 </ul>
-<h2>生成模型在学什么</h2>
+<h2>1.3 生成模型在学什么</h2>
 <p>生成模型希望从数据分布中采样：</p>
 <div class="math-block"><span class="math-text">x ∼ p<sub><span class="math-text">data</span></sub>(x)</span></div>
 
@@ -469,7 +469,7 @@
 <td>学习把噪声连续搬运到数据的速度场。</td>
 </tr>
 </tbody></table>
-<h2>Forward Diffusion</h2>
+<h2>1.4 Forward Diffusion</h2>
 <p>forward process 逐步给干净样本 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 加噪：</p>
 <div class="math-block"><span class="math-text">q(x<sub><span class="math-text">t</span></sub> ∣ x<sub><span class="math-text">t-1</span></sub>) = 𝒩(√(1-β<sub><span class="math-text">t</span></sub>)x<sub><span class="math-text">t-1</span></sub>, β<sub><span class="math-text">t</span></sub> I)</span></div>
 
@@ -480,7 +480,7 @@
 <p>其中：</p>
 <div class="math-block"><span class="math-text">ᾱ<sub><span class="math-text">t</span></sub> = ∏<sub><span class="math-text">s=1</span></sub><sup><span class="math-text">t</span></sup>α<sub><span class="math-text">s</span></sub>,  ε ∼ 𝒩(0,I)</span></div>
 
-<h2>Reverse Denoising</h2>
+<h2>1.5 Reverse Denoising</h2>
 <p>反向过程从噪声开始，逐步去噪：</p>
 <div class="math-block"><span class="math-text">p<sub><span class="math-text">θ</span></sub>(x<sub><span class="math-text">t-1</span></sub>∣ x<sub><span class="math-text">t</span></sub>)</span></div>
 
@@ -494,7 +494,7 @@
 <blockquote>
 <p>模型看到一张被加噪的图和当前噪声等级 <span class="math-text">t</span>，学习判断“哪些部分是噪声”，然后采样时反复去噪，最终从纯噪声变成图像。</p>
 </blockquote>
-<h2>三种常见预测参数化</h2>
+<h2>1.6 三种常见预测参数化</h2>
 <p>同一个 denoising 任务可以用不同输出形式训练：</p>
 <table class="wide-table">
 <thead>
@@ -532,7 +532,7 @@
 <blockquote>
 <p>这些参数化本质上都是从 noisy sample 估计去噪方向。差异在于数值稳定性、不同 noise level 的 loss 权重，以及采样器怎么把预测量转换成下一步样本。</p>
 </blockquote>
-<h2>为什么 Diffusion 稳定</h2>
+<h2>1.7 为什么 Diffusion 稳定</h2>
 <p>相比 GAN，diffusion 的训练更像 supervised denoising：</p>
 <ul>
 <li>每个训练样本可以构造不同噪声等级。</li>
@@ -545,7 +545,7 @@
 <li>高分辨率训练和推理成本大。</li>
 <li>prompt alignment 需要 conditioning 和 guidance。</li>
 </ul>
-<h2>从 Diffusion 到 Flow Matching</h2>
+<h2>1.8 从 Diffusion 到 Flow Matching</h2>
 <p>新一代图像和视频模型经常使用 flow matching 或 rectified flow。一个简化理解是：diffusion 学习反向去噪分布，flow matching 学习连续路径上的速度场。</p>
 <p>构造一条从噪声 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 到数据 <span class="math-text">x<sub><span class="math-text">1</span></sub></span> 的路径：</p>
 <div class="math-block"><span class="math-text">x<sub><span class="math-text">t</span></sub> = (1-t)x<sub><span class="math-text">0</span></sub> + t x<sub><span class="math-text">1</span></sub></span></div>
@@ -564,7 +564,7 @@
 <blockquote>
 <p>diffusion、score model 和 flow matching 都在学习从简单分布到数据分布的生成路径。区别在于路径定义、预测目标、采样方程和数值稳定性。</p>
 </blockquote>
-<h2>采样器和速度</h2>
+<h2>1.9 采样器和速度</h2>
 <p>训练好模型后，还需要采样器把噪声变成图像或视频。</p>
 <table class="symbol-table">
 <thead>
@@ -607,18 +607,18 @@
 </tr>
 </tbody></table>
 <p>工程上，采样器不是细枝末节。线上系统常常要在质量、成本、延迟、稳定性之间做 trade-off。</p>
-<h2>本章面试高频问题</h2>
-<h3>1. DDPM 的 forward process 是什么？</h3>
+<h2>1.10 本章面试高频问题</h2>
+<h3>1.10.1 DDPM 的 forward process 是什么？</h3>
 <p>forward process 是固定的加噪过程，从 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 逐步采样 <span class="math-text">x<sub><span class="math-text">t</span></sub></span>，直到接近高斯噪声。训练时不需要学习 forward，只学习 reverse denoising。</p>
-<h3>2. 为什么可以训练模型预测 <span class="math-text">ε</span>？</h3>
+<h3>1.10.2 为什么可以训练模型预测 <span class="math-text">ε</span>？</h3>
 <p>因为 <span class="math-text">x<sub><span class="math-text">t</span></sub></span> 可以由 <span class="math-text">x<sub><span class="math-text">0</span></sub></span> 和噪声 <span class="math-text">ε</span> 闭式构造。知道 <span class="math-text">x<sub><span class="math-text">t</span></sub></span>、<span class="math-text">t</span> 和预测噪声后，就能估计干净样本或反向采样方向。</p>
-<h3>3. Diffusion 和 GAN 的区别？</h3>
+<h3>1.10.3 Diffusion 和 GAN 的区别？</h3>
 <p>GAN 通过对抗训练直接生成样本，采样快但训练可能不稳定。Diffusion 通过多步去噪生成，训练稳定、质量高，但推理通常更慢。</p>
-<h3>4. Flow matching 和 diffusion 是什么关系？</h3>
+<h3>1.10.4 Flow matching 和 diffusion 是什么关系？</h3>
 <p>两者都在学习从简单噪声分布到数据分布的生成过程。diffusion 通常从加噪过程推导反向去噪，flow matching 更直接学习路径上的速度场。现在很多 SOTA 图像模型会把 flow matching、rectified flow、DiT 和多模态条件结合起来。</p>
-<h3>5. 为什么少步采样难？</h3>
+<h3>1.10.5 为什么少步采样难？</h3>
 <p>少步采样要求每一步都走得很准。步数减少后，误差没有足够机会被修正，容易出现结构崩坏、细节伪影、prompt 不遵循。解决思路包括更好的 solver、distillation、consistency training、flow matching 和后训练。</p>
-<h2>本章 References</h2>
+<h2>1.11 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models</a></li>
 <li><a href="https://arxiv.org/abs/2207.12598">Classifier-Free Diffusion Guidance</a></li>

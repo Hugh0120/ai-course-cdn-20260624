@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./12-rag-systems-and-evaluation.html">← 上一章</a><a href="./99-references.html">下一章 →</a></nav><h1>第 13 章：Eval Harness、Benchmark 与可复现评测</h1>
-<h2>本章符号说明</h2>
+<h2>13.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -536,7 +536,7 @@
 <td>单个任务的评分。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>13.2 本章目标</h2>
 <ul>
 <li>理解 benchmark、eval、harness、leaderboard 的区别。</li>
 <li>能解释为什么 2026 年要报告 model + harness + scaffold，而不是只报 model 名。</li>
@@ -544,7 +544,7 @@
 <li>能识别 benchmark 污染、工具预算不公平、LLM judge 偏差、pass@k 滥用。</li>
 <li>能把 eval 接入研发闭环，而不是只跑一次排行榜。</li>
 </ul>
-<h2>Harness 是什么</h2>
+<h2>13.3 Harness 是什么</h2>
 <p>Harness 本质上是“把评测跑起来并保证可复现”的系统层。</p>
 <p>它通常负责：</p>
 <ul>
@@ -562,7 +562,7 @@
 <blockquote>
 <p>Benchmark 是题，metric 是怎么算分，harness 是把题以固定协议喂给模型并记录结果的执行系统。对 agent 来说，harness 还包含工具、状态、权限、恢复和 trace，所以分数不能只归因于 base model。</p>
 </blockquote>
-<h2>Benchmark、Harness、Scaffold 的区别</h2>
+<h2>13.4 Benchmark、Harness、Scaffold 的区别</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -607,7 +607,7 @@
 <div class="math-block"><span class="math-text">Score = f(M, H, T, P, B)</span></div>
 
 <p>其中 <span class="math-text">M</span> 是模型，<span class="math-text">H</span> 是 harness，<span class="math-text">T</span> 是任务集合，<span class="math-text">P</span> 是 prompt/protocol，<span class="math-text">B</span> 是预算。只说“某模型在某榜单多少分”往往信息不足。</p>
-<h2>LM Evaluation Harness</h2>
+<h2>13.5 LM Evaluation Harness</h2>
 <p>EleutherAI 的 LM Evaluation Harness 是经典 model eval harness。它把很多文本 benchmark 统一到同一套接口里。</p>
 <p>核心组件：</p>
 <ul>
@@ -630,7 +630,7 @@
 <li>对 reasoning model，要处理 hidden CoT / think_end_token。</li>
 <li>对 agentic 系统，单轮 harness 不够。</li>
 </ul>
-<h2>OpenAI Evals 与自定义 Eval</h2>
+<h2>13.6 OpenAI Evals 与自定义 Eval</h2>
 <p>OpenAI Evals 代表另一类思路：把 eval 当成产品和模型迭代的一部分。</p>
 <p>典型结构：</p>
 <ol>
@@ -644,7 +644,7 @@
 <blockquote>
 <p>生产 eval 不是只跑 MMLU，而是把真实用户失败样本、红队样本、权限边界样本、格式约束样本持续加入回归集。</p>
 </blockquote>
-<h2>Agent Harness</h2>
+<h2>13.7 Agent Harness</h2>
 <p>Agent harness 比普通 model harness 多很多东西。</p>
 <table class="symbol-table">
 <thead>
@@ -709,7 +709,7 @@
 <li>是否有 reviewer/verifier。</li>
 <li>最终如何判定成功。</li>
 </ul>
-<h2>Coding Agent Harness</h2>
+<h2>13.8 Coding Agent Harness</h2>
 <p>Coding agent 的 harness 通常包含：</p>
 <ol>
 <li>仓库快照：固定 commit。</li>
@@ -736,7 +736,7 @@
 <blockquote>
 <p>SWE-bench 分数不只是模型能力，还取决于 scaffold、工具、测试预算、重试策略和 patch 验证方式。比较 coding agent 时必须看 protocol。</p>
 </blockquote>
-<h2>RAG Harness</h2>
+<h2>13.9 RAG Harness</h2>
 <p>RAG harness 需要同时固定 corpus、query、权限、gold evidence 和 judge。</p>
 <p>最小结构：</p>
 <ul>
@@ -759,7 +759,7 @@
 <li>cost。</li>
 <li>permission violation rate。</li>
 </ul>
-<h2>LLM-as-a-Judge 怎么用</h2>
+<h2>13.10 LLM-as-a-Judge 怎么用</h2>
 <p>LLM-as-a-Judge 适合开放式答案，但不能裸用。</p>
 <p>要注意：</p>
 <ul>
@@ -778,7 +778,7 @@
 <li>rubric drift：评分标准不稳定。</li>
 <li>evidence blindness：没有认真核对引用。</li>
 </ul>
-<h2>污染、泄漏与可比性</h2>
+<h2>13.11 污染、泄漏与可比性</h2>
 <p>2026 年 benchmark 最大的问题之一是可比性。</p>
 <p>常见风险：</p>
 <ul>
@@ -802,7 +802,7 @@
 <li>成本和延迟。</li>
 <li>是否做 decontamination。</li>
 </ol>
-<h2>Eval 研发闭环</h2>
+<h2>13.12 Eval 研发闭环</h2>
 <p>一个成熟团队不会只在发布前跑一次评测，而是建立闭环：</p>
 <pre><code class="language-text">线上失败样本 -&gt; 标注/归因 -&gt; 加入 eval set -&gt; 修模型/修系统 -&gt; CI 回归 -&gt; 灰度监控
 </code></pre>
@@ -818,18 +818,18 @@
 <blockquote>
 <p>Eval 的价值不是得一个分数，而是形成 failure taxonomy 和回归闭环。每次线上事故或人工纠错都应该沉淀成可复现 eval。</p>
 </blockquote>
-<h2>面试高频问题</h2>
-<h3>1. Harness 和 benchmark 有什么区别？</h3>
+<h2>13.13 面试高频问题</h2>
+<h3>13.13.1 Harness 和 benchmark 有什么区别？</h3>
 <p>Benchmark 是题和指标，harness 是执行系统。Harness 决定 prompt、工具、预算、解析、打分、日志和复现方式。</p>
-<h3>2. 为什么 agent 要报告 model-harness 组合？</h3>
+<h3>13.13.2 为什么 agent 要报告 model-harness 组合？</h3>
 <p>因为 agent 能力强依赖工具、context management、retry、verifier、sandbox 和权限策略。同一模型换 harness，成功率和失败模式都可能变。</p>
-<h3>3. 怎么设计一个 RAG eval harness？</h3>
+<h3>13.13.3 怎么设计一个 RAG eval harness？</h3>
 <p>固定 corpus/index/query/gold evidence/permission scope，分别评估 retrieval、rerank、generation、citation、refusal、latency、cost 和越权率。</p>
-<h3>4. LLM-as-a-Judge 靠谱吗？</h3>
+<h3>13.13.4 LLM-as-a-Judge 靠谱吗？</h3>
 <p>可以用于趋势和开放式评测，但要用人工样本校准，固定 judge 版本，控制位置偏差和冗长偏差；高风险结论要用规则、oracle 或人工复核。</p>
-<h3>5. 为什么排行榜分数不能直接横比？</h3>
+<h3>13.13.5 为什么排行榜分数不能直接横比？</h3>
 <p>因为 prompt、decoding、thinking budget、tool access、scaffold、pass@k 和测试污染都可能不同。面试里要先问 protocol，再看分数。</p>
-<h2>本章 References</h2>
+<h2>13.14 本章 References</h2>
 <ul>
 <li><a href="https://github.com/EleutherAI/lm-evaluation-harness">EleutherAI LM Evaluation Harness</a></li>
 <li><a href="https://github.com/openai/evals">OpenAI Evals</a></li>

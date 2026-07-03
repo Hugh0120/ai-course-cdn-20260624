@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-video-generation.html">← 上一章</a><a href="./06-video-workflow-evaluation-projects.html">下一章 →</a></nav><h1>第 5 章：文生视频数据构造、预处理与训练实操</h1>
 <p>这一章专门讲文生视频的训练侧。视频生成模型不是把文生图模型“多生成几帧”就完事了，真正难点在视频数据、caption、镜头边界、时间一致性、音视频同步、训练样本打包和后训练。面试里能把这些讲清楚，会比单纯背 Sora、Veo、Movie Gen、Seedance 的名字更有说服力。</p>
-<h2>本章符号说明</h2>
+<h2>5.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -411,14 +411,14 @@
 <td>文本、首帧、尾帧、参考图、mask、audio 等控制输入。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>5.2 本章目标</h2>
 <ul>
 <li>能讲清视频数据从采集到训练样本的完整 pipeline。</li>
 <li>能解释 caption、shot detection、frame sampling、音频处理为什么关键。</li>
 <li>能区分 T2V、I2V、V2V、editing、AV 训练样本。</li>
 <li>能说明视频 post-training、RLHF、distillation 怎么服务产品质量和成本。</li>
 </ul>
-<h2>视频数据为什么比图像数据更难</h2>
+<h2>5.3 视频数据为什么比图像数据更难</h2>
 <p>图像样本通常是单帧语义，视频样本包含：</p>
 <ul>
 <li>时间顺序。</li>
@@ -435,7 +435,7 @@
 <blockquote>
 <p>文生视频的数据核心不是“有视频就行”，而是要把视频拆成可学习的时空事件：镜头、动作、主体、场景、相机、声音和状态变化。caption 越能描述时间变化，模型越容易学到 prompt 到 motion 的映射。</p>
 </blockquote>
-<h2>视频数据 Pipeline</h2>
+<h2>5.4 视频数据 Pipeline</h2>
 <pre><code class="language-text">原始视频
 -&gt; 解码、格式统一、fps / 分辨率标准化
 -&gt; shot detection：切镜头、去片头片尾、去黑帧
@@ -448,7 +448,7 @@
 -&gt; tokenization / VAE latent / spacetime patch
 -&gt; pretraining、SFT、preference、distillation、eval
 </code></pre>
-<h2>数据过滤维度</h2>
+<h2>5.5 数据过滤维度</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -519,7 +519,7 @@
 <td>影响音视频联合训练。</td>
 </tr>
 </tbody></table>
-<h2>Caption 要描述什么</h2>
+<h2>5.6 Caption 要描述什么</h2>
 <p>视频 caption 至少要覆盖六类信息：</p>
 <table class="standard-table">
 <thead>
@@ -560,7 +560,7 @@
 <pre><code class="language-text">A skier in a red jacket descends a snowy slope, makes two wide turns, slows near the camera, and raises one hand. The camera stays fixed while wind noise is heard in the background.
 </code></pre>
 <p>如果训练目标是中文产品，也要有中文 caption 或双语 caption，否则中文 prompt adherence 会弱。</p>
-<h2>训练样本 Schema</h2>
+<h2>5.7 训练样本 Schema</h2>
 <p>T2V 样本：</p>
 <pre><code class="language-json">{
   &quot;id&quot;: &quot;t2v_000001&quot;,
@@ -602,7 +602,7 @@
   }
 }
 </code></pre>
-<h2>训练阶段</h2>
+<h2>5.8 训练阶段</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -665,7 +665,7 @@
 <blockquote>
 <p>工业视频模型通常是多阶段训练：先从图像学外观，再从视频学运动，再用高质量数据和偏好数据修产品体验，最后用蒸馏把慢模型变成可上线的低延迟模型。</p>
 </blockquote>
-<h2>Batch 和 Token Budget</h2>
+<h2>5.9 Batch 和 Token Budget</h2>
 <p>视频样本的成本由 <span class="math-text">T</span>、<span class="math-text">H</span>、<span class="math-text">W</span> 和 latent 压缩率共同决定。直觉上：</p>
 <div class="math-block"><span class="math-text">N<sub><span class="math-text">v</span></sub> propto T × H × W</span></div>
 
@@ -677,7 +677,7 @@
 <li>按宽高比和时长做 bucket。</li>
 <li>混合 T2I、T2V、I2V 数据维持外观和运动。</li>
 </ul>
-<h2>偏好数据怎么构造</h2>
+<h2>5.10 偏好数据怎么构造</h2>
 <p>视频偏好通常不是简单“哪个好看”，而是拆维度：</p>
 <table class="three-col-table">
 <thead>
@@ -724,16 +724,16 @@
 </tr>
 </tbody></table>
 <p>偏好数据可以是 pairwise，也可以是多维评分。面试时要强调：多维偏好比单一总分更可诊断。</p>
-<h2>本章面试高频问题</h2>
-<h3>1. 为什么文生视频需要 shot detection？</h3>
+<h2>5.11 本章面试高频问题</h2>
+<h3>5.11.1 为什么文生视频需要 shot detection？</h3>
 <p>因为一个视频文件可能包含多个镜头、剪辑和转场。如果不切镜头，模型会把突然切换的画面当成连续运动学习，导致生成时出现跳变、空间关系混乱和身份漂移。</p>
-<h3>2. 视频 caption 和图像 caption 的区别？</h3>
+<h3>5.11.2 视频 caption 和图像 caption 的区别？</h3>
 <p>图像 caption 主要描述静态内容，视频 caption 还要描述动作、时间变化、镜头、事件顺序和声音。文生视频 prompt adherence 很依赖 caption 对 motion 的覆盖。</p>
-<h3>3. 为什么视频模型常先用图像预训练？</h3>
+<h3>5.11.3 为什么视频模型常先用图像预训练？</h3>
 <p>图像数据规模更大、质量更高，可以让模型先学会外观、语义和构图；视频训练再补充运动和时序。这样比只用视频从零训练更高效。</p>
-<h3>4. Distillation 在视频生成里为什么重要？</h3>
+<h3>5.11.4 Distillation 在视频生成里为什么重要？</h3>
 <p>视频采样成本高，线上 TTV 很敏感。蒸馏可以减少采样步数或压缩模型，让生成速度接近产品可用，同时尽量保留质量。</p>
-<h2>本章 References</h2>
+<h2>5.12 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2209.14792">Make-A-Video: Text-to-Video Generation without Text-Video Data</a></li>
 <li><a href="https://arxiv.org/abs/2210.02303">Imagen Video: High Definition Video Generation with Diffusion Models</a></li>

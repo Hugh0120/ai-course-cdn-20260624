@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./05-function-approximation-deadly-triad.html">← 上一章</a><a href="./07-policy-gradient.html">下一章 →</a></nav><h1>第 6 章：DQN（Deep Q-Network，深度 Q 网络）与经典改进</h1>
-<h2>本章符号说明</h2>
+<h2>6.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -386,7 +386,7 @@
 <td>连续控制或策略优化章节会出现的算法。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>6.2 本章目标</h2>
 <p>本章学习 value-based deep RL 的代表算法 DQN。你需要掌握：</p>
 <ul>
 <li>DQN 的基本结构。</li>
@@ -397,9 +397,9 @@
 <li>Prioritized Experience Replay。</li>
 <li>DQN 的适用场景和局限。</li>
 </ul>
-<h2>本章主线</h2>
+<h2>6.3 本章主线</h2>
 <p>本章把第 3 章的 Q-learning 和第 5 章的神经网络函数逼近接起来。直接用网络拟合 Q-learning target 会因为样本相关、target 移动、过估计等问题不稳定。DQN 的 replay buffer、target network、Double DQN、Dueling DQN 和 Prioritized Replay 都是在修正这些具体不稳定来源。</p>
-<h2>本章新增概念说明</h2>
+<h2>6.4 本章新增概念说明</h2>
 <p>DQN 章节名词很多，先按“基础结构 -&gt; 稳定技巧 -&gt; 改进算法”分清楚：</p>
 <table class="three-col-table">
 <thead>
@@ -465,7 +465,7 @@
 <td>修正 Prioritized Replay 非均匀采样带来的偏差。</td>
 </tr>
 </tbody></table>
-<h2>DQN 解决什么问题</h2>
+<h2>6.5 DQN 解决什么问题</h2>
 <p>Q-learning 的表格更新是：</p>
 <div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>
 
@@ -475,7 +475,7 @@
 <p>如果动作空间是离散的，网络通常输入 <span class="math-text">s</span>，输出每个 action 的 Q 值：</p>
 <div class="math-block"><span class="math-text">network(s) → [Q(s, a<sub><span class="math-text">1</span></sub>), Q(s, a<sub><span class="math-text">2</span></sub>), …, Q(s, a<sub><span class="math-text">n</span></sub>)]</span></div>
 
-<h2>DQN Loss</h2>
+<h2>6.6 DQN Loss</h2>
 <p>DQN 的 target：</p>
 <div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
 
@@ -494,7 +494,7 @@
 <div class="math-block"><span class="math-text">L = Huber(y - Q(s, a; θ))</span></div>
 
 <p>Huber loss 对异常 TD error 更稳。</p>
-<h2>从 Q-learning 到 DQN Loss 的推理过程</h2>
+<h2>6.7 从 Q-learning 到 DQN Loss 的推理过程</h2>
 <p>Tabular Q-learning 的更新是：</p>
 <div class="math-block"><span class="math-text">Q(s,a)← Q(s,a)+α[y-Q(s,a)]</span></div>
 
@@ -519,7 +519,7 @@ loss:   (y - Q(s, a; theta))^2
 <blockquote>
 <p>DQN 的 loss 可以看成把 Q-learning 的 TD target 当成监督信号。Replay buffer 解决样本相关性，target network 解决 bootstrap target 随参数同步漂移的问题。</p>
 </blockquote>
-<h2>DQN 训练流程</h2>
+<h2>6.8 DQN 训练流程</h2>
 <pre><code class="language-text">initialize online network Q(theta)
 initialize target network Q(theta-) = Q(theta)
 initialize replay buffer
@@ -535,7 +535,7 @@ for each step:
 
     periodically update target network
 </code></pre>
-<h2>Experience Replay</h2>
+<h2>6.9 Experience Replay</h2>
 <p>Replay buffer 存储 transition：</p>
 <pre><code class="language-text">(s, a, r, s&#39;, done)
 </code></pre>
@@ -549,7 +549,7 @@ for each step:
 <blockquote>
 <p>DQN 中连续交互得到的样本高度相关，不适合直接做 SGD。Replay buffer 通过随机采样历史 transition，降低样本相关性，同时让每条经验被多次利用。</p>
 </blockquote>
-<h2>Target Network</h2>
+<h2>6.10 Target Network</h2>
 <p>如果 target 使用 online network：</p>
 <div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div>
 
@@ -562,7 +562,7 @@ for each step:
 <blockquote>
 <p>Target network 让 bootstrap target 在一段时间内保持稳定，降低训练目标和预测网络同步变化带来的震荡。</p>
 </blockquote>
-<h2>Double DQN</h2>
+<h2>6.11 Double DQN</h2>
 <p>DQN 中的 target：</p>
 <div class="math-block"><span class="math-text">max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
 
@@ -576,7 +576,7 @@ for each step:
 <li>target network 负责评估该动作。</li>
 </ul>
 <p>这样可以缓解 Q 值过估计。</p>
-<h2>Double DQN 为什么能缓解过估计</h2>
+<h2>6.12 Double DQN 为什么能缓解过估计</h2>
 <p>DQN 的问题来自 max operator。假设每个动作的 Q 估计都有噪声：</p>
 <pre><code class="language-text">estimated Q = true Q + noise
 </code></pre>
@@ -596,7 +596,7 @@ for each step:
 <blockquote>
 <p>Double DQN 的核心是 decouple action selection and action evaluation。DQN 的 max operator 容易选择被噪声高估的动作，Double DQN 用 online network 选动作，用 target network 估值，从而降低 overestimation bias。</p>
 </blockquote>
-<h2>Dueling DQN</h2>
+<h2>6.13 Dueling DQN</h2>
 <p>Dueling DQN 将 Q 函数分解为状态价值和动作优势：</p>
 <div class="math-block"><span class="math-text">Q(s, a) = V(s) + A(s, a)</span></div>
 
@@ -610,7 +610,7 @@ for each step:
 <li><span class="math-text">A(s,a)</span>：某个动作相对其他动作好多少。</li>
 </ul>
 <p>适合动作之间差异不总是明显的场景。</p>
-<h2>Prioritized Experience Replay</h2>
+<h2>6.14 Prioritized Experience Replay</h2>
 <p>普通 replay buffer 均匀采样 transition。<br>Prioritized Replay 更倾向采样 TD error 大的样本。</p>
 <p>优先级：</p>
 <div class="math-block"><span class="math-text">p<sub><span class="math-text">i</span></sub> = ∣δ<sub><span class="math-text">i</span></sub>∣ + ε</span></div>
@@ -623,7 +623,7 @@ for each step:
 
 <p>直觉：</p>
 <p>TD error 大的样本说明当前模型学得不好，更值得训练。</p>
-<h2>Rainbow DQN</h2>
+<h2>6.15 Rainbow DQN</h2>
 <p>Rainbow DQN 组合了多个 DQN 改进：</p>
 <ul>
 <li>Double DQN。</li>
@@ -634,7 +634,7 @@ for each step:
 <li>NoisyNet。</li>
 </ul>
 <p>面试中通常了解组件即可，不一定要求完整推导。</p>
-<h2>DQN 的适用场景</h2>
+<h2>6.16 DQN 的适用场景</h2>
 <p>适合：</p>
 <ul>
 <li>离散动作空间。</li>
@@ -648,8 +648,8 @@ for each step:
 <li>极端稀疏奖励且探索困难的任务。</li>
 </ul>
 <p>连续控制通常用 DDPG、TD3、SAC、PPO 等算法。</p>
-<h2>本章例子：从 CartPole 到 DQN</h2>
-<h3>例子 1：CartPole</h3>
+<h2>6.17 本章例子：从 CartPole 到 DQN</h2>
+<h3>6.17.1 例子 1：CartPole</h3>
 <p>CartPole 的状态是：</p>
 <table class="standard-table">
 <thead>
@@ -683,14 +683,14 @@ for each step:
 输出 Q(s, left), Q(s, right)
 选择 Q 最大的动作
 </code></pre>
-<h3>例子 2：为什么需要 replay buffer</h3>
+<h3>6.17.2 例子 2：为什么需要 replay buffer</h3>
 <p>如果 agent 连续玩游戏，连续样本高度相关：</p>
 <pre><code class="language-text">第 t 帧：球在左边
 第 t+1 帧：球稍微往右
 第 t+2 帧：球继续往右
 </code></pre>
 <p>直接按时间顺序训练，网络容易被最近局部轨迹带偏。Replay buffer 随机采样历史 transition，让 mini-batch 更接近独立同分布。</p>
-<h3>例子 3：Double DQN 过估计小例子</h3>
+<h3>6.17.3 例子 3：Double DQN 过估计小例子</h3>
 <p>假设真实下一状态两个动作价值都接近 10，但网络估计有噪声：</p>
 <pre><code class="language-text">Q(s&#39;, a1) = 10.1
 Q(s&#39;, a2) = 9.8
@@ -700,18 +700,18 @@ Q(s&#39;, a2) = 9.8
 <blockquote>
 <p>DQN 的关键不是“神经网络版 Q-learning”这么简单，而是 replay buffer 和 target network 解决了深度网络训练时的相关样本和移动目标问题。</p>
 </blockquote>
-<h2>本章面试高频问题</h2>
-<h3>1. DQN 相比 Q-learning 改了什么？</h3>
+<h2>6.18 本章面试高频问题</h2>
+<h3>6.18.1 DQN 相比 Q-learning 改了什么？</h3>
 <p>DQN 用神经网络近似 Q 函数，使 Q-learning 可以处理高维状态输入，例如图像。为了稳定训练，引入了 experience replay 和 target network。</p>
-<h3>2. DQN 为什么需要 replay buffer？</h3>
+<h3>6.18.2 DQN 为什么需要 replay buffer？</h3>
 <p>为了打破连续样本相关性，提高样本利用率，并使 mini-batch 训练更接近监督学习中的随机采样。</p>
-<h3>3. DQN 为什么需要 target network？</h3>
+<h3>6.18.3 DQN 为什么需要 target network？</h3>
 <p>为了稳定 bootstrap target。如果 target 和 online prediction 使用同一网络，模型每次更新都会改变训练目标，容易震荡或发散。</p>
-<h3>4. Double DQN 解决什么问题？</h3>
+<h3>6.18.4 Double DQN 解决什么问题？</h3>
 <p>解决 DQN 中 max operator 带来的 overestimation bias。它用 online network 选择动作，用 target network 评估动作，从而降低过估计。</p>
-<h3>5. Dueling DQN 的核心思想是什么？</h3>
+<h3>6.18.5 Dueling DQN 的核心思想是什么？</h3>
 <p>将 Q 分解为状态价值 <span class="math-text">V(s)</span> 和动作优势 <span class="math-text">A(s,a)</span>，让网络更好地学习状态本身价值和动作相对价值。</p>
-<h2>本章练习</h2>
+<h2>6.19 本章练习</h2>
 <ol>
 <li>手写 DQN target 和 loss。</li>
 <li>解释 Double DQN 的 target 和 DQN target 的区别。</li>

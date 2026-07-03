@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./03-conditioning-editing-control.html">← 上一章</a><a href="./05-video-data-training-control.html">下一章 →</a></nav><h1>第 4 章：文生视频、Temporal Consistency、World Model 与音视频生成</h1>
-<h2>本章符号说明</h2>
+<h2>4.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -374,7 +374,7 @@
 <td>视频压缩后在时间和空间上的 token。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>4.2 本章目标</h2>
 <ul>
 <li>理解视频生成相比图像生成多出的难点。</li>
 <li>掌握 Make-A-Video、Imagen Video、Stable Video Diffusion 的思路。</li>
@@ -382,7 +382,7 @@
 <li>理解 Veo、Movie Gen、Runway Gen-4、HunyuanVideo、Seedance 2.0 的系统趋势。</li>
 <li>能讨论视频生成评测、安全、音视频同步和产品化难点。</li>
 </ul>
-<h2>视频比图像难在哪里</h2>
+<h2>4.3 视频比图像难在哪里</h2>
 <p>视频生成需要同时满足：</p>
 <ul>
 <li>单帧质量。</li>
@@ -395,7 +395,7 @@
 <li>长时程 coherence。</li>
 </ul>
 <p>文生图只需要生成 <span class="math-text">H × W</span> 的空间结构；文生视频要生成 <span class="math-text">T × H × W</span> 的时空结构。</p>
-<h2>Make-A-Video</h2>
+<h2>4.4 Make-A-Video</h2>
 <p>Make-A-Video 的思路是把 text-to-image 进展迁移到 text-to-video：</p>
 <ul>
 <li>从 text-image 数据学外观和语义。</li>
@@ -406,7 +406,7 @@
 <blockquote>
 <p>不一定需要大量 paired text-video data，也可以把图像语义和视频运动分开学习。</p>
 </blockquote>
-<h2>Imagen Video</h2>
+<h2>4.5 Imagen Video</h2>
 <p>Imagen Video 使用级联 video diffusion：</p>
 <ul>
 <li>base video generation。</li>
@@ -418,7 +418,7 @@
 <blockquote>
 <p>先生成低分辨率、低帧率视频，再逐步提升空间和时间分辨率，类似 Imagen 图像生成中的 cascade 思路。</p>
 </blockquote>
-<h2>Stable Video Diffusion</h2>
+<h2>4.6 Stable Video Diffusion</h2>
 <p>SVD 强调 latent video diffusion 的训练流程：</p>
 <ol>
 <li>text-to-image pretraining。</li>
@@ -426,7 +426,7 @@
 <li>high-quality video finetuning。</li>
 </ol>
 <p>它说明视频数据质量和 curation 非常关键。视频不是简单把图像数据堆起来，因为帧间运动、剪辑、字幕、镜头切换都会影响训练。</p>
-<h2>Sora：Spacetime Patch</h2>
+<h2>4.7 Sora：Spacetime Patch</h2>
 <p>Sora 技术报告里，一个关键思想是把视觉数据统一成 patch：</p>
 <ul>
 <li>先把视频压缩到 latent space。</li>
@@ -438,7 +438,7 @@
 <div class="math-block"><span class="math-text">video → latent → spacetime patches → DiT</span></div>
 
 <p>这和 LLM 里的 tokenization 有相似之处：用统一 token 表示复杂数据，从而更容易 scale。</p>
-<h2>Veo 与产品化趋势</h2>
+<h2>4.8 Veo 与产品化趋势</h2>
 <p>以 Veo、Sora、Runway 等系统为代表，产品化视频生成更关注：</p>
 <ul>
 <li>更长时长。</li>
@@ -459,16 +459,16 @@
 <li>safety filter。</li>
 <li>serving cost。</li>
 </ul>
-<h2>本章面试高频问题</h2>
-<h3>1. 文生视频相比文生图最大难点是什么？</h3>
+<h2>4.9 本章面试高频问题</h2>
+<h3>4.9.1 文生视频相比文生图最大难点是什么？</h3>
 <p>除了单帧质量，还要保证时间一致性、运动自然、角色和物体持续存在、物理因果关系合理，以及长视频的全局 coherence。</p>
-<h3>2. 为什么视频生成适合 spacetime patch？</h3>
+<h3>4.9.2 为什么视频生成适合 spacetime patch？</h3>
 <p>spacetime patch 把时间和空间统一成 token，让模型能在同一架构里处理不同分辨率、宽高比和时长的视频，也便于 Transformer scaling。</p>
-<h3>3. 视频数据 curation 为什么重要？</h3>
+<h3>4.9.3 视频数据 curation 为什么重要？</h3>
 <p>低质量视频、剪辑跳变、字幕水印、运动模糊、错误 caption 都会污染模型。视频生成对数据的时序一致性和 caption 质量更敏感。</p>
-<h3>4. Sora 仍有哪些限制？</h3>
+<h3>4.9.4 Sora 仍有哪些限制？</h3>
 <p>官方技术报告提到它仍可能不能准确模拟复杂物理、因果和状态变化，长时程也可能出现不一致或物体自发出现。</p>
-<h2>Sora 2：音频、对话与可控性</h2>
+<h2>4.10 Sora 2：音频、对话与可控性</h2>
 <p>Sora 2 的公开产品说明把方向从“能生成视频”推进到“更像可交互视频创作工具”：</p>
 <ul>
 <li>更强的物理一致性和失败后状态延续。</li>
@@ -477,7 +477,7 @@
 <li>支持真实人物 cameo 类功能，但也带来更强的身份、同意和安全要求。</li>
 </ul>
 <p>注意一个时间点：OpenAI 页面显示 Sora 产品已在 2026 年 4 月 26 日停止提供，但 Sora / Sora 2 的技术方向仍然是面试里理解视频生成演进的好材料。回答时不要把“产品仍可用”当作事实。</p>
-<h2>Veo 3.1：音频和剪辑控制</h2>
+<h2>4.11 Veo 3.1：音频和剪辑控制</h2>
 <p>Veo 3.1 的产品方向强调：</p>
 <ul>
 <li>文生视频和图生视频。</li>
@@ -490,7 +490,7 @@
 <blockquote>
 <p>Veo 的重点不是单个模型参数，而是把视频生成做成可控工作流：参考图、首尾帧、扩展、局部插入、移除、音频同步、安全水印。</p>
 </blockquote>
-<h2>Movie Gen：统一视频、音频、编辑和个性化</h2>
+<h2>4.12 Movie Gen：统一视频、音频、编辑和个性化</h2>
 <p>Meta Movie Gen 的公开材料强调四类能力：</p>
 <ul>
 <li>text-to-video。</li>
@@ -539,7 +539,7 @@
 <td>不只是生成，还要能改现有视频。</td>
 </tr>
 </tbody></table>
-<h2>Runway Gen-4：一致性和生产工作流</h2>
+<h2>4.13 Runway Gen-4：一致性和生产工作流</h2>
 <p>Runway Gen-4 的公开材料把“world consistency”放在中心：用参考图和指令，在不同镜头中保持角色、地点、物体和风格一致。</p>
 <p>对面试很有用的点：</p>
 <ul>
@@ -547,7 +547,7 @@
 <li>产品级视频工具需要角色库、场景库、参考资产和版本管理。</li>
 <li>生成模型要服务导演式工作流，而不是只做 demo prompt。</li>
 </ul>
-<h2>HunyuanVideo、Open-Sora、Seedance：开源和产业化路线</h2>
+<h2>4.14 HunyuanVideo、Open-Sora、Seedance：开源和产业化路线</h2>
 <p>闭源模型质量很强，但面试时也要了解开放技术报告，因为它们会披露更多训练细节。</p>
 <table class="symbol-table">
 <thead>
@@ -594,7 +594,7 @@
 <li>multi-stage distillation。</li>
 </ul>
 <p>这些关键词能把你的回答从“会讲模型”拉到“知道产业系统怎么训、怎么快、怎么稳”。</p>
-<h2>视频生成系统的通用 pipeline</h2>
+<h2>4.15 视频生成系统的通用 pipeline</h2>
 <pre><code class="language-text">需求 / prompt
 → LLM 拆分成 storyboard / shots / camera plan
 → 生成关键帧或参考图
@@ -605,7 +605,7 @@
 → 安全审核、版权审核、watermark / provenance
 </code></pre>
 <p>这也是项目面试里最推荐的表达方式：不要说“我调用了一个视频模型”，要说“我搭了一个可评测、可回滚、可审核的创意生产 pipeline”。</p>
-<h2>视频生成失败模式</h2>
+<h2>4.16 视频生成失败模式</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -658,14 +658,14 @@
 <td>字幕、logo、标牌随时间变形。</td>
 </tr>
 </tbody></table>
-<h2>本章补充面试高频问题</h2>
-<h3>5. 为什么视频模型更依赖 caption？</h3>
+<h2>4.17 本章补充面试高频问题</h2>
+<h3>4.17.1 为什么视频模型更依赖 caption？</h3>
 <p>视频 caption 不只要描述主体，还要描述动作、镜头、时间变化、场景转移、因果关系和声音。caption 粗糙时，模型很难学到 prompt 到运动的对应关系。</p>
-<h3>6. 什么是多镜头生成？</h3>
+<h3>4.17.2 什么是多镜头生成？</h3>
 <p>多镜头生成不是简单延长时长，而是生成多个 shot，并保持角色、场景、风格和叙事连续。它更接近真实创作流程，也更考验 planning、reference consistency 和后处理评测。</p>
-<h3>7. 音视频联合生成为什么难？</h3>
+<h3>4.17.3 音视频联合生成为什么难？</h3>
 <p>因为声音要同时满足语义、时间点、物理因果和空间感。比如脚步、碰撞、口型、环境声都要和画面事件同步，单独评估视频质量不够。</p>
-<h2>本章 References</h2>
+<h2>4.18 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2209.14792">Make-A-Video: Text-to-Video Generation without Text-Video Data</a></li>
 <li><a href="https://arxiv.org/abs/2210.02303">Imagen Video: High Definition Video Generation with Diffusion Models</a></li>

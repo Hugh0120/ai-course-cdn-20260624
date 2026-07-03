@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav><h1>第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</h1>
-<h2>本章符号说明</h2>
+<h2>2.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -374,7 +374,7 @@
 <td>第 3 章会讲的采样式 TD control 算法。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>2.2 本章目标</h2>
 <p>本章学习在已知环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span> 的情况下，如何通过动态规划求解 MDP。</p>
 <p>你需要掌握：</p>
 <ul>
@@ -385,15 +385,15 @@
 <li>Generalized Policy Iteration。</li>
 <li>DP 方法的局限性。</li>
 </ul>
-<h2>本章主线</h2>
+<h2>2.3 本章主线</h2>
 <p>本章回答一个理想化问题：如果 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span> 都已知，Bellman equation 能不能直接求解？答案是可以。Policy Evaluation 负责“评估固定策略”，Policy Improvement 负责“按价值改进策略”，两者交替就是 GPI。第 3 章会把这里的精确 Bellman backup 换成采样 backup。</p>
-<h2>动态规划适用前提</h2>
+<h2>2.4 动态规划适用前提</h2>
 <p>动态规划类方法通常假设环境模型已知：</p>
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
 
 <p>也就是说，agent 知道每个动作会以什么概率转移到什么状态，并得到什么 reward。</p>
 <p>这在真实问题中经常不成立，但 DP 仍然重要，因为它给出了强化学习算法的理论原型。后面的 TD、Q-learning、DQN 都可以看成是在没有完整模型时，用采样近似 Bellman backup。</p>
-<h2>Policy Evaluation</h2>
+<h2>2.5 Policy Evaluation</h2>
 <p>Policy Evaluation 的目标：给定一个策略 <span class="math-text">π</span>，计算它的价值函数 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
 <p>Bellman expectation equation：</p>
 <div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
@@ -417,7 +417,7 @@ repeat:
         delta = max(delta, |v_old - V(s)|)
 until delta &lt; threshold
 </code></pre>
-<h2>Policy Improvement</h2>
+<h2>2.6 Policy Improvement</h2>
 <p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 之后，可以通过贪心方式改进策略：</p>
 <div class="math-block multi"><div><span class="math-text">π<sub><span class="math-text">new</span></sub>(s) = argmax<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
 
@@ -430,7 +430,7 @@ until delta &lt; threshold
 <p>那么新策略不差于旧策略：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π<sub><span class="math-text">new</span></sub></span></sub>(s) ≥ V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
-<h2>Policy Iteration</h2>
+<h2>2.7 Policy Iteration</h2>
 <p>Policy Iteration 在两个步骤之间交替：</p>
 <ol>
 <li>Policy Evaluation：评估当前策略。</li>
@@ -450,7 +450,7 @@ repeat:
 <blockquote>
 <p>Policy Iteration 是 evaluation 和 improvement 的交替过程。先精确或近似评估当前策略，再对价值函数做贪心改进。这个过程可以看成广义策略迭代的一种具体形式。</p>
 </blockquote>
-<h2>Value Iteration</h2>
+<h2>2.8 Value Iteration</h2>
 <p>Value Iteration 直接使用 Bellman optimality backup：</p>
 <div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)</span></div><div><span class="math-text">= max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">k</span></sub>(s')]</span></div></div>
 
@@ -474,7 +474,7 @@ repeat:
 until delta &lt; threshold
 derive pi from V
 </code></pre>
-<h2>Generalized Policy Iteration</h2>
+<h2>2.9 Generalized Policy Iteration</h2>
 <p>Generalized Policy Iteration，简称 GPI，指的是 policy evaluation 和 policy improvement 相互作用的一大类方法。</p>
 <p>核心思想：</p>
 <ul>
@@ -490,7 +490,7 @@ derive pi from V
 <li>Q-learning：用采样逼近 optimal Bellman backup。</li>
 <li>Actor-Critic：critic 做 evaluation，actor 做 improvement。</li>
 </ul>
-<h2>DP 的局限性</h2>
+<h2>2.10 DP 的局限性</h2>
 <p>动态规划方法有两个主要限制：</p>
 <ol>
 <li>需要已知完整环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span>。</li>
@@ -502,7 +502,7 @@ derive pi from V
 <li>TD 不需要模型，也不需要等 episode 结束。</li>
 <li>Deep RL 用神经网络处理大规模状态空间。</li>
 </ul>
-<h2>本章例子：小型 GridWorld 上的 DP</h2>
+<h2>2.11 本章例子：小型 GridWorld 上的 DP</h2>
 <p>假设一个 3x3 GridWorld：</p>
 <ul>
 <li>右下角是终点，reward 为 +10。</li>
@@ -510,7 +510,7 @@ derive pi from V
 <li>普通移动 reward 为 -0.1。</li>
 <li>每个动作都是确定性的。</li>
 </ul>
-<h3>Policy Evaluation 例子</h3>
+<h3>2.11.1 Policy Evaluation 例子</h3>
 <p>如果当前策略是在每个格子随机选择上下左右，那么 policy evaluation 做的是：</p>
 <blockquote>
 <p>固定这个随机策略，计算每个格子的长期价值。</p>
@@ -522,7 +522,7 @@ derive pi from V
 <li>如果随机策略经常撞墙，撞墙附近的价值会被拉低。</li>
 </ul>
 <p>这时算法只是在回答：“如果我一直按这个随机策略走，每个格子平均值多少钱？”</p>
-<h3>Policy Improvement 例子</h3>
+<h3>2.11.2 Policy Improvement 例子</h3>
 <p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 后，在某个格子比较四个动作：</p>
 <pre><code class="language-text">向上：下一格价值 1.2
 向下：下一格价值 4.8
@@ -530,7 +530,7 @@ derive pi from V
 向右：下一格价值 3.5
 </code></pre>
 <p>policy improvement 会选择“向下”，因为它的一步 reward 加未来价值最大。</p>
-<h3>Value Iteration 例子</h3>
+<h3>2.11.3 Value Iteration 例子</h3>
 <p>value iteration 不等完整 policy evaluation 收敛，而是每轮直接做：</p>
 <pre><code class="language-text">每个格子都看四个动作，选 Bellman backup 最大的那个。
 </code></pre>
@@ -539,18 +539,18 @@ derive pi from V
 <blockquote>
 <p>DP 的例子一定要强调“已知模型”。GridWorld 里我知道每个动作会到哪个格子，所以能对下一状态做 Bellman backup。到了真实环境里不知道转移模型，就要转向 MC/TD。</p>
 </blockquote>
-<h2>本章面试高频问题</h2>
-<h3>1. Policy Evaluation 是什么？</h3>
+<h2>2.12 本章面试高频问题</h2>
+<h3>2.12.1 Policy Evaluation 是什么？</h3>
 <p>给定策略 <span class="math-text">π</span>，根据 Bellman expectation equation 计算该策略下每个状态的价值 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
-<h3>2. Policy Iteration 和 Value Iteration 的区别？</h3>
+<h3>2.12.2 Policy Iteration 和 Value Iteration 的区别？</h3>
 <p>Policy Iteration 交替进行策略评估和策略改进。Value Iteration 直接使用 Bellman optimality backup，把评估和改进合并在一次 max backup 中。</p>
-<h3>3. 为什么 DP 方法在真实问题中受限？</h3>
+<h3>2.12.3 为什么 DP 方法在真实问题中受限？</h3>
 <p>因为它通常要求环境模型已知，即知道完整的状态转移概率和奖励函数。而真实环境中模型往往未知，且状态动作空间可能极大。</p>
-<h3>4. Value Iteration 为什么能得到最优策略？</h3>
+<h3>2.12.4 Value Iteration 为什么能得到最优策略？</h3>
 <p>它反复应用 Bellman optimality operator。在折扣 MDP 中，该 operator 是 contraction mapping，因此价值函数会收敛到唯一的最优价值函数 <span class="math-text">V<sup><span class="math-text"><em></span></sup></span>，再由 <span class="math-text">V<sup><span class="math-text"></em></span></sup></span> 导出最优策略。</p>
-<h3>5. GPI 是什么？</h3>
+<h3>2.12.5 GPI 是什么？</h3>
 <p>GPI 是 policy evaluation 和 policy improvement 交替推进的通用思想。很多强化学习算法都可以看成不同形式的 GPI。</p>
-<h2>本章练习</h2>
+<h2>2.13 本章练习</h2>
 <ol>
 <li>手写 Policy Evaluation 的 Bellman update。</li>
 <li>对比 Policy Iteration 和 Value Iteration 的伪代码。</li>

@@ -281,7 +281,7 @@
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><span>← 上一章</span><a href="./01-generative-models-and-diffusion.html">下一章 →</a></nav><h1>文生图 / 文生视频课程 Roadmap</h1>
 <p>这套笔记面向 AI（Artificial Intelligence，人工智能）算法工程师的文生图、文生视频和多模态生成面试准备。目标不是背产品名，而是形成一套可迁移的框架：生成模型基础、diffusion / flow matching、文本与图像条件、编辑与控制、视频时序建模、视频数据和训练实操、SOTA 技术报告阅读、评测 harness、安全与产品化。</p>
 <p>截至 2026 年 6 月，面试里只讲 DDPM（Denoising Diffusion Probabilistic Model，去噪扩散概率模型）和 Stable Diffusion 已经不够了。你还需要能讨论 GPT-4o Image、Gemini / Nano Banana、Imagen 4、Qwen-Image、Seedream 4.0、Stable Diffusion 3 / 3.5、FLUX.1 Kontext、Sora / Sora 2、Veo 3.1、Movie Gen、Runway Gen-4、HunyuanVideo、Seedance 2.0 这类系统背后的共性。</p>
-<h2>全局符号和缩写说明</h2>
+<h2>0.1 全局符号和缩写说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -604,7 +604,7 @@
 <td>VAE 编码后的低维表示。</td>
 </tr>
 </tbody></table>
-<h2>学习路线</h2>
+<h2>0.2 学习路线</h2>
 <table class="roadmap-table">
 <thead>
 <tr>
@@ -669,7 +669,7 @@
 <td>面试前用于定位原始材料。</td>
 </tr>
 </tbody></table>
-<h2>推荐学习顺序</h2>
+<h2>0.3 推荐学习顺序</h2>
 <ol>
 <li>先读第 1 章，把 DDPM、score、flow matching 的共同目标理解成“从简单分布到数据分布的可学习路径”。</li>
 <li>再读第 2 章，把文生图架构按 text encoder、visual tokenizer、denoiser / flow model、decoder、post-training 拆开。</li>
@@ -680,7 +680,7 @@
 <li>第 8 章按报告读 SOTA：每篇只抓任务定义、数据、架构、训练、评测、安全、限制。</li>
 <li>第 9 和第 10 章放到面试前重点复习，因为它们最能拉开“会用模型”和“能做系统”的差距。</li>
 </ol>
-<h2>面试目标</h2>
+<h2>0.4 面试目标</h2>
 <p>学完后你应该能回答：</p>
 <ul>
 <li>DDPM 的 forward process、reverse denoising 和 denoising loss 在做什么。</li>

@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-reasoning-rlvr-process-supervision.html">← 上一章</a><a href="./11-sota-tech-reports-2026.html">下一章 →</a></nav><h1>第 10 章：Agentic Systems、Coding Agent 与长期任务</h1>
-<h2>本章符号说明</h2>
+<h2>10.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -410,14 +410,14 @@
 <td>难查信息的网页浏览任务。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>10.2 本章目标</h2>
 <ul>
 <li>理解 agentic system 的核心结构。</li>
 <li>能讲清 coding agent 和普通代码补全的差别。</li>
 <li>能设计一个生产可用 agent 的状态、工具、权限、验证和观测方案。</li>
 <li>能识别 agent eval 的常见陷阱。</li>
 </ul>
-<h2>Agentic AI 的核心循环</h2>
+<h2>10.3 Agentic AI 的核心循环</h2>
 <p>Agent 的最小闭环：</p>
 <pre><code class="language-text">goal -&gt; plan -&gt; act -&gt; observe -&gt; verify -&gt; update plan -&gt; finish
 </code></pre>
@@ -432,7 +432,7 @@
 <blockquote>
 <p>Agentic AI 不是单个模型能力，而是一个闭环系统。模型负责推理和决策，scaffold 负责状态、工具、预算、权限和验证。生产系统真正难的是可控性和可评估性。</p>
 </blockquote>
-<h2>Coding Agent</h2>
+<h2>10.4 Coding Agent</h2>
 <p>Coding agent 的典型流程：</p>
 <ol>
 <li>读 issue / 用户需求。</li>
@@ -479,7 +479,7 @@
 <td>最终 issue 是否解决</td>
 </tr>
 </tbody></table>
-<h2>Long-horizon 为什么难</h2>
+<h2>10.5 Long-horizon 为什么难</h2>
 <p>长期任务常见失败模式：</p>
 <ul>
 <li>目标漂移：做着做着偏离原始需求。</li>
@@ -499,7 +499,7 @@
 <li>设置预算、重试上限和终止条件。</li>
 <li>最终输出必须包含验证证据。</li>
 </ul>
-<h2>工具和权限设计</h2>
+<h2>10.6 工具和权限设计</h2>
 <p>Agent 工具不是越多越好。每个工具都要明确：</p>
 <table class="symbol-table">
 <thead>
@@ -557,7 +557,7 @@
 <blockquote>
 <p>我会把工具按风险分层：只读工具默认允许，写工具需要 diff，破坏性工具需要审批，外部副作用工具需要强约束和审计。</p>
 </blockquote>
-<h2>多 Agent 与 Agent Swarm</h2>
+<h2>10.7 多 Agent 与 Agent Swarm</h2>
 <p>多 agent 不等于更强，常见模式包括：</p>
 <ul>
 <li>Planner + Executor：一个规划，一个执行。</li>
@@ -577,7 +577,7 @@
 <blockquote>
 <p>多 agent 的价值在于并行探索和角色分工，但必须有共享状态、冲突解决和最终 verifier。否则只是把单 agent 的不稳定放大。</p>
 </blockquote>
-<h2>Agentic Coding 评测</h2>
+<h2>10.8 Agentic Coding 评测</h2>
 <p>常见 benchmark：</p>
 <table class="symbol-table">
 <thead>
@@ -635,7 +635,7 @@
 <li>是否记录 tool error？</li>
 <li>是否做安全和权限评估？</li>
 </ul>
-<h2>Agent Harness 为什么重要</h2>
+<h2>10.9 Agent Harness 为什么重要</h2>
 <p>同一个 base model 放在不同 agent harness 里，表现可能完全不同。Harness 会决定：</p>
 <ul>
 <li>模型看到多少上下文。</li>
@@ -650,7 +650,7 @@
 <blockquote>
 <p>Agent 能力不是 base model 单独决定的，而是 model + scaffold + harness + tools + budget 的组合。2026 年看 coding agent benchmark 时，必须问清楚 harness 和 protocol，否则分数不可比。</p>
 </blockquote>
-<h2>Agent 安全</h2>
+<h2>10.10 Agent 安全</h2>
 <p>Agent 比聊天模型风险更高，因为它可以行动。</p>
 <p>关键风险：</p>
 <ul>
@@ -669,7 +669,7 @@
 <li>verifier 检查最终状态，不只检查回答文本。</li>
 <li>对 prompt injection 做专门红队数据集。</li>
 </ol>
-<h2>生产系统 Observability</h2>
+<h2>10.11 生产系统 Observability</h2>
 <p>Agent 上线要监控：</p>
 <ul>
 <li>task success rate。</li>
@@ -687,18 +687,18 @@
 <blockquote>
 <p>Agent 产品不是 demo 成功就行。要能观察每一步 tool call、失败原因、成本、用户接管点和安全事件，否则出了问题无法 debug。</p>
 </blockquote>
-<h2>本章面试高频问题</h2>
-<h3>1. Coding agent 为什么比代码补全难？</h3>
+<h2>10.12 本章面试高频问题</h2>
+<h3>10.12.1 Coding agent 为什么比代码补全难？</h3>
 <p>因为它要理解仓库、定位 bug、编辑多个文件、运行测试、读失败日志、持续修正，并保证最终状态正确。这是长周期闭环任务，不是单次 token completion。</p>
-<h3>2. 为什么 benchmark 结果经常不可比？</h3>
+<h3>10.12.2 为什么 benchmark 结果经常不可比？</h3>
 <p>不同模型可能用了不同 scaffold、工具、采样次数、预算、测试可见性和人工干预。agent benchmark 必须报告 evaluation protocol。</p>
-<h3>3. Agent 怎么防 prompt injection？</h3>
+<h3>10.12.3 Agent 怎么防 prompt injection？</h3>
 <p>把工具输出作为不可信数据，区分系统指令/用户指令/外部内容；敏感工具做权限隔离和审批；最终动作由 verifier 和 policy guard 检查。</p>
-<h3>4. 多 agent 有什么价值？</h3>
+<h3>10.12.4 多 agent 有什么价值？</h3>
 <p>适合并行探索、角色分工和互审。但只有在有共享状态、冲突解决、强 verifier 时才稳定，否则会增加成本和错误传播。</p>
-<h3>5. 设计一个 coding agent 项目怎么讲？</h3>
+<h3>10.12.5 设计一个 coding agent 项目怎么讲？</h3>
 <p>按“任务-工具-状态-验证-评测-安全”讲。任务是 issue 修复；工具是代码搜索、编辑、shell、测试；状态是计划和尝试记录；验证是单测/回归测试；评测是 SWE-bench 类任务和内部 issue；安全是最小权限、diff 审批和日志审计。</p>
-<h2>本章 References</h2>
+<h2>10.13 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting in Language Models</a></li>
 <li><a href="https://arxiv.org/abs/2302.04761">Toolformer: Language Models Can Teach Themselves to Use Tools</a></li>

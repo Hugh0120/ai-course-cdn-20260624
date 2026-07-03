@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><span>← 上一章</span><a href="./01-rl-fundamentals-mdp-bellman.html">下一章 →</a></nav><h1>强化学习面试课程 Roadmap</h1>
 <p>这套笔记面向 AI（Artificial Intelligence，人工智能）算法工程师的强化学习入门与面试准备。目标不是把强化学习研究方向穷尽，而是系统掌握面试中最常被考察的概念、公式、算法区别、训练技巧和项目表达方式。</p>
-<h2>全局符号和缩写说明</h2>
+<h2>0.1 全局符号和缩写说明</h2>
 <p>阅读约定：每个章节还会在开头重复列出本章会用到的核心符号。一般来说，大写字母表示随机变量、函数或集合，小写字母表示一次采样到的具体取值；例如 <span class="math-text">S<sub><span class="math-text">t</span></sub></span> 是时刻 <span class="math-text">t</span> 的状态随机变量，<span class="math-text">s</span> 是某个具体状态。</p>
 <p>注意符号会按上下文复用：例如 <span class="math-text">A</span> 可以表示 action space（动作空间），而 <span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span> 可以表示 advantage function（优势函数）；<span class="math-text">P(s&#39;∣ s,a)</span> 是 transition probability，<span class="math-text">P(i)</span> 则是采样概率。</p>
 <p>本套笔记统一使用大写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 表示价值函数；有些教材会写成小写 <span class="math-text">v<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">q<sub><span class="math-text">π</span></sub>(s,a)</span>，含义相同，只是记号风格不同。</p>
@@ -528,7 +528,7 @@
 <td>衡量两个概率分布差异。</td>
 </tr>
 </tbody></table>
-<h2>学习目标</h2>
+<h2>0.2 学习目标</h2>
 <p>学完后你应该能做到：</p>
 <ul>
 <li>清楚解释强化学习和监督学习的区别。</li>
@@ -540,7 +540,7 @@
 <li>理解 offline RL、imitation learning、RLHF 的基础问题。</li>
 <li>准备一套可以在面试中讲清楚的 RL 项目。</li>
 </ul>
-<h2>全课程主线</h2>
+<h2>0.3 全课程主线</h2>
 <p>这套课按“问题建模 -&gt; 精确求解 -&gt; 采样估计 -&gt; 函数逼近 -&gt; 策略优化 -&gt; 进阶约束”的顺序组织。每章不是孤立算法，而是在回答上一个阶段留下的问题：</p>
 <table class="three-col-table">
 <thead>
@@ -611,7 +611,7 @@
 <td>收束成可表达知识体系</td>
 </tr>
 </tbody></table>
-<h2>推荐学习节奏</h2>
+<h2>0.4 推荐学习节奏</h2>
 <p>建议周期：6 到 8 周。<br>建议投入：每周 8 到 10 小时。</p>
 <p>每章建议按这个顺序学习：</p>
 <ol>
@@ -621,7 +621,7 @@
 <li>回答本章面试高频问题。</li>
 <li>至少实现或阅读一个最小代码版本。</li>
 </ol>
-<h2>推导阅读方式</h2>
+<h2>0.5 推导阅读方式</h2>
 <p>RL 的公式不要直接背结论，建议按下面链路推：</p>
 <ol>
 <li>先写目标：agent 要最大化长期 return，而不是单步 reward。</li>
@@ -632,7 +632,7 @@
 <li>最后看稳定化：baseline、critic、GAE、target network、replay、PPO clipping、SAC entropy 都是在处理方差、偏差、分布漂移或探索。</li>
 </ol>
 <p>面试里如果一时忘公式，可以从这条链路往回推：目标是什么，target 是什么，target 为什么可靠，更新过大或估计不准会出什么问题。</p>
-<h2>新名词阅读约定</h2>
+<h2>0.6 新名词阅读约定</h2>
 <p>本套笔记后续按一个硬规则写：一个新名词第一次进入推导前，必须先说明它的英文、中文、解决什么问题，以及它和当前公式的关系。</p>
 <p>读到算法段落时，建议先检查四件事：</p>
 <ol>
@@ -641,7 +641,7 @@
 <li>当前 target 用的是完整 return、实际下一动作，还是 greedy max。</li>
 <li>因此它是 on-policy 还是 off-policy。</li>
 </ol>
-<h2>例子阅读方式</h2>
+<h2>0.7 例子阅读方式</h2>
 <p>每章都补了“本章例子”或“典型例子”。读例子时不要只记场景名，要把它映射回四件事：</p>
 <ol>
 <li>状态是什么。</li>
@@ -675,7 +675,7 @@
 </tr>
 </tbody></table>
 <p>面试时讲例子的目的不是展示你见过环境，而是证明你能把业务问题建模成 MDP，再解释为什么某个算法匹配这个 MDP。</p>
-<h2>章节目录</h2>
+<h2>0.8 章节目录</h2>
 <table class="roadmap-table">
 <thead>
 <tr>
@@ -745,7 +745,7 @@
 <td>面试速查、横向对比、项目准备</td>
 </tr>
 </tbody></table>
-<h2>面试复习优先级</h2>
+<h2>0.9 面试复习优先级</h2>
 <p>如果时间有限，优先掌握：</p>
 <ol>
 <li>MDP、Bellman 方程、V/Q 函数。</li>
@@ -759,7 +759,7 @@
 <li>offline RL 为什么难。</li>
 <li>RLHF 的 PPO/RM/Preference data 基本流程。</li>
 </ol>
-<h2>推荐资料</h2>
+<h2>0.10 推荐资料</h2>
 <ul>
 <li>Sutton &amp; Barto, Reinforcement Learning: An Introduction</li>
 <li>David Silver Reinforcement Learning Course</li>
@@ -767,7 +767,7 @@
 <li>CleanRL single-file implementations</li>
 <li>Stable-Baselines3 文档和示例</li>
 </ul>
-<h2>面试表达模板</h2>
+<h2>0.11 面试表达模板</h2>
 <p>学习每个算法时，都尝试用这个模板总结：</p>
 <pre><code class="language-text">算法名：
 解决的问题：

@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-interview-cheatsheet-projects.html">← 上一章</a><a href="./10-agentic-systems-coding-agents.html">下一章 →</a></nav><h1>第 9 章：Reasoning Model、RLVR 与过程监督</h1>
-<h2>本章符号说明</h2>
+<h2>9.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -386,7 +386,7 @@
 <td>对回答或轨迹的得分。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>9.2 本章目标</h2>
 <ul>
 <li>理解 reasoning model 和普通 instruction model 的区别。</li>
 <li>能解释为什么 test-time compute 可以提升复杂任务表现。</li>
@@ -394,7 +394,7 @@
 <li>能讲清 DeepSeek-R1、OpenAI o-series、Qwen3 等报告里常见的 RLVR / thinking mode。</li>
 <li>理解 reasoning 带来的安全和评测新问题。</li>
 </ul>
-<h2>Reasoning Model 是什么</h2>
+<h2>9.3 Reasoning Model 是什么</h2>
 <p>普通 chat model 倾向于直接生成答案。Reasoning model 会在复杂任务上使用更多内部推理预算、采样或工具调用，再输出最终答案。</p>
 <p>核心变化：</p>
 <ul>
@@ -406,7 +406,7 @@
 <blockquote>
 <p>Reasoning model 的本质不是神秘的“会思考”，而是训练和推理范式变化：post-training 中用可验证奖励强化长推理轨迹，inference 时给更多 compute 让模型搜索、检查和修正。</p>
 </blockquote>
-<h2>Test-time Compute</h2>
+<h2>9.4 Test-time Compute</h2>
 <p>Test-time compute 包括：</p>
 <table class="symbol-table">
 <thead>
@@ -454,7 +454,7 @@
 <li>对可验证任务，更多推理可以带来“生成-验证-修正”的收益。</li>
 <li>现代 API 常提供 reasoning effort / thinking budget，本质就是控制质量、延迟、成本的旋钮。</li>
 </ul>
-<h2>PRM、ORM 与 Verifier</h2>
+<h2>9.5 PRM、ORM 与 Verifier</h2>
 <p>ORM 只看最终结果：</p>
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">ORM</span></sub>(x,y)=1[final(y)=target]</span></div>
 
@@ -473,7 +473,7 @@
 <blockquote>
 <p>ORM 信号简单但稀疏，PRM 信号密集但贵且可能奖励表面推理。Verifier 可以用于训练，也可以用于 inference-time reranking。现代 reasoning 系统常把它们组合起来。</p>
 </blockquote>
-<h2>RLVR 训练闭环</h2>
+<h2>9.6 RLVR 训练闭环</h2>
 <p>RLVR 典型流程：</p>
 <ol>
 <li>给模型一个问题 <span class="math-text">x</span>。</li>
@@ -498,7 +498,7 @@
 <li>模型可能学会 shortcut，而不是学会真实能力。</li>
 <li>长 CoT 可能变成不可审计的内部策略。</li>
 </ul>
-<h2>GRPO 的直觉</h2>
+<h2>9.7 GRPO 的直觉</h2>
 <p>GRPO 给同一个问题采样一组回答，用组内相对表现构造 advantage：</p>
 <div class="math-block"><span class="math-text">A<sub><span class="math-text">i</span></sub> = r<sub><span class="math-text">i</span></sub>-r̄ / σ<sub><span class="math-text">r</span></sub></span></div>
 
@@ -517,7 +517,7 @@
 <li>对 reward 稀疏任务，采样策略很重要。</li>
 <li>相对 reward 会鼓励组内胜出，不保证绝对质量。</li>
 </ul>
-<h2>DeepSeek-R1 的训练启发</h2>
+<h2>9.8 DeepSeek-R1 的训练启发</h2>
 <p>DeepSeek-R1 把 reasoning RL 推到开源社区视野里。核心启发：</p>
 <ul>
 <li>R1-Zero 显示大规模 RL 可以让 reasoning behavior 自发出现。</li>
@@ -529,13 +529,13 @@
 <blockquote>
 <p>DeepSeek-R1 的意义不只是模型效果，而是证明了“可验证 reward + 大规模 RL”可以显著激发推理能力。但它也暴露出 reasoning trace 可读性、语言混杂、reward 设计和安全监控问题。</p>
 </blockquote>
-<h2>Qwen3 的 Thinking / Non-thinking 统一</h2>
+<h2>9.9 Qwen3 的 Thinking / Non-thinking 统一</h2>
 <p>Qwen3 技术报告强调一个实用方向：同一个模型支持 thinking mode 和 non-thinking mode，并通过 thinking budget 控制推理深度。</p>
 <p>面试可以这样讲：</p>
 <blockquote>
 <p>这说明产业界不希望永远让用户手动切模型。更理想的系统是统一模型或路由器根据任务复杂度决定是否深度推理，在成本、延迟和质量之间动态折中。</p>
 </blockquote>
-<h2>CoT 监控与隐藏推理</h2>
+<h2>9.10 CoT 监控与隐藏推理</h2>
 <p>Reasoning model 带来一个新问题：如果模型的真实推理过程不展示，怎么监控安全？</p>
 <p>需要区分：</p>
 <ul>
@@ -553,7 +553,7 @@
 <blockquote>
 <p>CoT 不是越透明越好。产品上常展示摘要而不是原始推理；安全上需要内部监控、红队、行为 eval 和工具轨迹审计一起做。</p>
 </blockquote>
-<h2>Reasoning Eval</h2>
+<h2>9.11 Reasoning Eval</h2>
 <p>常见评测：</p>
 <table class="symbol-table">
 <thead>
@@ -616,18 +616,18 @@
 <li>任务集是否污染？</li>
 <li>结果是 pass@1 还是 best-of-n？</li>
 </ul>
-<h2>本章面试高频问题</h2>
-<h3>1. Reasoning model 和普通 LLM 的区别？</h3>
+<h2>9.12 本章面试高频问题</h2>
+<h3>9.12.1 Reasoning model 和普通 LLM 的区别？</h3>
 <p>普通 LLM 主要直接生成答案。Reasoning model 通过 RL 和 inference-time compute 学会更长的搜索、验证和修正，尤其适合数学、代码、科学、工具调用等可验证任务。</p>
-<h3>2. 为什么 PRM 有用？</h3>
+<h3>9.12.2 为什么 PRM 有用？</h3>
 <p>PRM 给中间步骤提供监督，可以减少只看最终答案时的 credit assignment 问题。但 PRM 标注贵，也可能被模型学成表面推理模板。</p>
-<h3>3. 为什么 RLVR 比 RLHF 更适合代码和数学？</h3>
+<h3>9.12.3 为什么 RLVR 比 RLHF 更适合代码和数学？</h3>
 <p>代码和数学有自动验证器，比如单元测试、编译器、答案检查器。相比人类偏好，这些 reward 更便宜、更客观、更可扩展。</p>
-<h3>4. 为什么更多 thinking 不一定更好？</h3>
+<h3>9.12.4 为什么更多 thinking 不一定更好？</h3>
 <p>如果任务不可验证，模型可能只是生成更长、更自信的错误推理。更多 thinking 还会增加延迟、成本和安全审计难度。</p>
-<h3>5. 面试被问 DeepSeek-R1 怎么答？</h3>
+<h3>9.12.5 面试被问 DeepSeek-R1 怎么答？</h3>
 <p>答训练范式：R1-Zero 用大规模 RL 激发推理；R1 加 cold-start data 和多阶段训练改善可读性；核心贡献是证明 verifiable reward + RL 可以扩展 reasoning，但也带来 reward hacking、语言混杂、CoT 监控等问题。</p>
-<h2>本章 References</h2>
+<h2>9.13 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2305.20050">Let&#39;s Verify Step by Step</a></li>
 <li><a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning</a></li>

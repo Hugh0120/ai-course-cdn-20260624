@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-text-to-image-architectures.html">← 上一章</a><a href="./04-video-generation.html">下一章 →</a></nav><h1>第 3 章：Conditioning、Editing、Control 与 Reference Consistency</h1>
-<h2>本章符号说明</h2>
+<h2>3.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -398,7 +398,7 @@
 <td>指定需要编辑或保护的区域。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>3.2 本章目标</h2>
 <ul>
 <li>理解 CFG 的公式和直觉。</li>
 <li>掌握 inpainting / outpainting / image-to-image。</li>
@@ -406,7 +406,7 @@
 <li>理解 reference consistency、multi-image editing、多轮编辑为什么是 2026 面试重点。</li>
 <li>能写出可复用的生成和编辑 prompt 结构。</li>
 </ul>
-<h2>Classifier-Free Guidance</h2>
+<h2>3.3 Classifier-Free Guidance</h2>
 <p>CFG 同时利用 unconditional 和 conditional 预测：</p>
 <div class="math-block"><span class="math-text">ε<sub><span class="math-text">cfg</span></sub> = ε<sub><span class="math-text">uncond</span></sub> + s(ε<sub><span class="math-text">cond</span></sub> - ε<sub><span class="math-text">uncond</span></sub>)</span></div>
 
@@ -420,7 +420,7 @@
 <blockquote>
 <p>CFG 通过放大 conditional 和 unconditional denoising direction 的差异，提高条件遵循度。它是采样阶段的控制技巧，不需要额外 classifier。</p>
 </blockquote>
-<h2>Image-to-Image</h2>
+<h2>3.4 Image-to-Image</h2>
 <p>image-to-image 通常先把输入图像编码并加噪到某个强度，再按 prompt 去噪。</p>
 <p>关键超参：</p>
 <ul>
@@ -433,7 +433,7 @@
 <blockquote>
 <p>图生图不再只是“改变风格”。主流需求已经变成 reference-based generation：保留商品、人物、角色、logo、服饰、构图关系，同时按文本做可控改动。</p>
 </blockquote>
-<h2>Inpainting</h2>
+<h2>3.5 Inpainting</h2>
 <p>inpainting 输入：</p>
 <ul>
 <li>原图。</li>
@@ -448,7 +448,7 @@
 <li>透视一致。</li>
 <li>局部编辑不能破坏全局语义。</li>
 </ul>
-<h2>ControlNet</h2>
+<h2>3.6 ControlNet</h2>
 <p>ControlNet 给 diffusion 增加结构条件，例如：</p>
 <ul>
 <li>Canny edge。</li>
@@ -461,7 +461,7 @@
 <blockquote>
 <p>原始 text prompt 擅长语义控制，但不擅长精确布局。ControlNet 把结构图作为条件输入，让模型在保持生成质量的同时遵循空间结构。</p>
 </blockquote>
-<h2>Adapter、LoRA 与个性化</h2>
+<h2>3.7 Adapter、LoRA 与个性化</h2>
 <p>真实业务很少只用裸模型。常见轻量适配方式：</p>
 <table class="symbol-table">
 <thead>
@@ -504,7 +504,7 @@
 <li>DreamBooth 容易过拟合，需要正则和数据增强。</li>
 <li>多个 adapter 叠加可能互相冲突。</li>
 </ul>
-<h2>多图参考与多轮编辑</h2>
+<h2>3.8 多图参考与多轮编辑</h2>
 <p>Nano Banana、FLUX.1 Kontext、Qwen-Image、Seedream 4.0 这类系统都把编辑能力放在核心位置。原因很简单：真实用户往往不是“从零生成”，而是上传参考图，然后连续提出修改。</p>
 <p>多图参考常见输入：</p>
 <ul>
@@ -554,7 +554,7 @@
 <td>多个主体的位置关系变乱。</td>
 </tr>
 </tbody></table>
-<h2>编辑任务怎么建数据</h2>
+<h2>3.9 编辑任务怎么建数据</h2>
 <p>编辑模型比纯 T2I 更依赖数据设计。常见训练样本形式：</p>
 <table class="symbol-table">
 <thead>
@@ -604,7 +604,7 @@
 <li>训练后用 VLM / OCR / embedding similarity 做自动筛选。</li>
 <li>对高价值场景做人工偏好标注。</li>
 </ol>
-<h2>Prompt 结构</h2>
+<h2>3.10 Prompt 结构</h2>
 <p>通用 prompt 模板：</p>
 <pre><code class="language-text">主体 + 场景 + 构图 + 风格 + 光照 + 镜头 + 细节 + 质量约束
 </code></pre>
@@ -627,7 +627,7 @@
 禁止：改变脸、改变文字、添加额外主体、破坏品牌色
 输出：分辨率、比例、风格、是否透明背景
 </code></pre>
-<h2>工程侧控制面板</h2>
+<h2>3.11 工程侧控制面板</h2>
 <p>一个好用的图像生成工具通常会暴露这些控制项：</p>
 <table class="symbol-table">
 <thead>
@@ -681,18 +681,18 @@
 <td>减少不需要的元素。</td>
 </tr>
 </tbody></table>
-<h2>本章面试高频问题</h2>
-<h3>1. CFG scale 太大会怎样？</h3>
+<h2>3.12 本章面试高频问题</h2>
+<h3>3.12.1 CFG scale 太大会怎样？</h3>
 <p>模型更强地追随 prompt，但可能降低多样性，产生过饱和、纹理异常、构图僵硬或细节崩坏。</p>
-<h3>2. ControlNet 解决什么问题？</h3>
+<h3>3.12.2 ControlNet 解决什么问题？</h3>
 <p>解决纯文本控制不精确的问题。通过边缘、深度、pose、segmentation 等结构条件，约束生成图像的布局和姿态。</p>
-<h3>3. Inpainting 为什么容易边缘不自然？</h3>
+<h3>3.12.3 Inpainting 为什么容易边缘不自然？</h3>
 <p>因为局部区域需要同时满足 prompt、mask 内语义、mask 外上下文、边界纹理、光照和透视一致性。任何一个不匹配都会让边缘显得突兀。</p>
-<h3>4. Reference consistency 怎么评估？</h3>
+<h3>3.12.4 Reference consistency 怎么评估？</h3>
 <p>可以用人评、CLIP / DINO embedding similarity、face / product recognition、OCR、局部检测和多轮编辑回归集。关键是把“保留什么”和“允许改什么”写进测试用例，而不是只看最终图好不好看。</p>
-<h3>5. 为什么多轮编辑比单轮编辑难？</h3>
+<h3>3.12.5 为什么多轮编辑比单轮编辑难？</h3>
 <p>多轮编辑会累积误差。模型每次生成都会重新解释图像和指令，如果没有稳定的视觉记忆、mask 约束、参考权重和回归测试，就容易身份漂移、文字损坏或不相关区域被改动。</p>
-<h2>本章 References</h2>
+<h2>3.13 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2207.12598">Classifier-Free Diffusion Guidance</a></li>
 <li><a href="https://arxiv.org/abs/2108.01073">SDEdit: Guided Image Synthesis and Editing with Stochastic Differential Equations</a></li>

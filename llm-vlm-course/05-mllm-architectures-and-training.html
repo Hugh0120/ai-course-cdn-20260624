@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-vlm-foundations-clip-vit.html">← 上一章</a><a href="./06-vlm-data-preprocessing-training.html">下一章 →</a></nav><h1>第 5 章：MLLM 架构、训练流程与代表模型</h1>
-<h2>本章符号说明</h2>
+<h2>5.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -344,24 +344,24 @@
 <td>视觉 encoder 输出的 token 表示。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>5.2 本章目标</h2>
 <ul>
 <li>掌握 VLM 接入 LLM 的主流方式。</li>
 <li>理解 BLIP-2、Flamingo、LLaVA 的架构差异。</li>
 <li>理解多模态预训练和 instruction tuning。</li>
 <li>能解释现代 VLM 的动态分辨率和视频理解趋势。</li>
 </ul>
-<h2>VLM 接入 LLM 的三种思路</h2>
-<h3>1. Late Fusion</h3>
+<h2>5.3 VLM 接入 LLM 的三种思路</h2>
+<h3>5.3.1 Late Fusion</h3>
 <p>先分别编码图像和文本，再在较高层融合。</p>
 <p>优点是模块清晰，缺点是细粒度交互可能不足。</p>
-<h3>2. Cross-Attention</h3>
+<h3>5.3.2 Cross-Attention</h3>
 <p>语言 token 在若干层 cross-attend 到视觉 token。Flamingo 是代表路线。</p>
 <p>优点是视觉信息可在生成过程中被持续访问；缺点是架构改动较多。</p>
-<h3>3. Projector / Adapter</h3>
+<h3>5.3.3 Projector / Adapter</h3>
 <p>视觉 encoder 输出经过 projector 映射成 LLM 可读 token，再拼到文本 token 前后。LLaVA 是代表路线。</p>
 <p>优点是简单、工程友好；缺点是视觉-语言对齐很依赖训练数据和 projector 能力。</p>
-<h2>BLIP-2</h2>
+<h2>5.4 BLIP-2</h2>
 <p>BLIP-2 的核心思想：冻结强大的 image encoder 和 LLM，只训练轻量 Q-Former 来桥接模态。</p>
 <p>流程：</p>
 <div class="math-block"><span class="math-text">I → E<sub><span class="math-text">v</span></sub>(I) → QFormer(H<sub><span class="math-text">v</span></sub>) → LLM</span></div>
@@ -372,7 +372,7 @@
 <li>利用已有视觉和语言模型能力。</li>
 <li>Q-Former 起到信息瓶颈和模态桥接作用。</li>
 </ul>
-<h2>Flamingo</h2>
+<h2>5.5 Flamingo</h2>
 <p>Flamingo 支持 interleaved image-text 输入，即文本和多张图像交错出现。核心包括：</p>
 <ul>
 <li>frozen vision encoder。</li>
@@ -384,7 +384,7 @@
 <blockquote>
 <p>Flamingo 的重点是让 LLM 在生成时通过 cross-attention 访问视觉特征，并能处理多图交错上下文，因此在 few-shot 多模态任务上很有代表性。</p>
 </blockquote>
-<h2>LLaVA</h2>
+<h2>5.6 LLaVA</h2>
 <p>LLaVA 的典型结构：</p>
 <div class="math-block"><span class="math-text">Image → CLIP Encoder → Projector → LLM</span></div>
 
@@ -399,7 +399,7 @@
 <li>复现成本相对低。</li>
 <li>很适合面试中说明 open-source MLLM pipeline。</li>
 </ul>
-<h2>Qwen2.5-VL 代表的新趋势</h2>
+<h2>5.7 Qwen2.5-VL 代表的新趋势</h2>
 <p>现代 VLM 不只做单图问答，还强调：</p>
 <ul>
 <li>dynamic resolution。</li>
@@ -413,7 +413,7 @@
 <blockquote>
 <p>早期 VLM 更像图像 caption/VQA 模型，现代 MLLM 更像通用视觉 agent：能读文档、看视频、定位对象、调用工具并完成任务。</p>
 </blockquote>
-<h2>训练数据</h2>
+<h2>5.8 训练数据</h2>
 <p>常见数据阶段：</p>
 <table class="symbol-table">
 <thead>
@@ -461,16 +461,16 @@
 <td>改善回答质量、安全和风格。</td>
 </tr>
 </tbody></table>
-<h2>本章面试高频问题</h2>
-<h3>1. BLIP-2 为什么要冻结 image encoder 和 LLM？</h3>
+<h2>5.9 本章面试高频问题</h2>
+<h3>5.9.1 BLIP-2 为什么要冻结 image encoder 和 LLM？</h3>
 <p>冻结可以显著降低训练成本，同时复用强视觉模型和强语言模型的能力。Q-Former 作为桥接模块学习如何把视觉信息转成 LLM 能理解的表示。</p>
-<h3>2. Flamingo 和 LLaVA 的主要区别？</h3>
+<h3>5.9.2 Flamingo 和 LLaVA 的主要区别？</h3>
 <p>Flamingo 通过 gated cross-attention 在语言模型层内接入视觉信息，支持 interleaved image-text few-shot。LLaVA 更简单，用 CLIP encoder 加 projector 把视觉 token 映射到 LLM 输入空间。</p>
-<h3>3. VLM 为什么需要 instruction tuning？</h3>
+<h3>5.9.3 VLM 为什么需要 instruction tuning？</h3>
 <p>图文预训练让模型学会对齐视觉和文本，但不一定会遵循用户问题、输出格式或多轮对话。instruction tuning 让模型学会以助手形式完成多模态任务。</p>
-<h3>4. 高分辨率图像为什么难？</h3>
+<h3>5.9.4 高分辨率图像为什么难？</h3>
 <p>图像分辨率越高，patch token 越多，attention 成本越高。需要动态分辨率、裁剪、多尺度、窗口 attention 或视觉 token 压缩。</p>
-<h2>本章 References</h2>
+<h2>5.10 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2204.14198">Flamingo: a Visual Language Model for Few-Shot Learning</a></li>
 <li><a href="https://arxiv.org/abs/2301.12597">BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models</a></li>

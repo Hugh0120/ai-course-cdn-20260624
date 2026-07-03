@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-scaling-posttraining-alignment.html">← 上一章</a><a href="./04-vlm-foundations-clip-vit.html">下一章 →</a></nav><h1>第 3 章：Prompt、Agent 与系统评测基础</h1>
-<h2>本章符号说明</h2>
+<h2>3.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -482,14 +482,14 @@
 <td>被召回的第 <span class="math-text">i</span> 个文档块。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>3.2 本章目标</h2>
 <ul>
 <li>掌握 prompt engineering 的边界。</li>
 <li>理解基础 RAG pipeline；高级 RAG、Agentic RAG 和 RAG eval 在第 10 章展开。</li>
 <li>理解 agentic tool use 的系统结构。</li>
 <li>能设计 LLM 应用的离线评测、在线监控和安全边界。</li>
 </ul>
-<h2>Prompt Engineering 的边界</h2>
+<h2>3.3 Prompt Engineering 的边界</h2>
 <p>好的 prompt 通常包含：</p>
 <ul>
 <li>Role：模型扮演什么角色。</li>
@@ -503,7 +503,7 @@
 <blockquote>
 <p>Prompt engineering 不是玄学调参，而是在模型上下文里显式提供任务定义、约束、示例和输出格式。它能提升 instruction following，但不能从根本上补齐模型没有的知识、工具、权限和验证闭环。</p>
 </blockquote>
-<h2>CoT、Hidden Reasoning 与 Thinking Budget</h2>
+<h2>3.4 CoT、Hidden Reasoning 与 Thinking Budget</h2>
 <p>CoT 可以提升复杂推理任务表现，但 2026 年面试要区分三件事：</p>
 <ol>
 <li>用户可见的解释：给用户看的推理摘要。</li>
@@ -517,7 +517,7 @@
 <li>reasoning token 越多不一定越好，要看任务是否可验证。</li>
 <li>对 agent 来说，工具观察比纯文本推理更可靠。</li>
 </ul>
-<h2>RAG 基础 Pipeline</h2>
+<h2>3.5 RAG 基础 Pipeline</h2>
 <p>本节只建立基础概念。生产级 RAG、GraphRAG、Agentic RAG、RAGAS、权限和引用评测在第 10 章系统展开。</p>
 <p>典型 RAG：</p>
 <ol>
@@ -549,7 +549,7 @@
 <li>长上下文里模型可能忽略关键证据。</li>
 <li>权限、隐私、数据新鲜度仍需系统设计。</li>
 </ul>
-<h2>2026 RAG 重点：不是只做向量库</h2>
+<h2>3.6 2026 RAG 重点：不是只做向量库</h2>
 <p>面试里不要把 RAG 说成“embedding + vector DB”。更完整的路线包括：</p>
 <table class="symbol-table">
 <thead>
@@ -604,7 +604,7 @@
 </tr>
 </tbody></table>
 <p>长上下文模型并不自动替代 RAG。长上下文适合一次性给大量材料，RAG 适合动态知识库、权限隔离、引用和成本控制。现实系统常用 long-context RAG：先检索，再把更长证据包交给模型。</p>
-<h2>Agent 与 ReAct</h2>
+<h2>3.7 Agent 与 ReAct</h2>
 <p>Agent 不是“模型变聪明了”这么简单，而是系统让模型进入循环：</p>
 <pre><code class="language-text">observe -&gt; plan -&gt; act/tool call -&gt; observe -&gt; verify -&gt; continue/finish
 </code></pre>
@@ -618,7 +618,7 @@
 <li>是否有权限和安全边界。</li>
 <li>是否有 verifier 检查最终状态，而不是只看自然语言回答。</li>
 </ul>
-<h2>Tool Use：从 Function Calling 到 Agentic Tool Use</h2>
+<h2>3.8 Tool Use：从 Function Calling 到 Agentic Tool Use</h2>
 <p>普通 function calling：</p>
 <ul>
 <li>用户请求明确。</li>
@@ -638,7 +638,7 @@
 <blockquote>
 <p>Function calling 是结构化输出能力，agentic tool use 是多步决策能力。真正难的是任务分解、状态管理、错误恢复、权限控制和结果验证。</p>
 </blockquote>
-<h2>Agent 系统结构</h2>
+<h2>3.9 Agent 系统结构</h2>
 <p>一个比较稳的 agent 系统通常包含：</p>
 <table class="symbol-table">
 <thead>
@@ -693,7 +693,7 @@
 </tr>
 </tbody></table>
 <p>不要在面试里说“我们用了 LangChain 所以是 agent”。框架不是核心，核心是任务闭环和评测闭环。</p>
-<h2>Evaluation：从 Model Eval 到 System Eval</h2>
+<h2>3.10 Evaluation：从 Model Eval 到 System Eval</h2>
 <p>LLM 应用不能只看 benchmark，需要分层评测。</p>
 <table class="symbol-table">
 <thead>
@@ -751,7 +751,7 @@
 <blockquote>
 <p>LLM 项目评测要把“模型能力”和“系统能力”拆开。RAG 场景中，答案错可能来自 query rewrite、embedding、chunk、retrieval、rerank、context packing 或 generation。Agent 场景中，错误还可能来自 tool schema、状态管理、权限、预算和 verifier。</p>
 </blockquote>
-<h2>Prompt Injection 与 Tool Safety</h2>
+<h2>3.11 Prompt Injection 与 Tool Safety</h2>
 <p>Agent 接入工具后，安全问题会放大：</p>
 <ul>
 <li>网页或文档里可能包含恶意指令。</li>
@@ -768,18 +768,18 @@
 <li>对写操作做 dry-run 和 diff。</li>
 <li>记录 trace，便于审计。</li>
 </ol>
-<h2>本章面试高频问题</h2>
-<h3>1. RAG 为什么能缓解幻觉？</h3>
+<h2>3.12 本章面试高频问题</h2>
+<h3>3.12.1 RAG 为什么能缓解幻觉？</h3>
 <p>RAG 把外部知识作为上下文提供给模型，让模型基于检索证据回答，而不是只依赖参数记忆。它还可以提供引用和可更新知识库。</p>
-<h3>2. RAG 的主要失败模式是什么？</h3>
+<h3>3.12.2 RAG 的主要失败模式是什么？</h3>
 <p>主要包括检索不到、检索错、chunk 切坏、rerank 失败、上下文过长导致证据被忽略、文档冲突、权限过滤错误和生成阶段不忠实。</p>
-<h3>3. Agent 和普通 chat completion 有什么区别？</h3>
+<h3>3.12.3 Agent 和普通 chat completion 有什么区别？</h3>
 <p>普通 chat completion 一次输入一次输出。Agent 多了工具调用、状态管理、观察反馈、多步决策、错误恢复和最终验证。</p>
-<h3>4. 怎么评估一个企业知识库问答系统？</h3>
+<h3>3.12.4 怎么评估一个企业知识库问答系统？</h3>
 <p>需要评估检索 recall、答案 faithfulness、引用准确率、拒答策略、权限隔离、延迟、成本和人工标注通过率。</p>
-<h3>5. 怎么评估一个工具调用 agent？</h3>
+<h3>3.12.5 怎么评估一个工具调用 agent？</h3>
 <p>不要只看最终回答。要看 tool selection accuracy、参数准确率、调用次数、成功率、错误恢复率、最终状态正确率、成本、延迟和安全违规率。</p>
-<h2>本章 References</h2>
+<h2>3.13 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</a></li>
 <li><a href="https://arxiv.org/abs/2203.11171">Self-Consistency Improves Chain of Thought Reasoning in Language Models</a></li>

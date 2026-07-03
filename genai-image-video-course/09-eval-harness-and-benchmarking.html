@@ -280,7 +280,7 @@
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/genai-image-video-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-sota-tech-reports-2026.html">← 上一章</a><a href="./10-training-safety-productization.html">下一章 →</a></nav><h1>第 9 章：Eval Harness、Benchmarking、人评与自动评测</h1>
 <p>生成模型评测最容易陷入“我觉得好看”。面试里你要主动引入 eval harness：固定输入、固定配置、固定指标、固定人评协议、固定版本记录，让每次模型或 prompt 改动都可复现、可对比、可回归。</p>
-<h2>本章符号说明</h2>
+<h2>9.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -387,7 +387,7 @@
 <td>衡量评测结果不确定性。</td>
 </tr>
 </tbody></table>
-<h2>什么是 Eval Harness</h2>
+<h2>9.2 什么是 Eval Harness</h2>
 <p>一个最小可用 harness 至少包括：</p>
 <table class="standard-table">
 <thead>
@@ -429,7 +429,7 @@
 <blockquote>
 <p>Harness 不是一个指标，而是一整套让生成模型评测可复现的实验系统。</p>
 </blockquote>
-<h2>Prompt Suite 怎么设计</h2>
+<h2>9.3 Prompt Suite 怎么设计</h2>
 <p>文生图 prompt suite 至少覆盖：</p>
 <ul>
 <li>单主体。</li>
@@ -459,7 +459,7 @@
 <li>音画同步。</li>
 <li>字幕和标牌随时间稳定。</li>
 </ul>
-<h2>固定运行配置</h2>
+<h2>9.4 固定运行配置</h2>
 <p>没有固定 config，评测结果就很难复现。建议记录：</p>
 <pre><code class="language-yaml">model:
   name: image-video-model
@@ -492,7 +492,7 @@ postprocess:
   last_frame_id: optional
   shot_plan_id: optional
 </code></pre>
-<h2>图像自动指标</h2>
+<h2>9.5 图像自动指标</h2>
 <table class="three-col-table">
 <thead>
 <tr>
@@ -533,7 +533,7 @@ postprocess:
 </tr>
 </tbody></table>
 <p>GenAI-Bench 的启发是：复杂组合 prompt 需要更细粒度评测，VQAScore 往往比单纯 CLIPScore 更适合判断对象、属性和关系是否满足。</p>
-<h2>视频自动指标</h2>
+<h2>9.6 视频自动指标</h2>
 <table class="three-col-table">
 <thead>
 <tr>
@@ -579,7 +579,7 @@ postprocess:
 </tr>
 </tbody></table>
 <p>VBench 的价值是把视频质量拆成多维度，而不是只给一个总分。对业务来说，你也应该拆成“可用性维度”：比如商品广告更重视商品不变形和品牌安全，影视分镜更重视镜头和角色一致性。</p>
-<h2>人评协议</h2>
+<h2>9.7 人评协议</h2>
 <p>自动指标只能做初筛。人评要设计成可统计的协议：</p>
 <table class="standard-table">
 <thead>
@@ -617,7 +617,7 @@ postprocess:
 <td>给出 CI，避免小样本过度解读。</td>
 </tr>
 </tbody></table>
-<h2>VLM / MLLM Judge 怎么用</h2>
+<h2>9.8 VLM / MLLM Judge 怎么用</h2>
 <p>VLM judge 可以降低成本，但不能无脑信。</p>
 <p>适合：</p>
 <ul>
@@ -642,7 +642,7 @@ postprocess:
 <li>只把 judge 用在高一致维度。</li>
 <li>对低一致或高风险维度保留人工审核。</li>
 </ol>
-<h2>生成模型回归测试</h2>
+<h2>9.9 生成模型回归测试</h2>
 <p>每次升级模型、prompt、采样器、安全策略，都要跑 regression set。</p>
 <p>回归集应该包含：</p>
 <ul>
@@ -691,18 +691,18 @@ postprocess:
 <td>发布、灰度、回滚或继续训练。</td>
 </tr>
 </tbody></table>
-<h2>面试高频问题</h2>
-<h3>1. 为什么 FID 不够？</h3>
+<h2>9.10 面试高频问题</h2>
+<h3>9.10.1 为什么 FID 不够？</h3>
 <p>FID 是分布级指标，不能直接判断单个 prompt 是否被遵循，也不能衡量文字、身份一致、局部编辑、视频时序和安全。它适合看总体分布，不适合独立决定产品质量。</p>
-<h3>2. CLIPScore 有什么问题？</h3>
+<h3>9.10.2 CLIPScore 有什么问题？</h3>
 <p>CLIPScore 对粗粒度语义有用，但对计数、否定、空间关系、中文文字和细节属性不稳定。复杂 prompt 更适合结合 VQAScore、VLM judge、OCR 和人评。</p>
-<h3>3. 视频为什么更难评？</h3>
+<h3>9.10.3 视频为什么更难评？</h3>
 <p>视频同时有空间质量、时间一致、运动自然、物体永久性、物理合理、镜头语言、音画同步和安全风险。单个指标很难覆盖这些维度。</p>
-<h3>4. 如何评估图像编辑？</h3>
+<h3>9.10.4 如何评估图像编辑？</h3>
 <p>要同时看目标区域是否按指令改变，以及非目标区域是否保持。可以用 mask 内外指标、reference similarity、OCR、检测器、人评和多轮回归测试。</p>
-<h3>5. 线上 A/B 和离线评测冲突怎么办？</h3>
+<h3>9.10.5 线上 A/B 和离线评测冲突怎么办？</h3>
 <p>先确认 prompt 分布是否一致，再看线上指标是否受推荐、流量、人群和审核策略影响。离线评测解释模型能力，线上 A/B 解释业务效果，两者都要保留。</p>
-<h2>本章 References</h2>
+<h2>9.11 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2406.13743">GenAI-Bench</a></li>
 <li><a href="https://arxiv.org/abs/2311.17982">VBench</a></li>

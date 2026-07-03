@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-sota-tech-reports-2026.html">← 上一章</a><a href="./13-eval-harness-benchmarking.html">下一章 →</a></nav><h1>第 12 章：RAG 系统、Agentic RAG 与评测</h1>
-<h2>本章符号说明</h2>
+<h2>12.1 本章符号说明</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -536,7 +536,7 @@
 <td>检索后交给模型的证据集合。</td>
 </tr>
 </tbody></table>
-<h2>本章目标</h2>
+<h2>12.2 本章目标</h2>
 <ul>
 <li>能把 RAG 讲成一个完整系统，而不是一句“向量库 + prompt”。</li>
 <li>能区分 retrieval error、rerank error、context packing error 和 generation error。</li>
@@ -544,7 +544,7 @@
 <li>能设计 RAG 评测集、指标、线上监控和权限边界。</li>
 <li>能回答“长上下文模型是不是替代 RAG”这类面试追问。</li>
 </ul>
-<h2>为什么 2026 年仍然要会 RAG</h2>
+<h2>12.3 为什么 2026 年仍然要会 RAG</h2>
 <p>长上下文模型越来越强，但 RAG 没有消失。原因很简单：</p>
 <ul>
 <li>企业知识经常更新，不能每次重新训练模型。</li>
@@ -557,7 +557,7 @@
 <blockquote>
 <p>Long context 解决的是“能不能塞进去”，RAG 解决的是“从哪里找、谁有权限看、证据是否支持、结果能否审计”。两者不是替代关系，生产里常见组合是 retrieval + rerank + long-context packing + citation verification。</p>
 </blockquote>
-<h2>RAG Pipeline</h2>
+<h2>12.4 RAG Pipeline</h2>
 <p>一个生产级 RAG 通常分为两条链路。</p>
 <p>离线索引链路：</p>
 <ol>
@@ -586,7 +586,7 @@
 <div class="math-block"><span class="math-text">ŷ = LLM(q, C<sub><span class="math-text">k</span></sub>)</span></div>
 
 <p>这里 <span class="math-text">C<sub><span class="math-text">k</span></sub></span> 是检索上下文，不等于“越多越好”。上下文太多会增加成本，也可能把模型注意力从关键证据上稀释掉。</p>
-<h2>Chunking 怎么设计</h2>
+<h2>12.5 Chunking 怎么设计</h2>
 <p>Chunking 是 RAG 里最容易被低估的环节。</p>
 <table class="wide-table">
 <thead>
@@ -645,7 +645,7 @@
 <blockquote>
 <p>Chunk 太小会丢上下文，chunk 太大会降低召回精度。生产里常用小块建索引、大块给模型，配合 metadata、标题路径和邻接窗口。</p>
 </blockquote>
-<h2>Retrieval：不要只会向量库</h2>
+<h2>12.6 Retrieval：不要只会向量库</h2>
 <p>RAG 初召回通常要混合多种信号：</p>
 <table class="wide-table">
 <thead>
@@ -704,7 +704,7 @@
 <div class="math-block"><span class="math-text">S(q,d)=α S<sub><span class="math-text">dense</span></sub>(q,d)+(1-α)S<sub><span class="math-text">sparse</span></sub>(q,d)</span></div>
 
 <p>其中 <span class="math-text">α</span> 是 dense / sparse 的权重。工程上不一定线性融合，也可以用 rank fusion、learning-to-rank 或 reranker。</p>
-<h2>Reranking 与 Context Packing</h2>
+<h2>12.7 Reranking 与 Context Packing</h2>
 <p>初召回要追求 recall，rerank 要追求 precision。常见做法：</p>
 <ul>
 <li>初召回 top 50 到 top 200。</li>
@@ -720,7 +720,7 @@
 <li>每条证据的来源。</li>
 <li>不该看到的内容被权限过滤掉。</li>
 </ol>
-<h2>GraphRAG</h2>
+<h2>12.8 GraphRAG</h2>
 <p>GraphRAG 适合这些问题：</p>
 <ul>
 <li>需要跨文档、多实体、多跳关系。</li>
@@ -745,7 +745,7 @@
 <blockquote>
 <p>GraphRAG 不是万能增强版 RAG，它更适合全局主题和多跳关系问题。对于精确政策条款、合同字段、错误码检索，普通 hybrid retrieval 可能更可靠。</p>
 </blockquote>
-<h2>Agentic RAG</h2>
+<h2>12.9 Agentic RAG</h2>
 <p>Agentic RAG 让模型不再一次性检索，而是在循环中动态决定下一步：</p>
 <pre><code class="language-text">question -&gt; plan -&gt; retrieve -&gt; read -&gt; identify gap -&gt; retrieve again -&gt; verify -&gt; answer
 </code></pre>
@@ -763,7 +763,7 @@
 <li>如果没有 trace 和 verifier，agent 会把错误证据越滚越大。</li>
 <li>prompt injection 可以通过外部文档污染下一步工具调用。</li>
 </ul>
-<h2>RAG Evaluation</h2>
+<h2>12.10 RAG Evaluation</h2>
 <p>RAG 评测要拆开看：</p>
 <table class="symbol-table">
 <thead>
@@ -830,7 +830,7 @@
 <li>stale document cases。</li>
 <li>permission-denied cases。</li>
 </ul>
-<h2>RAGAS 类自动评测的价值和风险</h2>
+<h2>12.11 RAGAS 类自动评测的价值和风险</h2>
 <p>RAGAS 类工具常评估：</p>
 <ul>
 <li>context relevance：检索上下文是否相关。</li>
@@ -855,7 +855,7 @@
 <blockquote>
 <p>RAG eval 不能只靠 LLM-as-a-judge。我会用人工 gold evidence 做 retrieval eval，用 citation verifier 做 grounding eval，用人工抽检校准 judge，并把权限、延迟、成本纳入 system eval。</p>
 </blockquote>
-<h2>常见失败模式</h2>
+<h2>12.12 常见失败模式</h2>
 <table class="wide-table">
 <thead>
 <tr>
@@ -923,18 +923,18 @@
 <td>abstention、confidence、verifier。</td>
 </tr>
 </tbody></table>
-<h2>面试高频问题</h2>
-<h3>1. RAG 为什么不能只用向量库？</h3>
+<h2>12.13 面试高频问题</h2>
+<h3>12.13.1 RAG 为什么不能只用向量库？</h3>
 <p>向量检索语义泛化强，但对编号、时间、实体、代码符号和精确术语不一定稳定。生产里通常要 hybrid search、metadata filter、rerank、权限控制和 citation verification。</p>
-<h3>2. 长上下文模型会替代 RAG 吗？</h3>
+<h3>12.13.2 长上下文模型会替代 RAG 吗？</h3>
 <p>不会完全替代。长上下文适合一次性阅读大材料；RAG 适合动态知识、权限隔离、引用审计和成本控制。实际系统经常组合使用。</p>
-<h3>3. 怎么定位 RAG 答错原因？</h3>
+<h3>12.13.3 怎么定位 RAG 答错原因？</h3>
 <p>先看 gold evidence 是否被召回，再看 rerank 排名，再看 context 是否被正确打包，最后看生成是否忠实。不要直接把错误归因给 LLM。</p>
-<h3>4. Agentic RAG 比普通 RAG 强在哪里？</h3>
+<h3>12.13.4 Agentic RAG 比普通 RAG 强在哪里？</h3>
 <p>它能动态拆问题、多轮检索、发现证据缺口并补查。代价是更慢、更贵、更难复现，所以需要 trace、预算和 verifier。</p>
-<h3>5. 企业 RAG 最重要的工程风险是什么？</h3>
+<h3>12.13.5 企业 RAG 最重要的工程风险是什么？</h3>
 <p>权限和证据。用户不能检到无权限内容，答案必须能被引用支持。否则系统即使看起来聪明，也不适合上线。</p>
-<h2>本章 References</h2>
+<h2>12.14 本章 References</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></li>
 <li><a href="https://arxiv.org/abs/2002.08909">REALM: Retrieval-Augmented Language Model Pre-Training</a></li>

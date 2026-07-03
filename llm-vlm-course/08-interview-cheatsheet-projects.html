@@ -279,7 +279,7 @@
 </style>
 </head>
 <body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/llm-vlm-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./07-vlm-evaluation-harness-projects.html">← 上一章</a><a href="./09-reasoning-rlvr-process-supervision.html">下一章 →</a></nav><h1>第 8 章：LLM/VLM 进阶面试速查与项目表达</h1>
-<h2>高频概念横向对比</h2>
+<h2>8.1 高频概念横向对比</h2>
 <table class="symbol-table">
 <thead>
 <tr>
@@ -416,30 +416,30 @@
 <td>CLIP vision encoder + projector + LLM 的多模态指令路线。</td>
 </tr>
 </tbody></table>
-<h2>高频问答</h2>
-<h3>1. 为什么 LLM 会 hallucination？</h3>
+<h2>8.2 高频问答</h2>
+<h3>8.2.1 为什么 LLM 会 hallucination？</h3>
 <p>因为预训练目标是拟合 token 分布，不是事实数据库查询；模型会生成高概率、语义连贯但不一定真实的文本。知识过期、上下文不足、问题诱导、检索错误都会加剧 hallucination。</p>
-<h3>2. 怎么降低 hallucination？</h3>
+<h3>8.2.2 怎么降低 hallucination？</h3>
 <p>常用方法包括 RAG、引用约束、答案验证、拒答策略、tool use、结构化输出校验、领域 SFT、偏好优化、RLVR 和人工评测闭环。</p>
-<h3>3. RAG 和 fine-tuning 怎么选？</h3>
+<h3>8.2.3 RAG 和 fine-tuning 怎么选？</h3>
 <p>RAG 适合频繁更新、需要溯源的知识；fine-tuning 适合格式、风格、领域术语、任务习惯。知识注入优先 RAG，行为模式优先 fine-tuning。</p>
-<h3>4. RLHF、DPO、RLVR 怎么区分？</h3>
+<h3>8.2.4 RLHF、DPO、RLVR 怎么区分？</h3>
 <p>RLHF 用 reward model + RL 优化偏好；DPO 直接用偏好对优化，稳定但更偏离线；RLVR 用可验证 reward，适合数学、代码、工具调用和 agent 任务。</p>
-<h3>5. GRPO 为什么火？</h3>
+<h3>8.2.5 GRPO 为什么火？</h3>
 <p>GRPO 省掉 value model，用同组样本的相对 reward 估计 advantage，适合大模型 reasoning RL。但它依赖 reward 分布和采样质量，遇到全对/全错组时学习信号会弱。</p>
-<h3>6. Agent 和 function calling 的区别？</h3>
+<h3>8.2.6 Agent 和 function calling 的区别？</h3>
 <p>Function calling 是一次或少数几次结构化调用。Agent 是多步闭环：规划、调用工具、观察结果、调整计划、验证最终状态。</p>
-<h3>7. Harness、benchmark、scaffold 怎么区分？</h3>
+<h3>8.2.7 Harness、benchmark、scaffold 怎么区分？</h3>
 <p>Benchmark 是题和指标，harness 是执行评测的系统层，scaffold 是 agent 外层的规划、工具、记忆、验证和重试逻辑。2026 年比较 agent 时要报告 model + harness + scaffold + budget，而不是只报模型名。</p>
-<h3>8. 为什么 coding agent 难？</h3>
+<h3>8.2.8 为什么 coding agent 难？</h3>
 <p>它要理解仓库、定位 bug、编辑多个文件、运行测试、读失败日志、持续修正，并且避免过度修改。这是 long-horizon task，不是代码补全。</p>
-<h3>9. VLM 项目怎么讲？</h3>
+<h3>8.2.9 VLM 项目怎么讲？</h3>
 <p>按“任务-数据-模型-训练-评测-风险”讲。例如票据理解：任务是 OCR + table parsing + field extraction；数据是扫描件和字段标签；模型用 VLM 或 OCR+LLM pipeline；指标包括字段准确率、表格结构 F1、拒答率和人工复核成本。</p>
-<h3>10. 如何评价一个 VLM？</h3>
+<h3>8.2.10 如何评价一个 VLM？</h3>
 <p>不要只报单个 benchmark。要分 OCR、caption、VQA、chart、document、grounding、multi-image、long-video、robustness 和 safety。</p>
-<h3>11. 2026 年 SOTA 大模型路线怎么总结？</h3>
+<h3>8.2.11 2026 年 SOTA 大模型路线怎么总结？</h3>
 <p>主线是 reasoning + tool use + verifiable RL + long-horizon agent。闭源模型强调系统化、router、safe-completions 和产品安全；开源模型强调 MoE、RLVR、thinking budget、agentic data 和蒸馏。</p>
-<h2>项目 1：企业知识库 RAG</h2>
+<h2>8.3 项目 1：企业知识库 RAG</h2>
 <p>任务目标：</p>
 <ul>
 <li>支持公司内部文档问答。</li>
@@ -464,7 +464,7 @@
 <li>你关注权限隔离和数据新鲜度。</li>
 <li>你能说明 RAG harness：corpus version、index version、gold evidence、permission scope、citation scorer。</li>
 </ul>
-<h2>项目 2：Coding Agent</h2>
+<h2>8.4 项目 2：Coding Agent</h2>
 <p>任务目标：</p>
 <ul>
 <li>输入 issue 或用户需求。</li>
@@ -493,7 +493,7 @@
 <blockquote>
 <p>我不会只让模型“写代码”，而是把代码搜索、编辑、测试、日志分析、回归验证和最小权限放进闭环。最终以测试和 diff 证明任务完成。</p>
 </blockquote>
-<h2>项目 2.5：Eval Harness / Agent Harness</h2>
+<h2>8.5 项目 2.5：Eval Harness / Agent Harness</h2>
 <p>任务目标：</p>
 <ul>
 <li>为 LLM/RAG/agent 系统建立可复现评测。</li>
@@ -520,7 +520,7 @@
 <li>permission violation rate。</li>
 <li>reproducibility rate。</li>
 </ul>
-<h2>项目 3：多模态文档理解</h2>
+<h2>8.6 项目 3：多模态文档理解</h2>
 <p>任务目标：</p>
 <ul>
 <li>输入发票、报告、截图或表格图片。</li>
@@ -541,7 +541,7 @@
 <li>hallucinated field rate。</li>
 <li>human review reduction。</li>
 </ul>
-<h2>项目 4：Agentic Research / Deep Research</h2>
+<h2>8.7 项目 4：Agentic Research / Deep Research</h2>
 <p>任务目标：</p>
 <ul>
 <li>输入一个复杂研究问题。</li>
@@ -566,7 +566,7 @@
 <li>time-to-answer。</li>
 <li>human edit distance。</li>
 </ul>
-<h2>45 分钟复习路线</h2>
+<h2>8.8 45 分钟复习路线</h2>
 <ol>
 <li>5 分钟：Transformer、attention、causal mask。</li>
 <li>5 分钟：pretraining、SFT、RLHF、DPO。</li>
@@ -578,7 +578,7 @@
 <li>5 分钟：GPT-5.5、Claude Opus 4.7、Gemini 2.5、DeepSeek-R1、Qwen3、Kimi K2、GLM-5.2。</li>
 <li>5 分钟：项目讲法和评测指标。</li>
 </ol>
-<h2>最后检查清单</h2>
+<h2>8.9 最后检查清单</h2>
 <ul>
 <li>能手写 attention 公式。</li>
 <li>能解释为什么 next-token prediction 能学到通用能力。</li>
