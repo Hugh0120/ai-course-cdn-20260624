@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,13 +353,26 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav><h1>第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</h1>
-<h2>11.1 本章符号说明</h2>
-<table class="symbol-table">
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav><h1 id="chapter-11">第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-11-1">11.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-11-2">11.2 本章目标</a><a class="toc-link toc-level-2" href="#section-11-3">11.3 本章主线</a><a class="toc-link toc-level-2" href="#section-11-4">11.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-11-5">11.5 进阶主题总览</a><a class="toc-link toc-level-3" href="#section-11-5-1">11.5.1 四类进阶主题的边界</a><a class="toc-link toc-level-3" href="#section-11-5-2">11.5.2 Model-free vs Model-based</a><a class="toc-link toc-level-2" href="#section-11-6">11.6 Model-based RL</a><a class="toc-link toc-level-3" href="#section-11-6-1">11.6.1 Model-based RL 的流程</a><a class="toc-link toc-level-2" href="#section-11-7">11.7 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-1">11.7.1 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-2">11.7.2 Offline RL 的难点</a><a class="toc-link toc-level-3" href="#section-11-7-3">11.7.3 Offline RL 的常见思路</a><a class="toc-link toc-level-2" href="#section-11-8">11.8 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-1">11.8.1 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-2">11.8.2 Behavior Cloning</a><a class="toc-link toc-level-3" href="#section-11-8-3">11.8.3 DAgger</a><a class="toc-link toc-level-3" href="#section-11-8-4">11.8.4 Inverse Reinforcement Learning</a><a class="toc-link toc-level-2" href="#section-11-9">11.9 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-1">11.9.1 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-2">11.9.2 RLHF 中的 PPO</a><a class="toc-link toc-level-3" href="#section-11-9-3">11.9.3 RLHF 的常见问题</a><a class="toc-link toc-level-2" href="#section-11-10">11.10 本章例子：四类高级 RL 场景</a><a class="toc-link toc-level-3" href="#section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</a><a class="toc-link toc-level-3" href="#section-11-10-2">11.10.2 例子 2：Offline RL 做历史推荐日志</a><a class="toc-link toc-level-3" href="#section-11-10-3">11.10.3 例子 3：Imitation Learning 做驾驶</a><a class="toc-link toc-level-3" href="#section-11-10-4">11.10.4 例子 4：RLHF 做聊天模型</a><a class="toc-link toc-level-2" href="#section-11-11">11.11 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-11-11-1">11.11.1 Model-free 和 model-based RL 区别？</a><a class="toc-link toc-level-3" href="#section-11-11-2">11.11.2 Model-based RL 的主要问题是什么？</a><a class="toc-link toc-level-3" href="#section-11-11-3">11.11.3 Offline RL 为什么难？</a><a class="toc-link toc-level-3" href="#section-11-11-4">11.11.4 Behavior Cloning 的问题？</a><a class="toc-link toc-level-3" href="#section-11-11-5">11.11.5 RLHF 的基本流程？</a><a class="toc-link toc-level-2" href="#section-11-12">11.12 本章练习</a></nav></details>
+<h2 id="section-11-1">11.1 本章符号说明</h2>
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -412,8 +495,8 @@
 <td>分布外</td>
 <td>数据集中缺少覆盖的状态或动作。</td>
 </tr>
-</tbody></table>
-<h2>11.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-11-2">11.2 本章目标</h2>
 <p>本章补充面试中越来越常见的进阶主题。你需要掌握：</p>
 <ul>
 <li>model-free vs model-based RL。</li>
@@ -422,11 +505,11 @@
 <li>inverse reinforcement learning。</li>
 <li>RLHF 的基本流程。</li>
 </ul>
-<h2>11.3 本章主线</h2>
+<h2 id="section-11-3">11.3 本章主线</h2>
 <p>前 10 章主要讨论在线 model-free 学习。本章换成四类现实约束：能不能学或使用环境模型，能不能继续交互，能不能从专家示范学，能不能用人类偏好定义 reward。Model-based RL、Offline RL、Imitation Learning、RLHF 分别对应这些约束，是面试里从经典 RL 扩展到真实系统和大模型对齐的关键桥梁。</p>
-<h2>11.4 本章新增概念说明</h2>
+<h2 id="section-11-4">11.4 本章新增概念说明</h2>
 <p>这一章主题最多，先把容易混的名词集中定义：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>名词</th>
@@ -529,11 +612,11 @@
 <td>直接偏好优化</td>
 <td>直接用偏好数据优化 policy，不显式跑 PPO。</td>
 </tr>
-</tbody></table>
-<h2>11.5 进阶主题总览</h2>
-<h3>11.5.1 四类进阶主题的边界</h3>
+</tbody></table></div>
+<h2 id="section-11-5">11.5 进阶主题总览</h2>
+<h3 id="section-11-5-1">11.5.1 四类进阶主题的边界</h3>
 <p>这一章主题多，先用边界表把它们分开：</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>主题</th>
@@ -566,9 +649,9 @@
 <td>prompt-response 偏好比较</td>
 <td>reward hacking、偏好噪声、KL 约束</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>它们共同点是：真实交互昂贵、危险或不充分，因此不能只靠“在线试错 + model-free 更新”解决。</p>
-<h3>11.5.2 Model-free vs Model-based</h3>
+<h3 id="section-11-5-2">11.5.2 Model-free vs Model-based</h3>
 <p>Model-free RL 不显式学习环境模型，直接学习 value 或 policy：</p>
 <ul>
 <li>Q-learning。</li>
@@ -580,8 +663,8 @@
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a)</span></div>
 
 <p>然后基于模型进行 planning 或生成模拟数据。</p>
-<h2>11.6 Model-based RL</h2>
-<h3>11.6.1 Model-based RL 的流程</h3>
+<h2 id="section-11-6">11.6 Model-based RL</h2>
+<h3 id="section-11-6-1">11.6.1 Model-based RL 的流程</h3>
 <p>典型流程：</p>
 <ol>
 <li>收集环境交互数据。</li>
@@ -609,8 +692,8 @@
 <blockquote>
 <p>Model-based RL 的核心优势是样本效率，但主要问题是 model bias。学到的 dynamics model 有误差，规划或 rollout 会放大这些误差，尤其在长时序任务中更明显。</p>
 </blockquote>
-<h2>11.7 Offline RL</h2>
-<h3>11.7.1 Offline RL</h3>
+<h2 id="section-11-7">11.7 Offline RL</h2>
+<h3 id="section-11-7-1">11.7.1 Offline RL</h3>
 <p>Offline RL，也叫 batch RL，目标是在不继续和环境交互的情况下，只用固定数据集学习策略。</p>
 <p>数据集：</p>
 <div class="math-block"><span class="math-text">D = {(s, a, r, s')}</span></div>
@@ -621,7 +704,7 @@
 <li>online RL 可以探索并收集新数据。</li>
 <li>offline RL 只能使用已有数据。</li>
 </ul>
-<h3>11.7.2 Offline RL 的难点</h3>
+<h3 id="section-11-7-2">11.7.2 Offline RL 的难点</h3>
 <p>核心问题：distribution shift。</p>
 <p>学习到的新策略可能选择数据集中很少出现甚至没出现过的动作。此时 Q 函数对这些 out-of-distribution actions 的估计不可靠。</p>
 <p>如果 Q 函数错误高估了某些 OOD 动作，policy improvement 会进一步偏向这些动作，导致性能崩溃。</p>
@@ -630,7 +713,7 @@
 <blockquote>
 <p>Offline RL 难在不能通过真实环境纠错。策略可能选择数据分布之外的动作，而 critic 对这些动作的 Q 值没有可靠监督，容易产生过估计并被 policy 利用。</p>
 </blockquote>
-<h3>11.7.3 Offline RL 的常见思路</h3>
+<h3 id="section-11-7-3">11.7.3 Offline RL 的常见思路</h3>
 <p>常见方法会让策略不要偏离数据分布太远，或让 Q 值对 OOD 动作更保守。</p>
 <p>几类思路：</p>
 <ul>
@@ -647,14 +730,14 @@
 <li>IQL。</li>
 <li>Decision Transformer。</li>
 </ul>
-<h2>11.8 Imitation Learning</h2>
-<h3>11.8.1 Imitation Learning</h3>
+<h2 id="section-11-8">11.8 Imitation Learning</h2>
+<h3 id="section-11-8-1">11.8.1 Imitation Learning</h3>
 <p>Imitation Learning 从专家数据中学习策略。</p>
 <p>专家数据：</p>
 <div class="math-block"><span class="math-text">(s, a<sub><span class="math-text">expert</span></sub>)</span></div>
 
 <p>目标：让 agent 模仿专家动作。</p>
-<h3>11.8.2 Behavior Cloning</h3>
+<h3 id="section-11-8-2">11.8.2 Behavior Cloning</h3>
 <p>Behavior Cloning，简称 BC，是最简单的 imitation learning。</p>
 <p>把专家数据当监督学习：</p>
 <div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub> log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">expert</span></sub> ∣ s)</span></div>
@@ -677,7 +760,7 @@
 </ul>
 <p>为什么会 compounding error？</p>
 <p>训练时模型只见过专家状态分布。部署时一旦模型犯小错，进入专家没覆盖的状态，就更容易继续犯错，误差逐步累积。</p>
-<h3>11.8.3 DAgger</h3>
+<h3 id="section-11-8-3">11.8.3 DAgger</h3>
 <p>DAgger 是 Dataset Aggregation。</p>
 <p>核心思路：</p>
 <ol>
@@ -687,7 +770,7 @@
 <li>重新训练策略。</li>
 </ol>
 <p>DAgger 通过收集 learner 自己会遇到的状态，缓解 behavior cloning 的分布偏移。</p>
-<h3>11.8.4 Inverse Reinforcement Learning</h3>
+<h3 id="section-11-8-4">11.8.4 Inverse Reinforcement Learning</h3>
 <p>IRL 的目标不是直接模仿动作，而是从专家行为中反推 reward function。</p>
 <p>直觉：</p>
 <p>专家之所以这么行动，是因为它在优化某个隐藏 reward。IRL 希望恢复这个 reward，然后再用 RL 学策略。</p>
@@ -703,8 +786,8 @@
 <li>计算复杂。</li>
 <li>实践中常被更直接的 imitation 或 preference learning 替代。</li>
 </ul>
-<h2>11.9 RLHF</h2>
-<h3>11.9.1 RLHF</h3>
+<h2 id="section-11-9">11.9 RLHF</h2>
+<h3 id="section-11-9-1">11.9.1 RLHF</h3>
 <p>RLHF 是 Reinforcement Learning from Human Feedback，常用于大语言模型对齐。</p>
 <p>典型流程：</p>
 <ol>
@@ -722,7 +805,7 @@
 <p>常见 pairwise loss：</p>
 <div class="math-block"><span class="math-text">L = - log σ(r<sub><span class="math-text">chosen</span></sub> - r<sub><span class="math-text">rejected</span></sub>)</span></div>
 
-<h3>11.9.2 RLHF 中的 PPO</h3>
+<h3 id="section-11-9-2">11.9.2 RLHF 中的 PPO</h3>
 <p>在 RLHF 中，policy 是语言模型。动作是 token，trajectory 是生成序列。</p>
 <p>优化目标通常包含：</p>
 <ul>
@@ -738,7 +821,7 @@
 <li>保持和 SFT/reference model 的行为接近。</li>
 <li>提高训练稳定性。</li>
 </ul>
-<h3>11.9.3 RLHF 的常见问题</h3>
+<h3 id="section-11-9-3">11.9.3 RLHF 的常见问题</h3>
 <ul>
 <li>Reward hacking：模型找到 reward model 漏洞。</li>
 <li>Preference data 噪声。</li>
@@ -750,8 +833,8 @@
 <blockquote>
 <p>DPO 直接从偏好数据推导监督式目标，避免显式训练 reward model 后再跑 PPO，工程上更简单。</p>
 </blockquote>
-<h2>11.10 本章例子：四类高级 RL 场景</h2>
-<h3>11.10.1 例子 1：Model-based RL 做机器人规划</h3>
+<h2 id="section-11-10">11.10 本章例子：四类高级 RL 场景</h2>
+<h3 id="section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</h3>
 <p>机器人先学习一个 dynamics model：</p>
 <div class="math-block"><span class="math-text">P̂(s'∣ s,a)</span></div>
 
@@ -761,19 +844,19 @@
 动作序列 3 -&gt; 预测路径更短但风险高
 </code></pre>
 <p>再选择预测回报最高的动作序列执行。</p>
-<h3>11.10.2 例子 2：Offline RL 做历史推荐日志</h3>
+<h3 id="section-11-10-2">11.10.2 例子 2：Offline RL 做历史推荐日志</h3>
 <p>公司已经有大量推荐日志：</p>
 <pre><code class="language-text">用户状态、展示内容、点击/停留/购买
 </code></pre>
 <p>Offline RL 希望只用这些历史数据学习新策略。但难点是新策略可能推荐历史日志里很少出现的内容，价值估计容易外推错误。</p>
 <p>所以 offline RL 常需要保守约束：不要让策略偏离数据分布太远。</p>
-<h3>11.10.3 例子 3：Imitation Learning 做驾驶</h3>
+<h3 id="section-11-10-3">11.10.3 例子 3：Imitation Learning 做驾驶</h3>
 <p>Behavior Cloning 可以用人类驾驶数据训练：</p>
 <pre><code class="language-text">输入：摄像头、速度、导航
 输出：方向盘角度、油门、刹车
 </code></pre>
 <p>问题是模型一旦偏离人类数据分布，就可能进入训练集中没见过的状态。DAgger 的思路是让专家在模型实际访问到的状态上继续标注，补齐分布偏移。</p>
-<h3>11.10.4 例子 4：RLHF 做聊天模型</h3>
+<h3 id="section-11-10-4">11.10.4 例子 4：RLHF 做聊天模型</h3>
 <p>RLHF pipeline：</p>
 <ol>
 <li>用 SFT 让模型学会基本回答格式。</li>
@@ -785,23 +868,43 @@
 <blockquote>
 <p>Model-based、Offline、Imitation、RLHF 的共同点是都在解决“真实交互成本高或风险大”的问题：要么学模型模拟，要么复用历史数据，要么模仿专家，要么用人类偏好构造 reward。</p>
 </blockquote>
-<h2>11.11 本章面试高频问题</h2>
-<h3>11.11.1 Model-free 和 model-based RL 区别？</h3>
+<h2 id="section-11-11">11.11 本章面试高频问题</h2>
+<h3 id="section-11-11-1">11.11.1 Model-free 和 model-based RL 区别？</h3>
 <p>Model-free 不显式学习环境模型，直接学习 policy 或 value。Model-based 学习或使用环境 dynamics 和 reward model，并基于模型 planning 或生成数据。</p>
-<h3>11.11.2 Model-based RL 的主要问题是什么？</h3>
+<h3 id="section-11-11-2">11.11.2 Model-based RL 的主要问题是什么？</h3>
 <p>模型误差。学到的 dynamics model 不可能完全准确，长 horizon planning 会累积误差，导致策略利用模型漏洞而在真实环境中表现差。</p>
-<h3>11.11.3 Offline RL 为什么难？</h3>
+<h3 id="section-11-11-3">11.11.3 Offline RL 为什么难？</h3>
 <p>因为只能使用固定数据集，不能通过环境探索纠错。策略可能选择数据分布之外的动作，而 Q 函数对这些动作估计不可靠，容易产生 extrapolation error。</p>
-<h3>11.11.4 Behavior Cloning 的问题？</h3>
+<h3 id="section-11-11-4">11.11.4 Behavior Cloning 的问题？</h3>
 <p>BC 把模仿学习当监督学习，简单稳定，但有 distribution shift 和 compounding error。模型部署后遇到专家数据没覆盖的状态，错误会逐步累积。</p>
-<h3>11.11.5 RLHF 的基本流程？</h3>
+<h3 id="section-11-11-5">11.11.5 RLHF 的基本流程？</h3>
 <p>先预训练语言模型，再用示范数据 SFT，然后用人类偏好训练 reward model，最后用 PPO 等 RL 算法在 KL 约束下优化模型输出。</p>
-<h2>11.12 本章练习</h2>
+<h2 id="section-11-12">11.12 本章练习</h2>
 <ol>
 <li>用一句话区分 online RL 和 offline RL。</li>
 <li>解释 offline RL 中的 extrapolation error。</li>
 <li>对比 Behavior Cloning 和 RL。</li>
 <li>画出 RLHF 的四阶段流程。</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><p><strong>Online RL vs Offline RL</strong>：Online RL 可以继续与环境交互并通过探索改变数据分布；Offline RL 只能使用固定数据集学习，不能在线试错，因此必须控制对数据分布外动作的错误估值。</p>
+</li>
+<li><p><strong>Extrapolation error</strong>：数据集中很少或从未出现的 <span class="math-text">(s,a)</span> 上，function approximator 的 Q 估计缺少监督。Policy improvement 又会偏向选择被偶然高估的分布外动作，随后 bootstrap 把错误继续传播，造成性能崩溃。常见缓解思路是保守 Q 估计、行为约束或只在数据支持区域内优化。</p>
+</li>
+<li><p><strong>Behavior Cloning vs RL</strong>：Behavior Cloning 把专家 <span class="math-text">(s,a)</span> 当监督数据，直接最大化专家 action 的 likelihood，简单稳定但会有 covariate shift，也无法主动超过示范；RL 根据 reward 和环境交互优化长期 return，需要探索和 credit assignment，但可以发现示范中没有的更优行为。Imitation Learning 还包括 DAgger、IRL 等，不等同于只做 BC。</p>
+</li>
+<li><p><strong>经典 RLHF 四阶段</strong>：</p>
+<pre><code class="language-text">pretrained language model
+    -&gt; supervised fine-tuning on demonstrations
+    -&gt; preference data + reward model training
+    -&gt; policy optimization with reward and KL constraint
+</code></pre>
+<p>第四阶段经典做法是 PPO；实际系统也可能采用 DPO 等直接偏好优化方法，此时不显式训练 reward model 并运行在线 PPO。</p>
+</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav></main></body>
 </html>

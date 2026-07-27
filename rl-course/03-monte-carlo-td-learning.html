@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,13 +353,26 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-dynamic-programming.html">← 上一章</a><a href="./04-exploration-bandit.html">下一章 →</a></nav><h1>第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</h1>
-<h2>3.1 本章符号说明</h2>
-<table class="symbol-table">
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./02-dynamic-programming.html">← 上一章</a><a href="./04-exploration-bandit.html">下一章 →</a></nav><h1 id="chapter-3">第 3 章：MC（Monte Carlo，蒙特卡洛）、TD（Temporal Difference，时序差分）、SARSA 与 Q-learning</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-3-1">3.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-3-2">3.2 本章目标</a><a class="toc-link toc-level-2" href="#section-3-3">3.3 本章主线</a><a class="toc-link toc-level-2" href="#section-3-4">3.4 Model-free Prediction 的出发点</a><a class="toc-link toc-level-3" href="#section-3-4-1">3.4.1 Model-free 的含义</a><a class="toc-link toc-level-3" href="#section-3-4-2">3.4.2 统一出发点：价值函数是一个期望</a><a class="toc-link toc-level-2" href="#section-3-5">3.5 MC Prediction</a><a class="toc-link toc-level-3" href="#section-3-5-1">3.5.1 Monte Carlo 方法</a><a class="toc-link toc-level-3" href="#section-3-5-2">3.5.2 MC 的推理过程</a><a class="toc-link toc-level-4" href="#section-3-5-2-1">3.5.2.1 为什么 MC target 是无偏的</a><a class="toc-link toc-level-4" href="#section-3-5-2-2">3.5.2.2 First-visit 和 Every-visit 的区别</a><a class="toc-link toc-level-2" href="#section-3-6">3.6 TD Prediction</a><a class="toc-link toc-level-3" href="#section-3-6-1">3.6.1 从 MC 过渡到 TD：为什么不想等到 episode 结束</a><a class="toc-link toc-level-3" href="#section-3-6-2">3.6.2 TD Learning</a><a class="toc-link toc-level-3" href="#section-3-6-3">3.6.3 TD 的推理过程</a><a class="toc-link toc-level-4" href="#section-3-6-3-1">3.6.3.1 角度一：从 Bellman expectation 推出</a><a class="toc-link toc-level-4" href="#section-3-6-3-2">3.6.3.2 角度二：从 return 递归推出</a><a class="toc-link toc-level-4" href="#section-3-6-3-3">3.6.3.3 TD error 的含义</a><a class="toc-link toc-level-4" href="#section-3-6-3-4">3.6.3.4 TD 为什么方差低但有 bias</a><a class="toc-link toc-level-2" href="#section-3-7">3.7 Prediction 方法对比与例子</a><a class="toc-link toc-level-3" href="#section-3-7-1">3.7.1 MC vs TD</a><a class="toc-link toc-level-3" href="#section-3-7-2">3.7.2 一个最小数值例子</a><a class="toc-link toc-level-3" href="#section-3-7-3">3.7.3 本章例子：什么时候用 MC，什么时候用 TD</a><a class="toc-link toc-level-4" href="#section-3-7-3-1">3.7.3.1 例子 1：Blackjack 适合解释 MC</a><a class="toc-link toc-level-4" href="#section-3-7-3-2">3.7.3.2 例子 2：在线广告更适合解释 TD</a><a class="toc-link toc-level-2" href="#section-3-8">3.8 从 Prediction 到 TD Control</a><a class="toc-link toc-level-3" href="#section-3-8-1">3.8.1 从 Prediction 到 Control：为什么接 SARSA 和 Q-learning</a><a class="toc-link toc-level-3" href="#section-3-8-2">3.8.2 先定义：greedy、epsilon-greedy、on-policy、off-policy</a><a class="toc-link toc-level-4" href="#section-3-8-2-1">3.8.2.1 Greedy action / greedy policy</a><a class="toc-link toc-level-4" href="#section-3-8-2-2">3.8.2.2 Epsilon-greedy behavior policy</a><a class="toc-link toc-level-4" href="#section-3-8-2-3">3.8.2.3 Behavior policy 和 target policy</a><a class="toc-link toc-level-4" href="#section-3-8-2-4">3.8.2.4 On-policy 和 off-policy</a><a class="toc-link toc-level-2" href="#section-3-9">3.9 TD Control 算法</a><a class="toc-link toc-level-3" href="#section-3-9-1">3.9.1 TD Control 1：SARSA</a><a class="toc-link toc-level-3" href="#section-3-9-2">3.9.2 SARSA 的 target 为什么是 <span class="math-text">Q(s&#39;,a&#39;)</span></a><a class="toc-link toc-level-3" href="#section-3-9-3">3.9.3 TD Control 2：Q-learning</a><a class="toc-link toc-level-3" href="#section-3-9-4">3.9.4 Q-learning 的 target 为什么用 max</a><a class="toc-link toc-level-3" href="#section-3-9-5">3.9.5 SARSA vs Q-learning</a><a class="toc-link toc-level-3" href="#section-3-9-6">3.9.6 本章例子：Cliff Walking 解释 SARSA 和 Q-learning</a><a class="toc-link toc-level-3" href="#section-3-9-7">3.9.7 On-policy vs Off-policy 总结</a><a class="toc-link toc-level-2" href="#section-3-10">3.10 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-3-10-1">3.10.1 MC 和 TD 的区别？</a><a class="toc-link toc-level-3" href="#section-3-10-2">3.10.2 SARSA 和 Q-learning 的区别？</a><a class="toc-link toc-level-3" href="#section-3-10-3">3.10.3 SARSA/Q-learning 和 TD 有什么关系？</a><a class="toc-link toc-level-3" href="#section-3-10-4">3.10.4 为什么 Q-learning 是 off-policy？</a><a class="toc-link toc-level-3" href="#section-3-10-5">3.10.5 TD error 是什么？</a><a class="toc-link toc-level-3" href="#section-3-10-6">3.10.6 为什么 TD 可以不等 episode 结束？</a><a class="toc-link toc-level-2" href="#section-3-11">3.11 本章练习</a></nav></details>
+<h2 id="section-3-1">3.1 本章符号说明</h2>
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -454,8 +537,8 @@
 <td>优势 Actor-Critic</td>
 <td>on-policy actor-critic 算法。</td>
 </tr>
-</tbody></table>
-<h2>3.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-3-2">3.2 本章目标</h2>
 <p>本章进入 model-free RL。你需要掌握：</p>
 <ul>
 <li>Monte Carlo 方法。</li>
@@ -465,7 +548,7 @@
 <li>Q-learning。</li>
 <li>on-policy 与 off-policy。</li>
 </ul>
-<h2>3.3 本章主线</h2>
+<h2 id="section-3-3">3.3 本章主线</h2>
 <p>第 2 章的 DP 依赖完整环境模型。本章去掉这个假设，只允许 agent 从真实交互中拿到样本。</p>
 <p>主线分两步：</p>
 <ol>
@@ -479,8 +562,8 @@
   -&gt; TD control with Q(s,a)
   -&gt; SARSA vs Q-learning
 </code></pre>
-<h2>3.4 Model-free Prediction 的出发点</h2>
-<h3>3.4.1 Model-free 的含义</h3>
+<h2 id="section-3-4">3.4 Model-free Prediction 的出发点</h2>
+<h3 id="section-3-4-1">3.4.1 Model-free 的含义</h3>
 <p>Model-free 指的是不需要显式知道环境转移模型：</p>
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
 
@@ -488,7 +571,7 @@
 <pre><code class="language-text">(s, a, r, s&#39;)
 </code></pre>
 <p>然后用这些样本估计价值函数或优化策略。</p>
-<h3>3.4.2 统一出发点：价值函数是一个期望</h3>
+<h3 id="section-3-4-2">3.4.2 统一出发点：价值函数是一个期望</h3>
 <p>MC 和 TD 都不是凭空来的。它们解决的是同一个问题：价值函数定义里有一个期望，但 model-free 场景下我们没法直接算这个期望。</p>
 <p>先看状态价值函数：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
@@ -508,7 +591,7 @@
 <p>用样本估计期望。</p>
 </blockquote>
 <p>不同方法的区别在于“用什么样的样本 target”：</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>方法</th>
@@ -535,14 +618,14 @@
 <td>用一步 reward 加下一状态估计 <span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></td>
 <td>有 bootstrap bias</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>所以 MC 和 TD 可以理解成 DP 的两个 model-free 版本：</p>
 <ul>
 <li>MC：不用模型，也不用下一状态估计，直接等真实 return 出来。</li>
 <li>TD：不用模型，也不等真实 return，用一步采样加当前价值函数估计。</li>
 </ul>
-<h2>3.5 MC Prediction</h2>
-<h3>3.5.1 Monte Carlo 方法</h3>
+<h2 id="section-3-5">3.5 MC Prediction</h2>
+<h3 id="section-3-5-1">3.5.1 Monte Carlo 方法</h3>
 <p>Monte Carlo 方法用完整 episode 的实际 return 来估计价值。</p>
 <p>对于状态价值：</p>
 <pre><code class="language-text">V(s) &lt;- average of returns observed after visiting s
@@ -563,7 +646,7 @@
 <p>每个 episode 中，一个状态第一次出现时才用它更新。</p>
 <p>Every-visit MC：</p>
 <p>每个 episode 中，一个状态每次出现都可以用来更新。</p>
-<h3>3.5.2 MC 的推理过程</h3>
+<h3 id="section-3-5-2">3.5.2 MC 的推理过程</h3>
 <p>MC 的出发点是价值函数定义：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
@@ -601,7 +684,7 @@ error = G_t - V(s)
 <li>把 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 当作这次对 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 的观测样本。</li>
 <li>用样本平均或增量平均更新 <span class="math-text">V(s)</span>。</li>
 </ol>
-<h4>3.5.2.1 为什么 MC target 是无偏的</h4>
+<h4 id="section-3-5-2-1">3.5.2.1 为什么 MC target 是无偏的</h4>
 <div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]=V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
 <p>这说明在策略 <span class="math-text">π</span> 不变、采样充分时，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的期望就是目标价值。MC 用真实 return 做 target，target 本身不依赖当前估计 <span class="math-text">V(s)</span>，因此没有 bootstrap bias。</p>
@@ -615,7 +698,7 @@ error = G_t - V(s)
 <li>下次 episode 后面因为探索动作走偏，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 很小。</li>
 <li>MC 会忠实记录这些完整结果，所以 target 真实，但抖动大。</li>
 </ul>
-<h4>3.5.2.2 First-visit 和 Every-visit 的区别</h4>
+<h4 id="section-3-5-2-2">3.5.2.2 First-visit 和 Every-visit 的区别</h4>
 <p>如果一个 episode 里同一个状态 <span class="math-text">s</span> 出现多次：</p>
 <pre><code class="language-text">s -&gt; ... -&gt; s -&gt; ... -&gt; terminal
 </code></pre>
@@ -626,8 +709,8 @@ error = G_t - V(s)
 <li>first-visit 更贴近“每条 episode 给一个独立样本”的直觉。</li>
 <li>every-visit 使用更多样本，但同一 episode 内样本相关性更强。</li>
 </ul>
-<h2>3.6 TD Prediction</h2>
-<h3>3.6.1 从 MC 过渡到 TD：为什么不想等到 episode 结束</h3>
+<h2 id="section-3-6">3.6 TD Prediction</h2>
+<h3 id="section-3-6-1">3.6.1 从 MC 过渡到 TD：为什么不想等到 episode 结束</h3>
 <p>MC 的问题不是思路错，而是工程上有明显限制：</p>
 <ol>
 <li>很多任务 episode 很长，等完整 return 才更新太慢。</li>
@@ -652,7 +735,7 @@ error = G_t - V(s)
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>≈ R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>这就是 TD target 的来源。</p>
-<h3>3.6.2 TD Learning</h3>
+<h3 id="section-3-6-2">3.6.2 TD Learning</h3>
 <p>Temporal Difference Learning 结合了 Monte Carlo 和 Dynamic Programming 的思想。</p>
 <p>TD(0) 更新：</p>
 <div class="math-block"><span class="math-text">V(S<sub><span class="math-text">t</span></sub>) ← V(S<sub><span class="math-text">t</span></sub>) + α [R<sub><span class="math-text">t+1</span></sub> + γ V(S<sub><span class="math-text">t+1</span></sub>) - V(S<sub><span class="math-text">t</span></sub>)]</span></div>
@@ -670,9 +753,9 @@ error = G_t - V(s)
 <li>使用 bootstrap，用当前估计 <span class="math-text">V(S<sub><span class="math-text">t+1</span></sub>)</span> 更新当前估计。</li>
 <li>通常方差低于 MC，但可能有 bias。</li>
 </ul>
-<h3>3.6.3 TD 的推理过程</h3>
+<h3 id="section-3-6-3">3.6.3 TD 的推理过程</h3>
 <p>TD 可以从两个等价角度推出来。</p>
-<h4>3.6.3.1 角度一：从 Bellman expectation 推出</h4>
+<h4 id="section-3-6-3-1">3.6.3.1 角度一：从 Bellman expectation 推出</h4>
 <p>Bellman expectation equation 是：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
@@ -686,7 +769,7 @@ error = G_t - V(s)
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>这就是 stochastic approximation，即用随机样本近似期望更新。</p>
-<h4>3.6.3.2 角度二：从 return 递归推出</h4>
+<h4 id="section-3-6-3-2">3.6.3.2 角度二：从 return 递归推出</h4>
 <p>return 有递归形式：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub></span></div>
 
@@ -697,7 +780,7 @@ error = G_t - V(s)
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>这一步叫 bootstrap，因为 target 里用了模型自己当前的估计。</p>
-<h4>3.6.3.3 TD error 的含义</h4>
+<h4 id="section-3-6-3-3">3.6.3.3 TD error 的含义</h4>
 <p>有了 target 后，再用“target 减当前估计”构造误差：</p>
 <div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div>
 
@@ -706,7 +789,7 @@ error = G_t - V(s)
 
 <p>如果 <span class="math-text">δ<sub><span class="math-text">t</span></sub>&gt;0</span>，说明当前 <span class="math-text">V(S<sub><span class="math-text">t</span></sub>)</span> 低估了，因为一步 reward 加下一状态价值比当前估计更高。</p>
 <p>如果 <span class="math-text">δ<sub><span class="math-text">t</span></sub>&lt;0</span>，说明当前 <span class="math-text">V(S<sub><span class="math-text">t</span></sub>)</span> 高估了。</p>
-<h4>3.6.3.4 TD 为什么方差低但有 bias</h4>
+<h4 id="section-3-6-3-4">3.6.3.4 TD 为什么方差低但有 bias</h4>
 <p>TD target 只包含一步真实 reward：</p>
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></div>
 
@@ -719,9 +802,9 @@ error = G_t - V(s)
 <blockquote>
 <p>MC 的 target 真实但晚、噪声大；TD 的 target 来得早、噪声小，但里面混入了当前价值函数的估计误差。</p>
 </blockquote>
-<h2>3.7 Prediction 方法对比与例子</h2>
-<h3>3.7.1 MC vs TD</h3>
-<table class="three-col-table">
+<h2 id="section-3-7">3.7 Prediction 方法对比与例子</h2>
+<h3 id="section-3-7-1">3.7.1 MC vs TD</h3>
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>维度</th>
@@ -774,12 +857,12 @@ error = G_t - V(s)
 <td>等完整 return 再回传</td>
 <td>reward 可以一步步向前传播</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>面试表达：</p>
 <blockquote>
 <p>MC 用完整轨迹的真实 return 做 target，不 bootstrap，所以 bias 小但 variance 大。TD 用一步 reward 加下一状态的估计值做 target，能在线更新，variance 小，但因为 target 依赖当前估计，所以会引入 bias。</p>
 </blockquote>
-<h3>3.7.2 一个最小数值例子</h3>
+<h3 id="section-3-7-2">3.7.2 一个最小数值例子</h3>
 <p>假设当前估计：</p>
 <div class="math-block"><span class="math-text">V(s)=5,  V(s')=8,  γ=0.9,  α=0.1</span></div>
 
@@ -808,8 +891,8 @@ error = G_t - V(s)
 <li>TD target 是一步 bootstrap：<span class="math-text">9.2</span>。</li>
 </ul>
 <p>这个例子说明：TD 不一定比 MC 更准，它只是更早、更低方差地更新。</p>
-<h3>3.7.3 本章例子：什么时候用 MC，什么时候用 TD</h3>
-<h4>3.7.3.1 例子 1：Blackjack 适合解释 MC</h4>
+<h3 id="section-3-7-3">3.7.3 本章例子：什么时候用 MC，什么时候用 TD</h3>
+<h4 id="section-3-7-3-1">3.7.3.1 例子 1：Blackjack 适合解释 MC</h4>
 <p>Blackjack 是一个 episodic task：</p>
 <ul>
 <li>一局牌开始。</li>
@@ -827,7 +910,7 @@ error = G_t - V(s)
 <blockquote>
 <p>Blackjack 适合 MC，因为 episode 短、终止清晰、完整 return 容易拿到。MC 不需要知道牌堆转移概率，只要反复采样完整对局。</p>
 </blockquote>
-<h4>3.7.3.2 例子 2：在线广告更适合解释 TD</h4>
+<h4 id="section-3-7-3-2">3.7.3.2 例子 2：在线广告更适合解释 TD</h4>
 <p>假设系统每次给用户推荐一个广告，用户状态会持续变化，没有明确“游戏结束”。</p>
 <p>如果用 MC，可能要等用户一整天甚至一周的长期收益才更新，这太慢。</p>
 <p>TD 可以每一步更新：</p>
@@ -843,8 +926,8 @@ TD target = 即时 reward + 下一状态价值估计
 <li>每次交互后都能更新。</li>
 <li>适合 continuing task 或长 episode 任务。</li>
 </ul>
-<h2>3.8 从 Prediction 到 TD Control</h2>
-<h3>3.8.1 从 Prediction 到 Control：为什么接 SARSA 和 Q-learning</h3>
+<h2 id="section-3-8">3.8 从 Prediction 到 TD Control</h2>
+<h3 id="section-3-8-1">3.8.1 从 Prediction 到 Control：为什么接 SARSA 和 Q-learning</h3>
 <p>到这里为止，MC 和 TD 主要解决的是 prediction：</p>
 <blockquote>
 <p>给定一个策略 <span class="math-text">π</span>，估计它的价值。</p>
@@ -854,7 +937,7 @@ TD target = 即时 reward + 下一状态价值估计
 <p>找到一个更好的策略。</p>
 </blockquote>
 <p>两者的区别是：</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>任务</th>
@@ -881,7 +964,7 @@ TD target = 即时 reward + 下一状态价值估计
 <td>不固定</td>
 <td>在 <span class="math-text">s</span> 应该选哪个动作</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>为什么 control 常从 <span class="math-text">Q(s,a)</span> 入手？</p>
 <p>如果已知环境模型，可以用 <span class="math-text">V(s)</span> 加上 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span> 做一步 lookahead：</p>
 <div class="math-block"><span class="math-text">∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V(s')]</span></div>
@@ -905,17 +988,17 @@ SARSA and Q-learning are two TD control algorithms
 <li>SARSA：target 跟随实际行为策略采样到的下一个动作。</li>
 <li>Q-learning：target 假设下一步执行 greedy action。</li>
 </ul>
-<h3>3.8.2 先定义：greedy、epsilon-greedy、on-policy、off-policy</h3>
+<h3 id="section-3-8-2">3.8.2 先定义：greedy、epsilon-greedy、on-policy、off-policy</h3>
 <p>下面马上要讲 SARSA 和 Q-learning。这里先把几个词定义清楚，否则后面的“因此是 on-policy / off-policy”没有意义。</p>
-<h4>3.8.2.1 Greedy action / greedy policy</h4>
+<h4 id="section-3-8-2-1">3.8.2.1 Greedy action / greedy policy</h4>
 <p>Greedy action 指当前 <span class="math-text">Q(s,a)</span> 估计下价值最大的动作：</p>
-<div class="math-block"><span class="math-text">a<sub><span class="math-text">greedy</span></sub>=argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+<div class="math-block"><span class="math-text">a<sub><span class="math-text">greedy</span></sub>=arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
 
 <p>Greedy policy 指每个状态都选择当前看起来最好的动作：</p>
 <pre><code class="language-text">choose argmax_a Q(s, a)
 </code></pre>
 <p>它的问题是：如果早期 <span class="math-text">Q</span> 估计错了，agent 可能一直选错动作，永远不探索其他动作。</p>
-<h4>3.8.2.2 Epsilon-greedy behavior policy</h4>
+<h4 id="section-3-8-2-2">3.8.2.2 Epsilon-greedy behavior policy</h4>
 <p>Epsilon-greedy 是一种带探索的行为策略。<span class="math-text">ε</span> 表示随机探索的概率：</p>
 <pre><code class="language-text">with probability epsilon:
     choose a random action
@@ -928,9 +1011,9 @@ otherwise:
 <li>90% 概率选当前 <span class="math-text">Q(s,a)</span> 最大的动作，用来利用当前知识。</li>
 </ul>
 <p>所以 epsilon-greedy 不是一个新算法，而是一种“采样数据时怎么选动作”的策略。</p>
-<h4>3.8.2.3 Behavior policy 和 target policy</h4>
+<h4 id="section-3-8-2-3">3.8.2.3 Behavior policy 和 target policy</h4>
 <p>在 control 问题里要分清两个策略：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>名词</th>
@@ -948,10 +1031,10 @@ otherwise:
 <td>目标策略</td>
 <td>算法真正想评估或优化的策略。</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>如果 agent 用 epsilon-greedy 和环境交互，那么 behavior policy 就是 epsilon-greedy。</p>
 <p>如果算法更新时假设“未来都选 <span class="math-text">Q</span> 最大的动作”，那么 target policy 就是 greedy policy。</p>
-<h4>3.8.2.4 On-policy 和 off-policy</h4>
+<h4 id="section-3-8-2-4">3.8.2.4 On-policy 和 off-policy</h4>
 <p>On-policy，中文可以叫同策略学习：</p>
 <blockquote>
 <p>用当前实际采样的 behavior policy，同时作为学习目标。</p>
@@ -969,7 +1052,7 @@ otherwise:
 
 <p>例如：用 epsilon-greedy 采样，保持探索；但更新 target 时假设下一步走 greedy action。这个就是 off-policy。</p>
 <p>一句话判断：</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>判断问题</th>
@@ -984,9 +1067,9 @@ otherwise:
 <td>target 跳过实际动作，直接用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span> 吗？</td>
 <td>通常是 off-policy。</td>
 </tr>
-</tbody></table>
-<h2>3.9 TD Control 算法</h2>
-<h3>3.9.1 TD Control 1：SARSA</h3>
+</tbody></table></div>
+<h2 id="section-3-9">3.9 TD Control 算法</h2>
+<h3 id="section-3-9-1">3.9.1 TD Control 1：SARSA</h3>
 <p>现在再看 SARSA。SARSA 是 on-policy TD control 方法。</p>
 <p>这里的 on-policy 含义是：SARSA 用当前行为策略采样数据，也学习这个当前行为策略本身的价值。如果行为策略是 epsilon-greedy，那么 SARSA 学的就是“继续按这套 epsilon-greedy 策略行动时，长期回报是多少”。</p>
 <p>SARSA 名字来自一次更新用到的五元组：</p>
@@ -1004,7 +1087,7 @@ otherwise:
 </ul>
 <p>直觉：</p>
 <p>SARSA 学的是“我按照当前这套带探索的策略行动，长期回报会是多少”。</p>
-<h3>3.9.2 SARSA 的 target 为什么是 <span class="math-text">Q(s&#39;,a&#39;)</span></h3>
+<h3 id="section-3-9-2">3.9.2 SARSA 的 target 为什么是 <span class="math-text">Q(s&#39;,a&#39;)</span></h3>
 <p>对 action-value 来说，Bellman expectation 可以理解成：</p>
 <div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ Q<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)]</span></div>
 
@@ -1013,7 +1096,7 @@ otherwise:
 <div class="math-block"><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ Q(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)</span></div>
 
 <p>它把“探索可能造成的后果”也学进去。这就是为什么在 Cliff Walking 里 SARSA 更保守：它知道自己未来还可能因为 <span class="math-text">ε</span> 探索而掉下去。</p>
-<h3>3.9.3 TD Control 2：Q-learning</h3>
+<h3 id="section-3-9-3">3.9.3 TD Control 2：Q-learning</h3>
 <p>Q-learning 是 off-policy TD control 方法。</p>
 <p>这里的 off-policy 含义是：Q-learning 可以用 epsilon-greedy 这种 behavior policy 去探索和采样，但它更新时学习的是 greedy target policy，也就是“未来都选当前 <span class="math-text">Q</span> 最大动作”的策略。</p>
 <p>更新公式：</p>
@@ -1028,7 +1111,7 @@ otherwise:
 </ul>
 <p>直觉：</p>
 <p>Q-learning 学的是“如果未来都选当前估计下最优的动作，长期回报会是多少”。</p>
-<h3>3.9.4 Q-learning 的 target 为什么用 max</h3>
+<h3 id="section-3-9-4">3.9.4 Q-learning 的 target 为什么用 max</h3>
 <p>Q-learning 对应的是 Bellman optimality 思路：</p>
 <div class="math-block"><span class="math-text">Q<sup><span class="math-text">*</span></sup>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ max<sub><span class="math-text">a'</span></sub>Q<sup><span class="math-text">*</span></sup>(S<sub><span class="math-text">t+1</span></sub>,a')]</span></div>
 
@@ -1045,8 +1128,8 @@ otherwise:
 <blockquote>
 <p>SARSA 从 Bellman expectation 来，下一动作就是行为策略实际采样的 <span class="math-text">a&#39;</span>；Q-learning 从 Bellman optimality 来，下一动作取当前 Q 最大的动作。因此 SARSA on-policy，Q-learning off-policy。</p>
 </blockquote>
-<h3>3.9.5 SARSA vs Q-learning</h3>
-<table class="three-col-table">
+<h3 id="section-3-9-5">3.9.5 SARSA vs Q-learning</h3>
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>维度</th>
@@ -1079,8 +1162,8 @@ otherwise:
 <td>当前行为策略</td>
 <td>最优 greedy 策略</td>
 </tr>
-</tbody></table>
-<h3>3.9.6 本章例子：Cliff Walking 解释 SARSA 和 Q-learning</h3>
+</tbody></table></div>
+<h3 id="section-3-9-6">3.9.6 本章例子：Cliff Walking 解释 SARSA 和 Q-learning</h3>
 <p>Cliff Walking 中，起点到终点的最短路径贴着悬崖走，但 epsilon-greedy 探索可能让 agent 随机走错一步掉下去。</p>
 <p>SARSA 学当前带探索行为策略的价值，所以它会把“未来仍可能探索并掉下悬崖”的风险计入 target：</p>
 <pre><code class="language-text">r + gamma * Q(s&#39;, actual a&#39;)
@@ -1099,7 +1182,7 @@ otherwise:
 <blockquote>
 <p>SARSA 和 Q-learning 都是 TD control。SARSA 的 target 来自行为策略实际采样到的下一动作，所以是 on-policy；Q-learning 的 target 来自 greedy max，所以是 off-policy。Cliff Walking 中 SARSA 更保守，Q-learning 更贪心。</p>
 </blockquote>
-<h3>3.9.7 On-policy vs Off-policy 总结</h3>
+<h3 id="section-3-9-7">3.9.7 On-policy vs Off-policy 总结</h3>
 <p>前面已经先定义过一次，这里只做总结。</p>
 <p>On-policy：</p>
 <p>学习和评估的是当前实际采样的行为策略。</p>
@@ -1136,28 +1219,53 @@ otherwise:
 <li>重要性采样或 value correction 可能带来高方差。</li>
 <li>结合函数逼近和 bootstrap 时可能不稳定。</li>
 </ul>
-<h2>3.10 本章面试高频问题</h2>
-<h3>3.10.1 MC 和 TD 的区别？</h3>
+<h2 id="section-3-10">3.10 本章面试高频问题</h2>
+<h3 id="section-3-10-1">3.10.1 MC 和 TD 的区别？</h3>
 <p>MC 用完整 episode 的真实 return 更新，不 bootstrap，bias 小但 variance 大。TD 用 <span class="math-text">r + γ V(s&#39;)</span> 这种一步 bootstrap target 更新，可以在线学习，variance 小但有 bias。</p>
-<h3>3.10.2 SARSA 和 Q-learning 的区别？</h3>
+<h3 id="section-3-10-2">3.10.2 SARSA 和 Q-learning 的区别？</h3>
 <p>SARSA 是 on-policy，target 使用实际采样到的下一个动作 <span class="math-text">a&#39;</span>。Q-learning 是 off-policy，target 使用 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s&#39;,a)</span>，学习 greedy target policy。</p>
-<h3>3.10.3 SARSA/Q-learning 和 TD 有什么关系？</h3>
+<h3 id="section-3-10-3">3.10.3 SARSA/Q-learning 和 TD 有什么关系？</h3>
 <p>SARSA 和 Q-learning 都是 TD control。TD prediction 更新 <span class="math-text">V(s)</span>，用于评估固定策略；SARSA/Q-learning 更新 <span class="math-text">Q(s,a)</span>，用于边估值边改进策略。两者都使用一步 bootstrap target，只是 SARSA 用实际采样的 <span class="math-text">a&#39;</span>，Q-learning 用 greedy max。</p>
-<h3>3.10.4 为什么 Q-learning 是 off-policy？</h3>
+<h3 id="section-3-10-4">3.10.4 为什么 Q-learning 是 off-policy？</h3>
 <p>因为采样数据可以来自 epsilon-greedy 行为策略，但更新目标是假设下一步选择 greedy action 的价值，即 target policy 和 behavior policy 不同。</p>
-<h3>3.10.5 TD error 是什么？</h3>
+<h3 id="section-3-10-5">3.10.5 TD error 是什么？</h3>
 <p>TD error 是当前价值估计和 bootstrap target 之间的差：</p>
 <div class="math-block"><span class="math-text">δ = r + γ V(s') - V(s)</span></div>
 
 <p>它衡量当前估计需要被修正的方向和大小。</p>
-<h3>3.10.6 为什么 TD 可以不等 episode 结束？</h3>
+<h3 id="section-3-10-6">3.10.6 为什么 TD 可以不等 episode 结束？</h3>
 <p>因为 TD target 只需要一步 reward 和下一状态的当前价值估计，不需要完整轨迹 return。</p>
-<h2>3.11 本章练习</h2>
+<h2 id="section-3-11">3.11 本章练习</h2>
 <ol>
 <li>手写 SARSA 和 Q-learning 的更新公式。</li>
 <li>解释为什么 SARSA 在 cliff walking 中更保守。</li>
 <li>写一个 tabular Q-learning 的伪代码。</li>
 <li>用 bias/variance 角度比较 MC 和 TD。</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><p><strong>更新公式</strong>：SARSA 使用 <span class="math-text">Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)← Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)+α[R<sub><span class="math-text">t+1</span></sub>+γ Q(S<sub><span class="math-text">t+1</span></sub>,A<sub><span class="math-text">t+1</span></sub>)-Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)]</span>；Q-learning 使用 <span class="math-text">Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)← Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)+α[R<sub><span class="math-text">t+1</span></sub>+γmax<sub><span class="math-text">a</span></sub> Q(S<sub><span class="math-text">t+1</span></sub>,a)-Q(S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>)]</span>。终止状态的下一状态价值按 0 处理。</p>
+</li>
+<li><p><strong>Cliff Walking 中更保守的原因</strong>：SARSA 的 target 使用 epsilon-greedy policy 实际可能执行的 <span class="math-text">A<sub><span class="math-text">t+1</span></sub></span>，所以会把“沿悬崖走时探索动作可能掉下去”的风险计入价值。Q-learning 的 target 假设下一步总选 greedy action，学习的是不含探索失误的最优路径，因此更贴近悬崖。</p>
+</li>
+<li><p><strong>Tabular Q-learning 伪代码</strong>：</p>
+<pre><code class="language-text">initialize Q(s, a)
+for each episode:
+    initialize state s
+    while s is not terminal:
+        choose a from an epsilon-greedy behavior policy based on Q
+        execute a, observe reward r and next state s&#39;
+        y = r                              if s&#39; is terminal
+            r + gamma * max_a&#39; Q(s&#39;, a&#39;)  otherwise
+        Q(s, a) = Q(s, a) + alpha * (y - Q(s, a))
+        s = s&#39;
+</code></pre>
+</li>
+<li><p><strong>Bias/variance 对比</strong>：MC 用完整真实 return，给定 on-policy 采样时 target 通常无 bootstrap bias，但一条轨迹中许多随机 reward 会累积，variance 高。TD 用 <span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)</span>，依赖当前不准确的估计而有 bootstrap bias，但只引入一步随机性，variance 较低，并且能在线更新。</p>
+</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./02-dynamic-programming.html">← 上一章</a><a href="./04-exploration-bandit.html">下一章 →</a></nav></main></body>
 </html>

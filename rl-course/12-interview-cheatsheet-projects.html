@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 12 章：强化学习面试速查与项目准备</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,14 +353,27 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1>第 12 章：强化学习面试速查与项目准备</h1>
-<h2>12.1 本章符号说明</h2>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1 id="chapter-12">第 12 章：强化学习面试速查与项目准备</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-12-1">12.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-12-2">12.2 本章目标</a><a class="toc-link toc-level-2" href="#section-12-3">12.3 本章主线</a><a class="toc-link toc-level-2" href="#section-12-4">12.4 本章使用方式</a><a class="toc-link toc-level-2" href="#section-12-5">12.5 速查和高频问答</a><a class="toc-link toc-level-3" href="#section-12-5-1">12.5.1 核心概念速查</a><a class="toc-link toc-level-3" href="#section-12-5-2">12.5.2 算法横向对比</a><a class="toc-link toc-level-3" href="#section-12-5-3">12.5.3 高频概念问答</a><a class="toc-link toc-level-4" href="#section-12-5-3-1">12.5.3.1 RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</a><a class="toc-link toc-level-4" href="#section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</a><a class="toc-link toc-level-4" href="#section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</a><a class="toc-link toc-level-4" href="#section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</a><a class="toc-link toc-level-4" href="#section-12-5-3-10">12.5.3.10 PPO 为什么常用？</a><a class="toc-link toc-level-4" href="#section-12-5-3-11">12.5.3.11 SAC 为什么适合连续控制？</a><a class="toc-link toc-level-4" href="#section-12-5-3-12">12.5.3.12 Offline RL 为什么难？</a><a class="toc-link toc-level-2" href="#section-12-6">12.6 面试表达模板和项目准备</a><a class="toc-link toc-level-3" href="#section-12-6-1">12.6.1 面试中算法讲解模板</a><a class="toc-link toc-level-3" href="#section-12-6-2">12.6.2 项目准备建议</a><a class="toc-link toc-level-3" href="#section-12-6-3">12.6.3 面试例子索引</a><a class="toc-link toc-level-3" href="#section-12-6-4">12.6.4 项目表达模板</a><a class="toc-link toc-level-2" href="#section-12-7">12.7 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-1">12.7.1 CartPole DQN 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-2">12.7.2 LunarLander PPO 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</a><a class="toc-link toc-level-2" href="#section-12-8">12.8 最终复习</a><a class="toc-link toc-level-3" href="#section-12-8-1">12.8.1 面试前最终检查清单</a><a class="toc-link toc-level-3" href="#section-12-8-2">12.8.2 30 分钟口述复习路线</a><a class="toc-link toc-level-2" href="#section-12-9">12.9 本章练习</a></nav></details>
+<h2 id="section-12-1">12.1 本章符号说明</h2>
 <p>本章是速查表，会集中复现前面章节的核心符号：</p>
-<table class="symbol-table">
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -437,8 +520,8 @@
 <td>策略梯度</td>
 <td>直接优化策略参数的一类方法。</td>
 </tr>
-</tbody></table>
-<h2>12.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-12-2">12.2 本章目标</h2>
 <p>本章用于面试前快速复习。你需要整理：</p>
 <ul>
 <li>核心概念速查。</li>
@@ -447,11 +530,11 @@
 <li>高频问答。</li>
 <li>项目表达模板。</li>
 </ul>
-<h2>12.3 本章主线</h2>
+<h2 id="section-12-3">12.3 本章主线</h2>
 <p>本章不是引入新算法，而是把前面所有内容压缩成面试表达结构。复习顺序是：先用一张图串起 MDP、Bellman、DP、MC/TD、DQN、Policy Gradient、Actor-Critic、PPO/SAC；再横向比较算法；最后把项目按“问题建模、状态动作奖励、算法选择、训练稳定性、指标和失败案例”讲清楚。</p>
-<h2>12.4 本章使用方式</h2>
+<h2 id="section-12-4">12.4 本章使用方式</h2>
 <p>本章原则上不引入新算法名词，只做复习压缩。读本章时如果遇到陌生词，先回到对应章节：</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>陌生词类型</th>
@@ -498,9 +581,9 @@
 <td>Offline RL、Imitation、RLHF、DPO</td>
 <td>第 11 章</td>
 </tr>
-</tbody></table>
-<h2>12.5 速查和高频问答</h2>
-<h3>12.5.1 核心概念速查</h3>
+</tbody></table></div>
+<h2 id="section-12-5">12.5 速查和高频问答</h2>
+<h3 id="section-12-5-1">12.5.1 核心概念速查</h3>
 <p>MDP：</p>
 <div class="math-block"><span class="math-text">(S, A, P, R, γ)</span></div>
 
@@ -537,8 +620,8 @@
 <p>SAC soft target：</p>
 <div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α log π(a'∣ s')]</span></div>
 
-<h3>12.5.2 算法横向对比</h3>
-<table class="wide-table">
+<h3 id="section-12-5-2">12.5.2 算法横向对比</h3>
+<div class="table-scroll"><table class="wide-table">
 <thead>
 <tr>
 <th>算法</th>
@@ -639,39 +722,39 @@
 <td>maximum entropy</td>
 <td>连续动作</td>
 </tr>
-</tbody></table>
-<h3>12.5.3 高频概念问答</h3>
-<h4>12.5.3.1 RL 为什么难？</h4>
+</tbody></table></div>
+<h3 id="section-12-5-3">12.5.3 高频概念问答</h3>
+<h4 id="section-12-5-3-1">12.5.3.1 RL 为什么难？</h4>
 <p>因为 RL 同时面对 delayed reward、探索与利用、非 i.i.d. 数据、动作影响未来数据分布、credit assignment 和训练稳定性问题。</p>
-<h4>12.5.3.2 Bellman 方程为什么重要？</h4>
+<h4 id="section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</h4>
 <p>Bellman 方程描述了价值函数的递归自洽关系：当前价值等于即时 reward 加未来价值。绝大多数 value-based 和 actor-critic 方法都直接或间接基于 Bellman backup。</p>
-<h4>12.5.3.3 On-policy 和 off-policy 区别？</h4>
+<h4 id="section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</h4>
 <p>On-policy 学习当前采样策略的价值或改进当前策略。Off-policy 用 behavior policy 的数据学习另一个 target policy，样本效率更高，但有分布偏移风险。</p>
-<h4>12.5.3.4 MC 和 TD 区别？</h4>
+<h4 id="section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</h4>
 <p>MC 用完整 episode 的真实 return，不 bootstrap，bias 小但 variance 大。TD 用一步 reward 加下一状态价值估计，能在线更新，variance 小但有 bootstrap bias。</p>
-<h4>12.5.3.5 SARSA 和 Q-learning 区别？</h4>
+<h4 id="section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</h4>
 <p>SARSA 是 on-policy，target 使用实际采样的下一个动作。Q-learning 是 off-policy，target 使用下一状态最大 Q 值。</p>
-<h4>12.5.3.6 DQN 的两个核心稳定技巧？</h4>
+<h4 id="section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</h4>
 <p>Experience replay 和 target network。前者打破样本相关性并复用样本，后者稳定 bootstrap target。</p>
-<h4>12.5.3.7 Double DQN 解决什么？</h4>
+<h4 id="section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</h4>
 <p>缓解 DQN 中 <span class="math-text">max</span> 操作造成的 Q 值过估计。它用 online network 选动作，用 target network 评估动作。</p>
-<h4>12.5.3.8 Policy Gradient 怎么理解？</h4>
+<h4 id="section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</h4>
 <p>如果某个动作带来正 advantage，就增加该动作在该状态下的概率；如果 advantage 为负，就降低概率。公式是：</p>
 <div class="math-block"><span class="math-text">∇ J = 𝔼[∇ log π(a∣ s) A(s,a)]</span></div>
 
-<h4>12.5.3.9 Baseline 为什么不引入 bias？</h4>
+<h4 id="section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</h4>
 <p>因为 baseline 不依赖 action，而：</p>
 <div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a~π</span></sub>[∇ log π(a∣ s)] = 0</span></div>
 
 <p>因此减去 baseline 只改变方差，不改变梯度期望。</p>
-<h4>12.5.3.10 PPO 为什么常用？</h4>
+<h4 id="section-12-5-3-10">12.5.3.10 PPO 为什么常用？</h4>
 <p>PPO 用 clipped objective 限制新旧策略差异，稳定性好、实现简单、适用面广，是 on-policy actor-critic 中非常常用的工程基线。</p>
-<h4>12.5.3.11 SAC 为什么适合连续控制？</h4>
+<h4 id="section-12-5-3-11">12.5.3.11 SAC 为什么适合连续控制？</h4>
 <p>SAC 是 off-policy，样本效率较高；最大熵目标鼓励探索并提升稳定性；双 Q 网络缓解过估计，因此在连续控制任务中表现稳定。</p>
-<h4>12.5.3.12 Offline RL 为什么难？</h4>
+<h4 id="section-12-5-3-12">12.5.3.12 Offline RL 为什么难？</h4>
 <p>因为不能继续探索收集数据。学习策略可能选择数据集中没覆盖的动作，critic 对这些动作估计不可靠，容易出现 extrapolation error。</p>
-<h2>12.6 面试表达模板和项目准备</h2>
-<h3>12.6.1 面试中算法讲解模板</h3>
+<h2 id="section-12-6">12.6 面试表达模板和项目准备</h2>
+<h3 id="section-12-6-1">12.6.1 面试中算法讲解模板</h3>
 <p>回答某个算法时，按这个顺序讲：</p>
 <pre><code class="language-text">1. 它解决什么问题？
 2. 是 value-based、policy-based 还是 actor-critic？
@@ -682,8 +765,8 @@
 7. 局限是什么？
 </code></pre>
 <p>例如讲 DQN：</p>
-<p>DQN 是把 Q-learning 扩展到高维状态输入的 deep RL 算法。它用神经网络近似 Q(s,a)，适合离散动作空间。核心 target 是 r + \gamma max Q_{\mathrm{target}}(s&#39;,a&#39;)。为了稳定训练，它使用 replay buffer 打破样本相关性、复用历史经验，并使用 target network 稳定 Bellman target。它的局限是难以处理连续动作空间，并且存在 Q 值过估计问题，后续 Double DQN 对此做了改进。</p>
-<h3>12.6.2 项目准备建议</h3>
+<p>DQN 是把 Q-learning 扩展到高维状态输入的 deep RL 算法。它用神经网络近似 <span class="math-text">Q(s,a)</span>，适合离散动作空间。核心 target 是 <span class="math-text">r+γmax<sub><span class="math-text">a&#39;</span></sub>Q<sub><span class="math-text">target</span></sub>(s&#39;,a&#39;)</span>。为了稳定训练，它使用 replay buffer 打破样本相关性、复用历史经验，并使用 target network 稳定 Bellman target。它的局限是难以处理连续动作空间，并且存在 Q 值过估计问题，后续 Double DQN 对此做了改进。</p>
+<h3 id="section-12-6-2">12.6.2 项目准备建议</h3>
 <p>面试前建议至少准备一个可讲清楚的 RL 小项目。</p>
 <p>优先级：</p>
 <ol>
@@ -693,9 +776,9 @@
 <li>简化推荐系统 bandit。</li>
 <li>RLHF toy example，例如偏好数据训练 reward model。</li>
 </ol>
-<h3>12.6.3 面试例子索引</h3>
+<h3 id="section-12-6-3">12.6.3 面试例子索引</h3>
 <p>准备面试时，建议把算法和例子绑定记忆：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>算法/概念</th>
@@ -778,12 +861,12 @@
 <td>聊天模型对齐</td>
 <td>用人类偏好构造 reward。</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>回答时不要只说“我用 DQN 做 CartPole”。更好的结构是：</p>
 <blockquote>
 <p>CartPole 是离散动作控制任务，状态低维连续，动作是 left/right，reward 是存活步数。DQN 用 Q 网络输出两个动作价值，配合 replay buffer 和 target network 稳定训练。</p>
 </blockquote>
-<h3>12.6.4 项目表达模板</h3>
+<h3 id="section-12-6-4">12.6.4 项目表达模板</h3>
 <pre><code class="language-text">项目背景：
 任务建模：
 状态空间：
@@ -796,8 +879,8 @@
 遇到的问题：
 改进方向：
 </code></pre>
-<h2>12.7 项目讲法</h2>
-<h3>12.7.1 CartPole DQN 项目讲法</h3>
+<h2 id="section-12-7">12.7 项目讲法</h2>
+<h3 id="section-12-7-1">12.7.1 CartPole DQN 项目讲法</h3>
 <p>任务建模：</p>
 <ul>
 <li>State：小车位置、速度、杆角度、角速度。</li>
@@ -821,7 +904,7 @@
 <li>loss 曲线不稳定是否正常。</li>
 <li>reward 是否能达到环境上限。</li>
 </ul>
-<h3>12.7.2 LunarLander PPO 项目讲法</h3>
+<h3 id="section-12-7-2">12.7.2 LunarLander PPO 项目讲法</h3>
 <p>任务建模：</p>
 <ul>
 <li>State：位置、速度、角度、角速度、腿部接触信息。</li>
@@ -841,7 +924,7 @@
 <li>但训练稳定，调参相对友好。</li>
 <li>advantage normalization 对训练很重要。</li>
 </ul>
-<h3>12.7.3 推荐系统 Bandit 项目讲法</h3>
+<h3 id="section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</h3>
 <p>任务建模：</p>
 <ul>
 <li>State/context：用户画像、上下文、历史行为。</li>
@@ -859,8 +942,8 @@
 <li>reward 延迟和偏差要处理。</li>
 <li>离线评估有 selection bias。</li>
 </ul>
-<h2>12.8 最终复习</h2>
-<h3>12.8.1 面试前最终检查清单</h3>
+<h2 id="section-12-8">12.8 最终复习</h2>
+<h3 id="section-12-8-1">12.8.1 面试前最终检查清单</h3>
 <ul>
 <li>能手写 Bellman expectation 和 optimality equation。</li>
 <li>能解释 MC、TD、DP 的区别。</li>
@@ -875,7 +958,7 @@
 <li>能说明 offline RL 的 extrapolation error。</li>
 <li>能讲一个完整 RL 项目。</li>
 </ul>
-<h3>12.8.2 30 分钟口述复习路线</h3>
+<h3 id="section-12-8-2">12.8.2 30 分钟口述复习路线</h3>
 <ol>
 <li>5 分钟：MDP、return、V/Q、Bellman。</li>
 <li>5 分钟：DP、MC、TD、SARSA、Q-learning。</li>
@@ -884,5 +967,22 @@
 <li>5 分钟：PPO、DDPG、TD3、SAC。</li>
 <li>5 分钟：offline RL、RLHF、项目总结。</li>
 </ol>
+<h2 id="section-12-9">12.9 本章练习</h2>
+<ol>
+<li>不看笔记，用两分钟讲清从 MDP 到 PPO/SAC 的全课程主线。</li>
+<li>面对“离散动作在线交互”“连续动作在线交互”“固定离线数据”三个场景，分别给出算法候选并说明选择依据。</li>
+<li>用统一的 target、data、policy update 三个维度，对比 DQN、PPO 和 SAC。</li>
+<li>按项目表达模板，口述一个 CartPole DQN 项目，并至少说出两个可能失败的原因。</li>
+</ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><strong>两分钟主线</strong>：MDP 定义 state、action、transition、reward 和 discount；return 的期望得到 <span class="math-text">V/Q</span>，Bellman 方程给出递归关系。模型已知时用 DP 做精确 backup；模型未知时 MC 用完整 return、TD 用 bootstrap target。SARSA/Q-learning 把 prediction 推到 control；状态太大时用函数逼近，DQN 通过 replay 和 target network 稳定 Q-learning。Policy Gradient 直接优化 policy，Actor-Critic 用 critic 降方差，GAE 平衡 bias/variance，PPO 限制 on-policy 更新幅度；连续动作下 DDPG/TD3/SAC 用 actor 输出 action，其中 SAC 用随机策略和最大熵目标增强探索。</li>
+<li><strong>场景选型</strong>：离散动作且可在线交互，可从 DQN 或 PPO 开始；DQN off-policy、样本复用高，PPO 更通用但采样成本高。连续动作且可在线交互，可优先 SAC，若需要确定性执行可比较 TD3；PPO 也能处理连续动作但为 on-policy。固定离线数据不能直接套普通 online SAC/DQN，应选择 Offline RL 方法或先做 Behavior Cloning，并重点处理 distribution shift。</li>
+<li><strong>统一对比</strong>：DQN 的 data 来自 epsilon-greedy behavior policy 和 replay buffer，target 是 <span class="math-text">r+γmax Q<sup><span class="math-text">-</span></sup></span>，通过最小化 TD loss 更新 Q，再由 argmax 导出 policy；PPO 的 data 来自旧 policy 的短期 rollout，target/学习信号是 return 或 GAE advantage，通过 clipped ratio 直接更新 stochastic policy；SAC 的 data 来自 replay buffer，soft Q target 含 entropy 项，同时更新双 critic 和随机 actor，属于 off-policy actor-critic。</li>
+<li><strong>CartPole DQN 示例</strong>：state 是位置、速度、杆角度和角速度；action 是向左或向右；每存活一步 reward 为 1。Q 网络输出两个 action value，使用 epsilon-greedy 收集 transition，replay buffer 随机采样，target network 构造稳定 target。指标可看 episode return、成功率和样本量。失败原因包括 epsilon 衰减过快导致探索不足、target 更新过频导致 target 不稳、没有正确处理 terminal mask、学习率过大或 replay warm-up 不足。</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav></main></body>
 </html>

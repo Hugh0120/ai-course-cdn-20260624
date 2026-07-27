@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,13 +353,26 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav><h1>第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</h1>
-<h2>7.1 本章符号说明</h2>
-<table class="symbol-table">
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav><h1 id="chapter-7">第 7 章：Policy Gradient、REINFORCE（经典 Monte Carlo Policy Gradient 算法）与 Advantage</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-7-1">7.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-7-2">7.2 本章目标</a><a class="toc-link toc-level-2" href="#section-7-3">7.3 本章主线</a><a class="toc-link toc-level-2" href="#section-7-4">7.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-7-5">7.5 Policy Gradient 的动机和策略形式</a><a class="toc-link toc-level-3" href="#section-7-5-1">7.5.1 为什么需要 Policy Gradient</a><a class="toc-link toc-level-3" href="#section-7-5-2">7.5.2 随机策略</a><a class="toc-link toc-level-2" href="#section-7-6">7.6 Policy Gradient 推导</a><a class="toc-link toc-level-3" href="#section-7-6-1">7.6.1 Log-derivative Trick</a><a class="toc-link toc-level-3" href="#section-7-6-2">7.6.2 Policy Gradient 推导阅读线</a><a class="toc-link toc-level-2" href="#section-7-7">7.7 REINFORCE 和方差控制</a><a class="toc-link toc-level-3" href="#section-7-7-1">7.7.1 REINFORCE</a><a class="toc-link toc-level-3" href="#section-7-7-2">7.7.2 Reward-to-go：为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></a><a class="toc-link toc-level-3" href="#section-7-7-3">7.7.3 Baseline</a><a class="toc-link toc-level-3" href="#section-7-7-4">7.7.4 Advantage Function</a><a class="toc-link toc-level-3" href="#section-7-7-5">7.7.5 从 Baseline 到 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-7-7-6">7.7.6 Entropy Regularization</a><a class="toc-link toc-level-2" href="#section-7-8">7.8 本章例子：为什么需要直接优化策略</a><a class="toc-link toc-level-3" href="#section-7-8-1">7.8.1 例子 1：连续动作机器人</a><a class="toc-link toc-level-3" href="#section-7-8-2">7.8.2 例子 2：Softmax 策略更新</a><a class="toc-link toc-level-3" href="#section-7-8-3">7.8.3 例子 3：Baseline 的作用</a><a class="toc-link toc-level-2" href="#section-7-9">7.9 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-7-9-1">7.9.1 Policy Gradient 适合什么场景？</a><a class="toc-link toc-level-3" href="#section-7-9-2">7.9.2 REINFORCE 的核心更新是什么？</a><a class="toc-link toc-level-3" href="#section-7-9-3">7.9.3 为什么 baseline 不改变梯度期望？</a><a class="toc-link toc-level-3" href="#section-7-9-4">7.9.4 Advantage 的意义是什么？</a><a class="toc-link toc-level-3" href="#section-7-9-5">7.9.5 Policy Gradient 的主要缺点？</a><a class="toc-link toc-level-2" href="#section-7-10">7.10 本章练习</a></nav></details>
+<h2 id="section-7-1">7.1 本章符号说明</h2>
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -376,8 +459,8 @@
 <td>软 Actor-Critic</td>
 <td>后续最大熵 actor-critic 算法，本章先介绍 entropy 思想。</td>
 </tr>
-</tbody></table>
-<h2>7.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-7-2">7.2 本章目标</h2>
 <p>本章学习 policy-based RL 的基础。你需要掌握：</p>
 <ul>
 <li>为什么需要直接优化 policy。</li>
@@ -388,11 +471,11 @@
 <li>baseline。</li>
 <li>advantage function。</li>
 </ul>
-<h2>7.3 本章主线</h2>
-<p>Value-based 方法先学 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。这个思路在连续动作、随机策略或需要直接控制动作分布时不够自然。本章转向 policy-based RL：直接参数化 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，推导如何对期望 return 求梯度，并用 baseline 和 advantage 降低方差。</p>
-<h2>7.4 本章新增概念说明</h2>
+<h2 id="section-7-3">7.3 本章主线</h2>
+<p>Value-based 方法先学 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。这个思路在连续动作、随机策略或需要直接控制动作分布时不够自然。本章转向 policy-based RL：直接参数化 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，推导如何对期望 return 求梯度，并用 baseline 和 advantage 降低方差。</p>
+<h2 id="section-7-4">7.4 本章新增概念说明</h2>
 <p>本章从 value-based 转到 policy-based，先定义这些词：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>名词</th>
@@ -470,15 +553,15 @@
 <td>熵正则</td>
 <td>鼓励策略保持随机性，避免过早确定。</td>
 </tr>
-</tbody></table>
-<h2>7.5 Policy Gradient 的动机和策略形式</h2>
-<h3>7.5.1 为什么需要 Policy Gradient</h3>
-<p>Value-based 方法学习 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。它在离散动作空间中很自然，但在以下场景中不够方便：</p>
+</tbody></table></div>
+<h2 id="section-7-5">7.5 Policy Gradient 的动机和策略形式</h2>
+<h3 id="section-7-5-1">7.5.1 为什么需要 Policy Gradient</h3>
+<p>Value-based 方法学习 <span class="math-text">Q(s,a)</span>，再通过 <span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。它在离散动作空间中很自然，但在以下场景中不够方便：</p>
 <ul>
 <li>动作空间连续。</li>
 <li>策略本身需要随机性。</li>
 <li>希望直接优化策略分布。</li>
-<li><span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 很难计算。</li>
+<li><span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 很难计算。</li>
 </ul>
 <p>Policy Gradient 直接参数化策略：</p>
 <div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></div>
@@ -489,7 +572,7 @@
 <p>其中 trajectory：</p>
 <div class="math-block"><span class="math-text">τ = (s<sub><span class="math-text">0</span></sub>, a<sub><span class="math-text">0</span></sub>, r<sub><span class="math-text">1</span></sub>, s<sub><span class="math-text">1</span></sub>, a<sub><span class="math-text">1</span></sub>, ...)</span></div>
 
-<h3>7.5.2 随机策略</h3>
+<h3 id="section-7-5-2">7.5.2 随机策略</h3>
 <p>离散动作空间中，策略可以是 categorical distribution：</p>
 <div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s) = softmax(f<sub><span class="math-text">θ</span></sub>(s))</span></div>
 
@@ -502,8 +585,8 @@
 <li>可以表达多模态或不确定行为。</li>
 <li>适合 policy gradient 的概率形式推导。</li>
 </ul>
-<h2>7.6 Policy Gradient 推导</h2>
-<h3>7.6.1 Log-derivative Trick</h3>
+<h2 id="section-7-6">7.6 Policy Gradient 推导</h2>
+<h3 id="section-7-6-1">7.6.1 Log-derivative Trick</h3>
 <p>核心恒等式：</p>
 <div class="math-block"><span class="math-text">∇<sub><span class="math-text">θ</span></sub> p<sub><span class="math-text">θ</span></sub>(x) = p<sub><span class="math-text">θ</span></sub>(x) ∇<sub><span class="math-text">θ</span></sub> log p<sub><span class="math-text">θ</span></sub>(x)</span></div>
 
@@ -526,7 +609,7 @@
 <p>得到 policy gradient：</p>
 <div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼<sub><span class="math-text">τ</span></sub> [∑<sub><span class="math-text">t</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) R(τ)]</span></div></div>
 
-<h3>7.6.2 Policy Gradient 推导阅读线</h3>
+<h3 id="section-7-6-2">7.6.2 Policy Gradient 推导阅读线</h3>
 <p>这段推导最容易觉得“公式突然变形”。可以按下面逻辑理解。</p>
 <p>第一步，目标函数是期望：</p>
 <div class="math-block"><span class="math-text">J(θ)=𝔼<sub><span class="math-text">τ∼ p<sub><span class="math-text">θ</span></sub>(τ)</span></sub>[R(τ)]</span></div>
@@ -557,8 +640,8 @@
 <blockquote>
 <p>因为采样动作本身不可直接反传，所以 policy gradient 不对 action 求导，而是对“采到这个 action 的 log probability”求导。高 return 的轨迹会提高其中动作的 log probability，低 return 的轨迹会降低它们。</p>
 </blockquote>
-<h2>7.7 REINFORCE 和方差控制</h2>
-<h3>7.7.1 REINFORCE</h3>
+<h2 id="section-7-7">7.7 REINFORCE 和方差控制</h2>
+<h3 id="section-7-7-1">7.7.1 REINFORCE</h3>
 <p>REINFORCE 是最基础的 Monte Carlo policy gradient 算法。</p>
 <p>更新方向：</p>
 <div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
@@ -587,7 +670,7 @@ repeat:
 <li>Monte Carlo return 方差很大。</li>
 <li>sample efficiency 较低。</li>
 </ul>
-<h3>7.7.2 Reward-to-go：为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></h3>
+<h3 id="section-7-7-2">7.7.2 Reward-to-go：为什么 REINFORCE 可以用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></h3>
 <p>基础推导中，每个时间步都乘整条轨迹回报 <span class="math-text">R(τ)</span>。但动作 <span class="math-text">a<sub><span class="math-text">t</span></sub></span> 不可能影响 <span class="math-text">t</span> 之前已经发生的 reward，所以更合理的学习信号是从当前时间开始的 reward-to-go：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+...</span></div>
 
@@ -602,7 +685,7 @@ repeat:
   -&gt; advantage
   -&gt; actor-critic / GAE
 </code></pre>
-<h3>7.7.3 Baseline</h3>
+<h3 id="section-7-7-3">7.7.3 Baseline</h3>
 <p>为了降低方差，可以从 return 中减去 baseline：</p>
 <div class="math-block multi"><div><span class="math-text">∇ J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) (G<sub><span class="math-text">t</span></sub> - b(s<sub><span class="math-text">t</span></sub>))]</span></div></div>
 
@@ -623,7 +706,7 @@ repeat:
 <li>加 baseline 后：如果这个状态平均就能拿 120，那么 100 其实低于预期，应该降低动作概率。</li>
 </ul>
 <p>这就是 advantage 的来源。</p>
-<h3>7.7.4 Advantage Function</h3>
+<h3 id="section-7-7-4">7.7.4 Advantage Function</h3>
 <p>Advantage 定义：</p>
 <div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s, a) = Q<sub><span class="math-text">π</span></sub>(s, a) - V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
@@ -640,7 +723,7 @@ repeat:
 <li>如果 <span class="math-text">A(s,a) &lt; 0</span>，说明动作比平均水平差，降低其概率。</li>
 </ul>
 <p>相比直接用 return，advantage 通常方差更低，学习信号更明确。</p>
-<h3>7.7.5 从 Baseline 到 Actor-Critic</h3>
+<h3 id="section-7-7-5">7.7.5 从 Baseline 到 Actor-Critic</h3>
 <p>如果 baseline 取 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>，那么：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> - V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
 
@@ -652,7 +735,7 @@ Actor-Critic:  用 critic 估计 baseline / advantage
 GAE/PPO:        用更稳定的 advantage 和受限策略更新
 </code></pre>
 <p>所以第 7 章和第 8/9 章不是割裂的：后面的 actor-critic、GAE、PPO 都是在让 policy gradient 的学习信号更稳。</p>
-<h3>7.7.6 Entropy Regularization</h3>
+<h3 id="section-7-7-6">7.7.6 Entropy Regularization</h3>
 <p>为了鼓励探索，常在目标中加入 entropy：</p>
 <div class="math-block"><span class="math-text">J(θ) = 𝔼[return] + β 𝔼[H(π<sub><span class="math-text">θ</span></sub>(· ∣ s))]</span></div>
 
@@ -666,8 +749,8 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <li>改善训练稳定性。</li>
 </ul>
 <p>SAC 中 entropy regularization 是核心组成部分。</p>
-<h2>7.8 本章例子：为什么需要直接优化策略</h2>
-<h3>7.8.1 例子 1：连续动作机器人</h3>
+<h2 id="section-7-8">7.8 本章例子：为什么需要直接优化策略</h2>
+<h3 id="section-7-8-1">7.8.1 例子 1：连续动作机器人</h3>
 <p>机器人手臂要输出关节力矩：</p>
 <pre><code class="language-text">a = [torque_1, torque_2, torque_3]
 </code></pre>
@@ -678,9 +761,9 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <div class="math-block"><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
 
 <p>这样动作可以直接由策略网络输出。</p>
-<h3>7.8.2 例子 2：Softmax 策略更新</h3>
+<h3 id="section-7-8-2">7.8.2 例子 2：Softmax 策略更新</h3>
 <p>假设在某个状态有两个动作：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>动作</th>
@@ -698,13 +781,13 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <td>0.6</td>
 <td>-1</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>Policy Gradient 会提高产生高 return 的动作概率，降低低 return 动作概率。</p>
 <p>直觉：</p>
 <pre><code class="language-text">采样到 left 且结果好 -&gt; 增大 log pi(left|s)
 采样到 right 且结果差 -&gt; 减小 log pi(right|s)
 </code></pre>
-<h3>7.8.3 例子 3：Baseline 的作用</h3>
+<h3 id="section-7-8-3">7.8.3 例子 3：Baseline 的作用</h3>
 <p>如果一个游戏平均每局 return 是 100：</p>
 <ul>
 <li>某次动作后 return 是 105，不算特别好，只比平均好 5。</li>
@@ -718,25 +801,35 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <blockquote>
 <p>Policy Gradient 的核心例子是连续控制和随机策略。它不需要枚举动作，也不需要对 Q 做 argmax，而是让高回报轨迹上的动作概率上升。</p>
 </blockquote>
-<h2>7.9 本章面试高频问题</h2>
-<h3>7.9.1 Policy Gradient 适合什么场景？</h3>
-<p>适合连续动作空间、随机策略建模、需要直接优化策略分布的场景。相比 value-based 方法，不需要对动作做 <span class="math-text">argmax</span>。</p>
-<h3>7.9.2 REINFORCE 的核心更新是什么？</h3>
+<h2 id="section-7-9">7.9 本章面试高频问题</h2>
+<h3 id="section-7-9-1">7.9.1 Policy Gradient 适合什么场景？</h3>
+<p>适合连续动作空间、随机策略建模、需要直接优化策略分布的场景。相比 value-based 方法，不需要对动作做 <span class="math-text">arg max</span>。</p>
+<h3 id="section-7-9-2">7.9.2 REINFORCE 的核心更新是什么？</h3>
 <div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
 
 <p>如果某个动作带来高 return，就提升该动作概率；如果 return 低，就降低该动作概率。</p>
-<h3>7.9.3 为什么 baseline 不改变梯度期望？</h3>
+<h3 id="section-7-9-3">7.9.3 为什么 baseline 不改变梯度期望？</h3>
 <p>因为 baseline 不依赖 action，而 <span class="math-text">𝔼<sub><span class="math-text">a∼π</span></sub>[∇ log π(a∣ s)] = 0</span>。所以减去 baseline 不引入 bias，只降低 variance。</p>
-<h3>7.9.4 Advantage 的意义是什么？</h3>
+<h3 id="section-7-9-4">7.9.4 Advantage 的意义是什么？</h3>
 <p>Advantage 衡量某个动作相对于该状态平均动作的好坏。它比直接用 return 更能反映动作的相对贡献，通常降低方差并稳定训练。</p>
-<h3>7.9.5 Policy Gradient 的主要缺点？</h3>
+<h3 id="section-7-9-5">7.9.5 Policy Gradient 的主要缺点？</h3>
 <p>方差较大、sample efficiency 较低、训练对学习率敏感。REINFORCE 尤其需要完整 episode，训练慢且不稳定。</p>
-<h2>7.10 本章练习</h2>
+<h2 id="section-7-10">7.10 本章练习</h2>
 <ol>
 <li>手写 log-derivative trick 推导。</li>
 <li>证明 action-independent baseline 不引入 bias。</li>
 <li>解释 <span class="math-text">Q(s,a)</span>、<span class="math-text">V(s)</span>、<span class="math-text">A(s,a)</span> 的关系。</li>
 <li>对比 value-based 和 policy-based 方法。</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><strong>Log-derivative trick</strong>：由 <span class="math-text">∇<sub><span class="math-text">θ</span></sub> p<sub><span class="math-text">θ</span></sub>(x)=p<sub><span class="math-text">θ</span></sub>(x)∇<sub><span class="math-text">θ</span></sub>log p<sub><span class="math-text">θ</span></sub>(x)</span>，可得 <span class="math-text">∇<sub><span class="math-text">θ</span></sub>𝔼<sub><span class="math-text">x∼ p<sub><span class="math-text">θ</span></sub></span></sub>[f(x)]=∇<sub><span class="math-text">θ</span></sub>∈t p<sub><span class="math-text">θ</span></sub>(x)f(x)dx=𝔼<sub><span class="math-text">x∼ p<sub><span class="math-text">θ</span></sub></span></sub>[∇<sub><span class="math-text">θ</span></sub>log p<sub><span class="math-text">θ</span></sub>(x)f(x)]</span>。把 <span class="math-text">x</span> 换成 trajectory <span class="math-text">τ</span>，再利用环境转移不依赖 policy 参数，可得到 policy gradient 中的 <span class="math-text">∑<sub><span class="math-text">t</span></sub>∇<sub><span class="math-text">θ</span></sub>logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>。</li>
+<li><strong>Baseline 不引入 bias</strong>：若 <span class="math-text">b(s)</span> 不依赖 action，则 <span class="math-text">𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">θ</span></sub></span></sub>[∇<sub><span class="math-text">θ</span></sub>logπ<sub><span class="math-text">θ</span></sub>(a∣ s)b(s)]=b(s)∑<sub><span class="math-text">a</span></sub>π<sub><span class="math-text">θ</span></sub>(a∣ s)∇<sub><span class="math-text">θ</span></sub>logπ<sub><span class="math-text">θ</span></sub>(a∣ s)=b(s)∇<sub><span class="math-text">θ</span></sub>∑<sub><span class="math-text">a</span></sub>π<sub><span class="math-text">θ</span></sub>(a∣ s)=0</span>。因此减去 baseline 不改变梯度期望，只改变 variance。</li>
+<li><strong>三者关系</strong>：<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 是在 <span class="math-text">s</span> 先做 <span class="math-text">a</span> 后的期望 return；<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=∑<sub><span class="math-text">a</span></sub>π(a∣ s)Q<sub><span class="math-text">π</span></sub>(s,a)</span> 是该状态下按 policy 行动的平均价值；<span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)=Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span> 表示动作相对平均水平好多少。</li>
+<li><strong>Value-based vs policy-based</strong>：value-based 方法学习 <span class="math-text">Q</span> 并通过 greedy/epsilon-greedy 导出 policy，离散动作下高效，但连续动作的 <span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 很难；policy-based 方法直接学习动作分布，天然支持随机策略和连续动作，但梯度 variance 较大、通常 sample efficiency 较低。Actor-Critic 用 critic 的价值估计帮助 policy-based 方法降方差。</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav></main></body>
 </html>

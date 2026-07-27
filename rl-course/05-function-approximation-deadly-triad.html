@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 5 章：函数逼近、稳定性与 Deadly Triad</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,13 +353,26 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-exploration-bandit.html">← 上一章</a><a href="./06-dqn-and-variants.html">下一章 →</a></nav><h1>第 5 章：函数逼近、稳定性与 Deadly Triad</h1>
-<h2>5.1 本章符号说明</h2>
-<table class="symbol-table">
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./04-exploration-bandit.html">← 上一章</a><a href="./06-dqn-and-variants.html">下一章 →</a></nav><h1 id="chapter-5">第 5 章：函数逼近、稳定性与 Deadly Triad</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-5-1">5.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-5-2">5.2 本章目标</a><a class="toc-link toc-level-2" href="#section-5-3">5.3 本章主线</a><a class="toc-link toc-level-2" href="#section-5-4">5.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-5-5">5.5 函数逼近为什么出现</a><a class="toc-link toc-level-3" href="#section-5-5-1">5.5.1 为什么需要函数逼近</a><a class="toc-link toc-level-3" href="#section-5-5-2">5.5.2 Value Function Approximation</a><a class="toc-link toc-level-3" href="#section-5-5-3">5.5.3 函数逼近的好处</a><a class="toc-link toc-level-3" href="#section-5-5-4">5.5.4 函数逼近的风险</a><a class="toc-link toc-level-2" href="#section-5-6">5.6 不稳定来源：Deadly Triad</a><a class="toc-link toc-level-3" href="#section-5-6-1">5.6.1 Bootstrapping</a><a class="toc-link toc-level-3" href="#section-5-6-2">5.6.2 Off-policy Distribution Shift</a><a class="toc-link toc-level-3" href="#section-5-6-3">5.6.3 Deadly Triad</a><a class="toc-link toc-level-2" href="#section-5-7">5.7 DQN 稳定化思想</a><a class="toc-link toc-level-3" href="#section-5-7-1">5.7.1 从 Deadly Triad 到 DQN 稳定化</a><a class="toc-link toc-level-3" href="#section-5-7-2">5.7.2 Experience Replay 的稳定作用</a><a class="toc-link toc-level-3" href="#section-5-7-3">5.7.3 Target Network 的稳定作用</a><a class="toc-link toc-level-2" href="#section-5-8">5.8 本章例子：为什么表格法不够</a><a class="toc-link toc-level-3" href="#section-5-8-1">5.8.1 例子 1：Atari 像素输入</a><a class="toc-link toc-level-3" href="#section-5-8-2">5.8.2 例子 2：推荐系统高维状态</a><a class="toc-link toc-level-3" href="#section-5-8-3">5.8.3 例子 3：Deadly Triad 为什么危险</a><a class="toc-link toc-level-2" href="#section-5-9">5.9 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-5-9-1">5.9.1 为什么表格型 RL 不够用？</a><a class="toc-link toc-level-3" href="#section-5-9-2">5.9.2 什么是 Deadly Triad？</a><a class="toc-link toc-level-3" href="#section-5-9-3">5.9.3 为什么神经网络加 Q-learning 会不稳定？</a><a class="toc-link toc-level-3" href="#section-5-9-4">5.9.4 replay buffer 解决什么问题？</a><a class="toc-link toc-level-3" href="#section-5-9-5">5.9.5 target network 解决什么问题？</a><a class="toc-link toc-level-2" href="#section-5-10">5.10 本章练习</a></nav></details>
+<h2 id="section-5-1">5.1 本章符号说明</h2>
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -382,8 +465,8 @@
 <td>大语言模型</td>
 <td>文中作为高维状态或复杂序列系统的例子。</td>
 </tr>
-</tbody></table>
-<h2>5.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-5-2">5.2 本章目标</h2>
 <p>本章从表格型 RL 过渡到深度强化学习。你需要掌握：</p>
 <ul>
 <li>为什么需要函数逼近。</li>
@@ -393,11 +476,11 @@
 <li>off-policy learning 的分布问题。</li>
 <li>Deadly Triad。</li>
 </ul>
-<h2>5.3 本章主线</h2>
+<h2 id="section-5-3">5.3 本章主线</h2>
 <p>前面几章默认可以为每个状态或状态-动作对存一个表格值。真实任务里状态空间通常巨大或连续，所以必须用参数化函数近似 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 <span class="math-text">π(a∣ s)</span>。本章先建立函数逼近的训练形式，再解释为什么 bootstrapping、off-policy learning 和 function approximation 同时出现时会带来稳定性问题。</p>
-<h2>5.4 本章新增概念说明</h2>
+<h2 id="section-5-4">5.4 本章新增概念说明</h2>
 <p>本章开始进入 deep RL，先把稳定性相关名词放在一起：</p>
-<table class="three-col-table">
+<div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>名词</th>
@@ -450,9 +533,9 @@
 <td>奖励截断 / 梯度截断</td>
 <td>工程稳定化技巧，用来限制训练信号或梯度过大。</td>
 </tr>
-</tbody></table>
-<h2>5.5 函数逼近为什么出现</h2>
-<h3>5.5.1 为什么需要函数逼近</h3>
+</tbody></table></div>
+<h2 id="section-5-5">5.5 函数逼近为什么出现</h2>
+<h3 id="section-5-5-1">5.5.1 为什么需要函数逼近</h3>
 <p>表格型方法为每个状态或状态动作对存一个值：</p>
 <div class="math-block multi"><div><span class="math-text">V(s)</span></div><div><span class="math-text">Q(s, a)</span></div></div>
 
@@ -467,7 +550,7 @@
 <p>例如：</p>
 <div class="math-block multi"><div><span class="math-text">V(s) ≈ V(s; w)</span></div><div><span class="math-text">Q(s, a) ≈ Q(s, a; w)</span></div><div><span class="math-text">π(a ∣ s) ≈ π(a ∣ s; θ)</span></div></div>
 
-<h3>5.5.2 Value Function Approximation</h3>
+<h3 id="section-5-5-2">5.5.2 Value Function Approximation</h3>
 <p>用神经网络近似 Q 函数：</p>
 <div class="math-block"><span class="math-text">Q(s, a; w)</span></div>
 
@@ -479,14 +562,14 @@
 <div class="math-block"><span class="math-text">L(w) = 𝔼[(y - Q(s, a; w))<sup><span class="math-text">2</span></sup>]</span></div>
 
 <p>其中 <span class="math-text">w<sup><span class="math-text">-</span></sup></span> 是 target network 参数。</p>
-<h3>5.5.3 函数逼近的好处</h3>
+<h3 id="section-5-5-3">5.5.3 函数逼近的好处</h3>
 <ul>
 <li>可以处理高维状态。</li>
 <li>可以泛化到没见过的状态。</li>
 <li>可以结合深度学习特征提取能力。</li>
 <li>能用于图像、文本、连续控制等任务。</li>
 </ul>
-<h3>5.5.4 函数逼近的风险</h3>
+<h3 id="section-5-5-4">5.5.4 函数逼近的风险</h3>
 <p>表格型方法中，不同状态动作对的值相互独立。<br>函数逼近中，共享参数会导致一个样本更新影响许多状态动作对的估计。</p>
 <p>这带来几个问题：</p>
 <ul>
@@ -495,8 +578,8 @@
 <li>误差可能通过 bootstrap 扩散。</li>
 <li>价值函数可能过估计或发散。</li>
 </ul>
-<h2>5.6 不稳定来源：Deadly Triad</h2>
-<h3>5.6.1 Bootstrapping</h3>
+<h2 id="section-5-6">5.6 不稳定来源：Deadly Triad</h2>
+<h3 id="section-5-6-1">5.6.1 Bootstrapping</h3>
 <p>Bootstrapping 指 target 中包含当前模型自己的估计。</p>
 <p>例如 TD target：</p>
 <div class="math-block"><span class="math-text">r + γ V(s')</span></div>
@@ -516,13 +599,13 @@
 <li>估计错误会被继续传播。</li>
 <li>函数逼近下更容易放大不稳定性。</li>
 </ul>
-<h3>5.6.2 Off-policy Distribution Shift</h3>
+<h3 id="section-5-6-2">5.6.2 Off-policy Distribution Shift</h3>
 <p>off-policy 学习中，数据来自 behavior policy，但学习目标是 target policy。</p>
 <div class="math-block multi"><div><span class="math-text">data distribution: d<sub><span class="math-text">μ</span></sub>(s, a)</span></div><div><span class="math-text">target policy: π</span></div></div>
 
 <p>如果 behavior policy 产生的数据分布和 target policy 需要的数据分布差异很大，模型可能会在没数据覆盖的状态动作上产生错误估计。</p>
 <p>这种问题在 offline RL 中尤其严重。</p>
-<h3>5.6.3 Deadly Triad</h3>
+<h3 id="section-5-6-3">5.6.3 Deadly Triad</h3>
 <p>Deadly Triad 指三个因素同时出现时，RL 训练可能不稳定甚至发散：</p>
 <ol>
 <li>Function approximation。</li>
@@ -543,8 +626,8 @@
 <li>gradient clipping。</li>
 <li>Double DQN 降低 overestimation bias。</li>
 </ul>
-<h2>5.7 DQN 稳定化思想</h2>
-<h3>5.7.1 从 Deadly Triad 到 DQN 稳定化</h3>
+<h2 id="section-5-7">5.7 DQN 稳定化思想</h2>
+<h3 id="section-5-7-1">5.7.1 从 Deadly Triad 到 DQN 稳定化</h3>
 <p>下面的 replay buffer 和 target network 不应该理解成孤立技巧，而是第 6 章 DQN 的铺垫。逻辑是：</p>
 <pre><code class="language-text">Q-learning + neural network
   -&gt; function approximation
@@ -554,7 +637,7 @@
   -&gt; replay buffer / target network / Double DQN
 </code></pre>
 <p>所以第 5 章先解释“不稳定从哪里来”，第 6 章再系统讲“DQN 如何把这些稳定化设计组合成算法”。</p>
-<h3>5.7.2 Experience Replay 的稳定作用</h3>
+<h3 id="section-5-7-2">5.7.2 Experience Replay 的稳定作用</h3>
 <p>Replay buffer 存储历史 transition：</p>
 <pre><code class="language-text">(s, a, r, s&#39;, done)
 </code></pre>
@@ -571,7 +654,7 @@
 <li>对 on-policy 算法不天然适用。</li>
 <li>分布偏移仍然存在。</li>
 </ul>
-<h3>5.7.3 Target Network 的稳定作用</h3>
+<h3 id="section-5-7-3">5.7.3 Target Network 的稳定作用</h3>
 <p>如果 target 和 online prediction 使用同一个网络：</p>
 <div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w)</span></div>
 
@@ -585,8 +668,8 @@
 <p>或者软更新：</p>
 <div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ w + (1 - τ) w<sup><span class="math-text">-</span></sup></span></div>
 
-<h2>5.8 本章例子：为什么表格法不够</h2>
-<h3>5.8.1 例子 1：Atari 像素输入</h3>
+<h2 id="section-5-8">5.8 本章例子：为什么表格法不够</h2>
+<h3 id="section-5-8-1">5.8.1 例子 1：Atari 像素输入</h3>
 <p>Atari 游戏状态是一张图片。如果用表格法，每一种像素组合都对应一个状态，状态数量几乎无限。</p>
 <p>函数逼近的做法是：</p>
 <pre><code class="language-text">输入：游戏画面
@@ -594,7 +677,7 @@
 输出：每个动作的 Q 值
 </code></pre>
 <p>这样模型可以泛化。例如两个画面只差几个像素，但局面本质相似，网络可以给出相近价值。</p>
-<h3>5.8.2 例子 2：推荐系统高维状态</h3>
+<h3 id="section-5-8-2">5.8.2 例子 2：推荐系统高维状态</h3>
 <p>推荐系统状态可能包含：</p>
 <ul>
 <li>用户画像。</li>
@@ -605,7 +688,7 @@
 <p>这些状态无法枚举。函数逼近可以把高维特征映射到价值或策略：</p>
 <div class="math-block"><span class="math-text">Q(s,a;θ)</span></div>
 
-<h3>5.8.3 例子 3：Deadly Triad 为什么危险</h3>
+<h3 id="section-5-8-3">5.8.3 例子 3：Deadly Triad 为什么危险</h3>
 <p>假设用 DQN 训练一个推荐策略：</p>
 <ul>
 <li>function approximation：用神经网络估计 Q。</li>
@@ -617,23 +700,45 @@
 <blockquote>
 <p>Deadly Triad 的危险不是三个词各自危险，而是它们叠加后，错误估计会通过 bootstrap 在 off-policy 分布外被不断放大。</p>
 </blockquote>
-<h2>5.9 本章面试高频问题</h2>
-<h3>5.9.1 为什么表格型 RL 不够用？</h3>
+<h2 id="section-5-9">5.9 本章面试高频问题</h2>
+<h3 id="section-5-9-1">5.9.1 为什么表格型 RL 不够用？</h3>
 <p>因为真实任务的状态空间通常很大或连续，无法为每个状态动作对单独存一个值。函数逼近可以泛化到未见状态，并处理高维输入。</p>
-<h3>5.9.2 什么是 Deadly Triad？</h3>
+<h3 id="section-5-9-2">5.9.2 什么是 Deadly Triad？</h3>
 <p>Function approximation、bootstrapping 和 off-policy learning 三者同时出现时，强化学习训练容易不稳定甚至发散。</p>
-<h3>5.9.3 为什么神经网络加 Q-learning 会不稳定？</h3>
+<h3 id="section-5-9-3">5.9.3 为什么神经网络加 Q-learning 会不稳定？</h3>
 <p>Q-learning 使用 bootstrap target，target 又依赖当前估计。神经网络共享参数，一个样本更新会影响大量状态动作估计。再加上 off-policy 数据分布偏移，误差可能被放大。</p>
-<h3>5.9.4 replay buffer 解决什么问题？</h3>
+<h3 id="section-5-9-4">5.9.4 replay buffer 解决什么问题？</h3>
 <p>它通过随机采样历史 transition，打破连续样本相关性，提高样本利用率，并让训练数据分布更平滑。</p>
-<h3>5.9.5 target network 解决什么问题？</h3>
+<h3 id="section-5-9-5">5.9.5 target network 解决什么问题？</h3>
 <p>它让 Bellman target 在一段时间内保持相对稳定，避免 online network 更新时 target 也同步剧烈变化。</p>
-<h2>5.10 本章练习</h2>
+<h2 id="section-5-10">5.10 本章练习</h2>
 <ol>
 <li>用自己的话解释 bootstrapping。</li>
 <li>画出 DQN 中 online network 和 target network 的关系。</li>
 <li>解释为什么 off-policy + function approximation 容易出问题。</li>
 <li>总结 DQN 针对 Deadly Triad 做了哪些稳定化设计。</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><p><strong>Bootstrapping</strong>：更新 target 中含有当前价值估计本身，例如 TD target <span class="math-text">r+γ V(s&#39;)</span> 或 Q-learning target <span class="math-text">r+γmax<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;)</span>。它能在 episode 结束前更新，但错误估计也可能被反复传递和放大。</p>
+</li>
+<li><p><strong>Online/target network 关系</strong>：</p>
+<pre><code class="language-text">transition batch
+     |                         periodically copy / soft update
+     v                                      |
+online Q(s, a; theta) &lt;--- optimize loss ---+--- target Q(s&#39;, a&#39;; theta-)
+     |                                             |
+     +------------- current prediction             +--- Bellman target y
+</code></pre>
+<p>梯度只更新 online network 的 <span class="math-text">θ</span>；target network 的 <span class="math-text">θ<sup><span class="math-text">-</span></sup></span> 通过周期性 hard update 或缓慢 soft update 获得。</p>
+</li>
+<li><p><strong>为什么容易不稳定</strong>：off-policy 数据分布和当前 target policy 想访问的分布不一致；function approximation 又让一次参数更新同时改变许多状态的预测；如果 target 还通过 bootstrapping 依赖这些预测，分布外误差就可能被传播，甚至形成发散反馈。</p>
+</li>
+<li><p><strong>DQN 的稳定化设计</strong>：replay buffer 随机化并复用历史样本，缓解连续样本相关性；target network 让 bootstrap target 在一段时间内固定；Huber loss、reward clipping、gradient clipping 可限制异常更新；Double DQN 缓解 max 导致的过估计。它们降低风险，但不代表从理论上彻底消除了 Deadly Triad。</p>
+</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./04-exploration-bandit.html">← 上一章</a><a href="./06-dqn-and-variants.html">下一章 →</a></nav></main></body>
 </html>

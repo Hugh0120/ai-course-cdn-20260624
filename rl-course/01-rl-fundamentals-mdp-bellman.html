@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,15 +353,28 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-dynamic-programming.html">下一章 →</a></nav><h1>第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</h1>
-<h2>1.1 本章符号说明</h2>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-dynamic-programming.html">下一章 →</a></nav><h1 id="chapter-1">第 1 章：强化学习基本设定、MDP（Markov Decision Process，马尔可夫决策过程）与 Bellman 方程</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-1-1">1.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-1-2">1.2 本章目标</a><a class="toc-link toc-level-2" href="#section-1-3">1.3 本章主线</a><a class="toc-link toc-level-2" href="#section-1-4">1.4 强化学习问题设定</a><a class="toc-link toc-level-3" href="#section-1-4-1">1.4.1 强化学习在学什么</a><a class="toc-link toc-level-3" href="#section-1-4-2">1.4.2 Return</a><a class="toc-link toc-level-3" href="#section-1-4-3">1.4.3 Policy</a><a class="toc-link toc-level-2" href="#section-1-5">1.5 MDP 建模</a><a class="toc-link toc-level-3" href="#section-1-5-1">1.5.1 MDP</a><a class="toc-link toc-level-2" href="#section-1-6">1.6 Value Function 与 Bellman 方程</a><a class="toc-link toc-level-3" href="#section-1-6-1">1.6.1 Value Function</a><a class="toc-link toc-level-3" href="#section-1-6-2">1.6.2 Bellman 方程</a><a class="toc-link toc-level-3" href="#section-1-6-3">1.6.3 Bellman 推导过程：不要直接背公式</a><a class="toc-link toc-level-3" href="#section-1-6-4">1.6.4 从 Bellman 到算法的推理链</a><a class="toc-link toc-level-3" href="#section-1-6-5">1.6.5 TD Target 与 TD Error</a><a class="toc-link toc-level-2" href="#section-1-7">1.7 本章例子：把问题建模成 MDP</a><a class="toc-link toc-level-3" href="#section-1-7-1">1.7.1 例子 1：GridWorld 迷宫</a><a class="toc-link toc-level-3" href="#section-1-7-2">1.7.2 例子 2：推荐系统</a><a class="toc-link toc-level-2" href="#section-1-8">1.8 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-1-8-1">1.8.1 RL 和监督学习有什么区别？</a><a class="toc-link toc-level-3" href="#section-1-8-2">1.8.2 什么是 MDP？</a><a class="toc-link toc-level-3" href="#section-1-8-3">1.8.3 <span class="math-text">V</span> 和 <span class="math-text">Q</span> 有什么区别？</a><a class="toc-link toc-level-3" href="#section-1-8-4">1.8.4 Bellman expectation equation 和 Bellman optimality equation 区别？</a><a class="toc-link toc-level-3" href="#section-1-8-5">1.8.5 Bellman 方程的核心直觉是什么？</a><a class="toc-link toc-level-2" href="#section-1-9">1.9 本章练习</a></nav></details>
+<h2 id="section-1-1">1.1 本章符号说明</h2>
 <p>本章第一次出现公式前，先把核心符号列清楚：</p>
 <p>本章统一写大写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>；如果你在 Sutton &amp; Barto 等教材里看到小写 <span class="math-text">v<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">q<sub><span class="math-text">π</span></sub>(s,a)</span>，它们表示同类 state-value/action-value function。</p>
-<table class="symbol-table">
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号</th>
@@ -396,8 +479,8 @@
 <td>REINFORCE 算法</td>
 <td>最基础的 Monte Carlo policy gradient 算法名。</td>
 </tr>
-</tbody></table>
-<h2>1.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-1-2">1.2 本章目标</h2>
 <p>本章是强化学习的地基。你需要掌握：</p>
 <ul>
 <li>强化学习和监督学习的区别。</li>
@@ -407,10 +490,10 @@
 <li><span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 的定义和关系。</li>
 <li>Bellman expectation equation 与 Bellman optimality equation。</li>
 </ul>
-<h2>1.3 本章主线</h2>
+<h2 id="section-1-3">1.3 本章主线</h2>
 <p>本章先把 RL 问题压成一个标准数学对象：MDP。顺序是 agent 和 environment 交互，得到 trajectory；trajectory 产生 return；return 的期望定义出 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>；value function 的自洽关系就是 Bellman equation。后续所有算法基本都在近似求解或优化这些 Bellman 关系。</p>
-<h2>1.4 强化学习问题设定</h2>
-<h3>1.4.1 强化学习在学什么</h3>
+<h2 id="section-1-4">1.4 强化学习问题设定</h2>
+<h3 id="section-1-4-1">1.4.1 强化学习在学什么</h3>
 <p>强化学习研究的是：一个 agent 通过和 environment 交互，学习一个 policy，使得长期累计 reward 最大。</p>
 <p>一次交互可以写成：</p>
 <div class="math-block"><span class="math-text">S<sub><span class="math-text">t</span></sub> → A<sub><span class="math-text">t</span></sub> → R<sub><span class="math-text">t+1</span></sub>, S<sub><span class="math-text">t+1</span></sub></span></div>
@@ -427,7 +510,7 @@
 <blockquote>
 <p>RL 的核心难点在于 delayed reward 和 sequential decision making。Agent 的动作会影响未来状态分布，因此数据不是固定的 i.i.d. 样本，目标也不是单步预测正确，而是长期累计收益最大。</p>
 </blockquote>
-<h3>1.4.2 Return</h3>
+<h3 id="section-1-4-2">1.4.2 Return</h3>
 <p>强化学习优化的是累计回报：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ R<sub><span class="math-text">t+2</span></sub> + γ<sup><span class="math-text">2</span></sup> R<sub><span class="math-text">t+3</span></sub> + ...</span></div>
 
@@ -448,7 +531,7 @@
 <blockquote>
 <p>一方面是数学上让无限时域的累计 reward 更容易收敛，另一方面表达了对未来 reward 的偏好衰减或不确定性。<span class="math-text">γ</span> 越大越重视长期收益，但训练可能更难、更不稳定。</p>
 </blockquote>
-<h3>1.4.3 Policy</h3>
+<h3 id="section-1-4-3">1.4.3 Policy</h3>
 <p>Policy 描述 agent 如何根据 state 选择 action。</p>
 <p>确定性策略：</p>
 <div class="math-block"><span class="math-text">a = π(s)</span></div>
@@ -457,7 +540,7 @@
 <div class="math-block"><span class="math-text">π(a ∣ s) = P(A<sub><span class="math-text">t</span></sub> = a ∣ S<sub><span class="math-text">t</span></sub> = s)</span></div>
 
 <p>强化学习最终通常是在寻找最优策略：</p>
-<div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup> = argmax<sub><span class="math-text">π</span></sub> 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>]</span></div>
+<div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup> = arg max<sub><span class="math-text">π</span></sub> 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>]</span></div>
 
 <p>常见算法分类：</p>
 <ul>
@@ -465,8 +548,8 @@
 <li>policy-based：直接参数化策略并优化，例如 REINFORCE、PPO。</li>
 <li>actor-critic：同时学习策略 actor 和价值 critic，例如 A2C、SAC。</li>
 </ul>
-<h2>1.5 MDP 建模</h2>
-<h3>1.5.1 MDP</h3>
+<h2 id="section-1-5">1.5 MDP 建模</h2>
+<h3 id="section-1-5-1">1.5.1 MDP</h3>
 <p>MDP 是 Markov Decision Process，强化学习最常见的数学建模。</p>
 <p>MDP 五元组：</p>
 <div class="math-block"><span class="math-text">(S, A, P, R, γ)</span></div>
@@ -487,8 +570,8 @@
 <blockquote>
 <p>MDP 假设 state 是历史信息的 sufficient statistic。给定当前 state 和 action 后，未来状态转移与更早的历史无关。如果观测不满足这个条件，例如只能看到局部信息，则更准确的模型是 POMDP。</p>
 </blockquote>
-<h2>1.6 Value Function 与 Bellman 方程</h2>
-<h3>1.6.1 Value Function</h3>
+<h2 id="section-1-6">1.6 Value Function 与 Bellman 方程</h2>
+<h3 id="section-1-6-1">1.6.1 Value Function</h3>
 <p>状态价值函数（State-value Function，记作 <span class="math-text">V</span>，<span class="math-text">V</span> 来自 value）：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub> ∣ S<sub><span class="math-text">t</span></sub> = s]</span></div>
 
@@ -504,11 +587,11 @@
 <div class="math-block"><span class="math-text">V<sup><span class="math-text">*</span></sup>(s) = max<sub><span class="math-text">a</span></sub> Q<sup><span class="math-text">*</span></sup>(s, a)</span></div>
 
 <p>最优动作：</p>
-<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup> = argmax<sub><span class="math-text">a</span></sub> Q<sup><span class="math-text">*</span></sup>(s, a)</span></div>
+<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup> = arg max<sub><span class="math-text">a</span></sub> Q<sup><span class="math-text">*</span></sup>(s, a)</span></div>
 
 <p>为什么 <span class="math-text">Q</span> 更适合直接决策？</p>
-<p>因为 <span class="math-text">Q(s,a)</span> 已经评价了具体 action 的长期价值，可以直接用 <span class="math-text">argmax<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。而 <span class="math-text">V(s)</span> 只评价状态好坏，如果不知道环境转移模型，单独的 <span class="math-text">V(s)</span> 不一定能直接告诉你该选哪个动作。</p>
-<h3>1.6.2 Bellman 方程</h3>
+<p>因为 <span class="math-text">Q(s,a)</span> 已经评价了具体 action 的长期价值，可以直接用 <span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作。而 <span class="math-text">V(s)</span> 只评价状态好坏，如果不知道环境转移模型，单独的 <span class="math-text">V(s)</span> 不一定能直接告诉你该选哪个动作。</p>
+<h3 id="section-1-6-2">1.6.2 Bellman 方程</h3>
 <p>Return 可以递归拆开：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ G<sub><span class="math-text">t+1</span></sub></span></div>
 
@@ -527,7 +610,7 @@
 <div class="math-block multi"><div><span class="math-text">Q<sup><span class="math-text">*</span></sup>(s, a) = ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ max<sub><span class="math-text">a'</span></sub> Q<sup><span class="math-text">*</span></sup>(s', a')]</span></div></div>
 
 <p>这个式子非常重要。Q-learning 和 DQN 都是在用采样和函数逼近来逼近它。</p>
-<h3>1.6.3 Bellman 推导过程：不要直接背公式</h3>
+<h3 id="section-1-6-3">1.6.3 Bellman 推导过程：不要直接背公式</h3>
 <p>Bellman 方程可以按四步讲。</p>
 <p>第一步，从 return 的定义出发：</p>
 <div class="math-block"><span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ R<sub><span class="math-text">t+2</span></sub> + γ<sup><span class="math-text">2</span></sup> R<sub><span class="math-text">t+3</span></sub> + ...</span></div>
@@ -558,9 +641,9 @@
 <blockquote>
 <p>Bellman 方程本质是价值函数的递归自洽关系。当前状态的价值等于即时 reward 加上下一个状态价值的折扣期望。Expectation version 是评估固定策略，optimality version 是每一步都对动作取最大值。</p>
 </blockquote>
-<h3>1.6.4 从 Bellman 到算法的推理链</h3>
+<h3 id="section-1-6-4">1.6.4 从 Bellman 到算法的推理链</h3>
 <p>不同 RL 算法可以看成在回答同一个问题：怎么逼近 Bellman backup？</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>方法</th>
@@ -599,9 +682,9 @@
 <td>不需要</td>
 <td><span class="math-text">r+γ max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span></td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>所以不要把这些算法看成完全无关的技巧。它们都围绕 Bellman target，只是期望怎么估、target 怎么构造、是否用函数逼近不同。</p>
-<h3>1.6.5 TD Target 与 TD Error</h3>
+<h3 id="section-1-6-5">1.6.5 TD Target 与 TD Error</h3>
 <p>Q-learning 的更新式：</p>
 <div class="math-block"><span class="math-text">Q(s, a) ← Q(s, a) + α [r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a') - Q(s, a)]</span></div>
 
@@ -615,10 +698,10 @@
 <li>两者差值就是 TD error。</li>
 <li>用学习率 <span class="math-text">α</span> 做一个增量更新。</li>
 </ul>
-<h2>1.7 本章例子：把问题建模成 MDP</h2>
-<h3>1.7.1 例子 1：GridWorld 迷宫</h3>
+<h2 id="section-1-7">1.7 本章例子：把问题建模成 MDP</h2>
+<h3 id="section-1-7-1">1.7.1 例子 1：GridWorld 迷宫</h3>
 <p>一个机器人在网格里走，从起点走到终点。</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>MDP 元素</th>
@@ -649,11 +732,11 @@
 <td>Value</td>
 <td>从某个格子出发，长期来看能拿到多少 reward。</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>这个例子的价值在于直观：离终点近、不容易撞墙的状态价值高；容易掉进惩罚区域的状态价值低。</p>
-<h3>1.7.2 例子 2：推荐系统</h3>
+<h3 id="section-1-7-2">1.7.2 例子 2：推荐系统</h3>
 <p>用户打开 App，系统要选择展示什么内容。</p>
-<table class="standard-table">
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
 <th>MDP 元素</th>
@@ -680,29 +763,39 @@
 <td>Policy</td>
 <td>给不同用户和场景选择不同推荐内容。</td>
 </tr>
-</tbody></table>
+</tbody></table></div>
 <p>如果只看单次点击，这更像 bandit；如果考虑长期留存、疲劳、兴趣迁移，就更像完整 RL。</p>
 <p>面试表达：</p>
 <blockquote>
 <p>我会先问这个问题有没有长期影响。如果动作只影响当前 reward，可以先用 bandit；如果动作会改变后续状态，例如用户兴趣或库存状态，就需要 MDP/RL 视角。</p>
 </blockquote>
-<h2>1.8 本章面试高频问题</h2>
-<h3>1.8.1 RL 和监督学习有什么区别？</h3>
+<h2 id="section-1-8">1.8 本章面试高频问题</h2>
+<h3 id="section-1-8-1">1.8.1 RL 和监督学习有什么区别？</h3>
 <p>监督学习有固定标签，通常假设样本 i.i.d.，目标是拟合输入到标签的映射。RL 没有逐步标准答案，只有 reward，且 reward 可能延迟出现。Agent 的动作会改变未来状态分布，因此需要处理 exploration-exploitation 和长期收益最大化。</p>
-<h3>1.8.2 什么是 MDP？</h3>
+<h3 id="section-1-8-2">1.8.2 什么是 MDP？</h3>
 <p>MDP 是强化学习的标准建模，由状态空间、动作空间、转移概率、奖励函数和折扣因子组成。它的核心假设是 Markov property，即未来只依赖当前状态和动作，而不依赖完整历史。</p>
-<h3>1.8.3 <span class="math-text">V</span> 和 <span class="math-text">Q</span> 有什么区别？</h3>
+<h3 id="section-1-8-3">1.8.3 <span class="math-text">V</span> 和 <span class="math-text">Q</span> 有什么区别？</h3>
 <p><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 衡量状态 <span class="math-text">s</span> 在策略 <span class="math-text">π</span> 下的长期价值。<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 衡量在状态 <span class="math-text">s</span> 先执行动作 <span class="math-text">a</span> 后，再跟随策略 <span class="math-text">π</span> 的长期价值。<span class="math-text">Q</span> 多了动作维度，因此更适合直接用来选动作。</p>
-<h3>1.8.4 Bellman expectation equation 和 Bellman optimality equation 区别？</h3>
+<h3 id="section-1-8-4">1.8.4 Bellman expectation equation 和 Bellman optimality equation 区别？</h3>
 <p>Bellman expectation equation 用来评估一个给定策略 <span class="math-text">π</span> 的价值。Bellman optimality equation 描述最优价值函数，会在动作上取最大值，对应寻找最优策略。</p>
-<h3>1.8.5 Bellman 方程的核心直觉是什么？</h3>
+<h3 id="section-1-8-5">1.8.5 Bellman 方程的核心直觉是什么？</h3>
 <p>当前价值等于即时奖励加上折扣后的未来价值。它把长期决策问题拆成一步 reward 和下一状态 value 的递归组合。</p>
-<h2>1.9 本章练习</h2>
+<h2 id="section-1-9">1.9 本章练习</h2>
 <ol>
 <li>用自己的话解释为什么强化学习的数据不是固定 i.i.d.。</li>
-<li>手写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>、<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 的关系。</li>
+<li>手写 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 的定义，以及 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 的关系。</li>
 <li>从 <span class="math-text">G<sub><span class="math-text">t</span></sub> = R<sub><span class="math-text">t+1</span></sub> + γ G<sub><span class="math-text">t+1</span></sub></span> 推导 Bellman expectation equation。</li>
 <li>解释为什么 <span class="math-text">Q<sup><span class="math-text">*</span></sup>(s,a)</span> 的 Bellman optimality equation 中有 <span class="math-text">max<sub><span class="math-text">a&#39;</span></sub></span>。</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><strong>为什么 RL 数据不是固定 i.i.d.</strong>：相邻 transition 来自同一条 trajectory，时间上有相关性；当前 policy 决定会访问哪些 state 和 action，而 policy 又会随训练更新；agent 的 action 还会改变后续 state。因此数据分布会被策略和交互过程共同改变，不是预先固定、相互独立且同分布的样本集。</li>
+<li><strong><span class="math-text">V</span>、<span class="math-text">Q</span> 的定义和关系</strong>：<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span>；<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼<sub><span class="math-text">π</span></sub>[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s,A<sub><span class="math-text">t</span></sub>=a]</span>。二者满足 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=∑<sub><span class="math-text">a</span></sub>π(a∣ s)Q<sub><span class="math-text">π</span></sub>(s,a)</span>；反过来，<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s,A<sub><span class="math-text">t</span></sub>=a]</span>。</li>
+<li><strong>Bellman expectation 推导</strong>：从 <span class="math-text">G<sub><span class="math-text">t</span></sub>=R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub></span> 出发，对条件 <span class="math-text">S<sub><span class="math-text">t</span></sub>=s</span> 取期望：<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s]</span>。根据下一状态价值的定义，用 <span class="math-text">V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span> 替换对 <span class="math-text">G<sub><span class="math-text">t+1</span></sub></span> 的条件期望，得到 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span>。</li>
+<li><strong>为什么有 <span class="math-text">max<sub><span class="math-text">a&#39;</span></sub></span></strong>：<span class="math-text">Q<sup><span class="math-text"><em></span></sup>(s,a)</span> 假设当前先执行 <span class="math-text">a</span>，从下一状态开始继续采用最优策略。因此到达 <span class="math-text">s&#39;</span> 后应选择价值最大的下一动作，即 <span class="math-text">max<sub><span class="math-text">a&#39;</span></sub>Q<sup><span class="math-text"></em></span></sup>(s&#39;,a&#39;)</span>；它表达的是“最优延续”，不是环境随机性。</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./00-roadmap.html">← 上一章</a><a href="./02-dynamic-programming.html">下一章 →</a></nav></main></body>
 </html>

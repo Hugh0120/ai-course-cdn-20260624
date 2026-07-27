@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>强化学习面试课程 · 第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</title>
   <style>
   @page {
@@ -109,6 +110,10 @@
     overflow: hidden;
     font-size: 0.94em;
   }
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   th, td {
@@ -151,8 +156,8 @@
     color: var(--pre-text);
     padding: 10px 12px;
     border-radius: 6px;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    white-space: pre;
     page-break-inside: avoid;
   }
   pre code {
@@ -227,6 +232,57 @@
   }
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
+  .chapter-toc,
+  .exercise-answers {
+    margin: 1em 0 1.35em;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--soft-bg);
+  }
+  .chapter-toc > summary,
+  .exercise-answers > summary {
+    padding: 0.7em 0.9em;
+    color: var(--heading-color);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chapter-toc > summary:hover,
+  .exercise-answers > summary:hover {
+    color: var(--link-color);
+  }
+  .chapter-toc[open] > summary,
+  .exercise-answers[open] > summary {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .toc-links {
+    display: grid;
+    gap: 0.2em;
+    padding: 0.65em 0.9em 0.85em;
+  }
+  .toc-link {
+    display: block;
+    line-height: 1.45;
+  }
+  .toc-level-3 { padding-left: 1.1em; }
+  .toc-level-4 {
+    padding-left: 2.2em;
+    color: var(--muted-color);
+    font-size: 0.94em;
+  }
+  .exercise-answers > ol {
+    margin: 0;
+    padding: 0.85em 1.2em 1em 2.4em;
+  }
+  .exercise-answers > ol > li {
+    margin: 0.6em 0;
+  }
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id] {
+    scroll-margin-top: 18px;
+  }
   @media (max-width: 760px) {
     body { padding: 0; }
     .doc-shell {
@@ -236,16 +292,30 @@
       border: 0;
       box-shadow: none;
     }
-    table {
-      display: block;
+    h1 { font-size: 20pt; }
+    .table-scroll {
       width: 100%;
       overflow-x: auto;
+      margin: 0.9em 0 1.15em;
+      overscroll-behavior-inline: contain;
+    }
+    .table-scroll table {
+      display: table;
+      min-width: 640px;
+      margin: 0;
+    }
+    .table-scroll .symbol-table { min-width: 720px; }
+    .table-scroll .wide-table { min-width: 760px; }
+    .exercise-answers .math-text {
       white-space: normal;
+      overflow-wrap: anywhere;
     }
     .chapter-index li {
       grid-template-columns: minmax(0, 1fr);
       gap: 4px;
     }
+    .toc-level-3 { padding-left: 0.75em; }
+    .toc-level-4 { padding-left: 1.5em; }
   }
   @media print {
     :root {
@@ -283,13 +353,26 @@
       box-shadow: none;
     }
     table { font-size: 9.3pt; }
+    .table-scroll { overflow: visible; }
+    pre {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
     li { margin: 0.14em 0; }
+    .chapter-toc { display: none; }
+    .exercise-answers {
+      background: #ffffff;
+      break-inside: auto;
+    }
+    .exercise-answers > summary {
+      border-bottom: 1px solid var(--border-color);
+    }
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav><h1>第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</h1>
-<h2>2.1 本章符号说明</h2>
-<table class="symbol-table">
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav><h1 id="chapter-2">第 2 章：DP（Dynamic Programming，动态规划）、Policy Evaluation 与 Value Iteration</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-2-1">2.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-2-2">2.2 本章目标</a><a class="toc-link toc-level-2" href="#section-2-3">2.3 本章主线</a><a class="toc-link toc-level-2" href="#section-2-4">2.4 动态规划适用前提</a><a class="toc-link toc-level-2" href="#section-2-5">2.5 Policy Iteration 路线：先评估再改进</a><a class="toc-link toc-level-3" href="#section-2-5-1">2.5.1 Policy Evaluation</a><a class="toc-link toc-level-3" href="#section-2-5-2">2.5.2 Policy Improvement</a><a class="toc-link toc-level-3" href="#section-2-5-3">2.5.3 Policy Iteration</a><a class="toc-link toc-level-2" href="#section-2-6">2.6 Value Iteration 路线：直接做最优 backup</a><a class="toc-link toc-level-3" href="#section-2-6-1">2.6.1 Value Iteration</a><a class="toc-link toc-level-2" href="#section-2-7">2.7 GPI 框架与 DP 局限</a><a class="toc-link toc-level-3" href="#section-2-7-1">2.7.1 Generalized Policy Iteration</a><a class="toc-link toc-level-3" href="#section-2-7-2">2.7.2 DP 的局限性</a><a class="toc-link toc-level-2" href="#section-2-8">2.8 本章例子：小型 GridWorld 上的 DP</a><a class="toc-link toc-level-3" href="#section-2-8-1">2.8.1 Policy Evaluation 例子</a><a class="toc-link toc-level-3" href="#section-2-8-2">2.8.2 Policy Improvement 例子</a><a class="toc-link toc-level-3" href="#section-2-8-3">2.8.3 Value Iteration 例子</a><a class="toc-link toc-level-2" href="#section-2-9">2.9 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-2-9-1">2.9.1 Policy Evaluation 是什么？</a><a class="toc-link toc-level-3" href="#section-2-9-2">2.9.2 Policy Iteration 和 Value Iteration 的区别？</a><a class="toc-link toc-level-3" href="#section-2-9-3">2.9.3 为什么 DP 方法在真实问题中受限？</a><a class="toc-link toc-level-3" href="#section-2-9-4">2.9.4 Value Iteration 为什么能得到最优策略？</a><a class="toc-link toc-level-3" href="#section-2-9-5">2.9.5 GPI 是什么？</a><a class="toc-link toc-level-2" href="#section-2-10">2.10 本章练习</a></nav></details>
+<h2 id="section-2-1">2.1 本章符号说明</h2>
+<div class="table-scroll"><table class="symbol-table">
 <thead>
 <tr>
 <th>符号/缩写</th>
@@ -382,8 +465,8 @@
 <td>状态-动作-奖励-状态-动作</td>
 <td>第 3 章会讲的采样式 TD control 算法。</td>
 </tr>
-</tbody></table>
-<h2>2.2 本章目标</h2>
+</tbody></table></div>
+<h2 id="section-2-2">2.2 本章目标</h2>
 <p>本章学习在已知环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span> 的情况下，如何通过动态规划求解 MDP。</p>
 <p>你需要掌握：</p>
 <ul>
@@ -394,16 +477,16 @@
 <li>Generalized Policy Iteration。</li>
 <li>DP 方法的局限性。</li>
 </ul>
-<h2>2.3 本章主线</h2>
+<h2 id="section-2-3">2.3 本章主线</h2>
 <p>本章回答一个理想化问题：如果 <span class="math-text">P(s&#39;∣ s,a)</span> 和 <span class="math-text">R(s,a,s&#39;)</span> 都已知，Bellman equation 能不能直接求解？答案是可以。Policy Evaluation 负责“评估固定策略”，Policy Improvement 负责“按价值改进策略”，两者交替就是 GPI。第 3 章会把这里的精确 Bellman backup 换成采样 backup。</p>
-<h2>2.4 动态规划适用前提</h2>
+<h2 id="section-2-4">2.4 动态规划适用前提</h2>
 <p>动态规划类方法通常假设环境模型已知：</p>
 <div class="math-block"><span class="math-text">P(s' ∣ s, a), R(s, a, s')</span></div>
 
 <p>也就是说，agent 知道每个动作会以什么概率转移到什么状态，并得到什么 reward。</p>
 <p>这在真实问题中经常不成立，但 DP 仍然重要，因为它给出了强化学习算法的理论原型。后面的 TD、Q-learning、DQN 都可以看成是在没有完整模型时，用采样近似 Bellman backup。</p>
-<h2>2.5 Policy Iteration 路线：先评估再改进</h2>
-<h3>2.5.1 Policy Evaluation</h3>
+<h2 id="section-2-5">2.5 Policy Iteration 路线：先评估再改进</h2>
+<h3 id="section-2-5-1">2.5.1 Policy Evaluation</h3>
 <p>Policy Evaluation 的目标：给定一个策略 <span class="math-text">π</span>，计算它的价值函数 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
 <p>Bellman expectation equation：</p>
 <div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span></div><div><span class="math-text">= ∑<sub><span class="math-text">a</span></sub> π(a ∣ s) ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
@@ -427,9 +510,9 @@ repeat:
         delta = max(delta, |v_old - V(s)|)
 until delta &lt; threshold
 </code></pre>
-<h3>2.5.2 Policy Improvement</h3>
+<h3 id="section-2-5-2">2.5.2 Policy Improvement</h3>
 <p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 之后，可以通过贪心方式改进策略：</p>
-<div class="math-block multi"><div><span class="math-text">π<sub><span class="math-text">new</span></sub>(s) = argmax<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
+<div class="math-block multi"><div><span class="math-text">π<sub><span class="math-text">new</span></sub>(s) = arg max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">π</span></sub>(s')]</span></div></div>
 
 <p>直觉：</p>
 <p>如果在某个状态下，选择动作 <span class="math-text">a</span> 后的期望回报比当前策略更好，就应该把策略改成选择 <span class="math-text">a</span>。</p>
@@ -440,7 +523,7 @@ until delta &lt; threshold
 <p>那么新策略不差于旧策略：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π<sub><span class="math-text">new</span></sub></span></sub>(s) ≥ V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
-<h3>2.5.3 Policy Iteration</h3>
+<h3 id="section-2-5-3">2.5.3 Policy Iteration</h3>
 <p>Policy Iteration 在两个步骤之间交替：</p>
 <ol>
 <li>Policy Evaluation：评估当前策略。</li>
@@ -460,8 +543,8 @@ repeat:
 <blockquote>
 <p>Policy Iteration 是 evaluation 和 improvement 的交替过程。先精确或近似评估当前策略，再对价值函数做贪心改进。这个过程可以看成广义策略迭代的一种具体形式。</p>
 </blockquote>
-<h2>2.6 Value Iteration 路线：直接做最优 backup</h2>
-<h3>2.6.1 Value Iteration</h3>
+<h2 id="section-2-6">2.6 Value Iteration 路线：直接做最优 backup</h2>
+<h3 id="section-2-6-1">2.6.1 Value Iteration</h3>
 <p>Value Iteration 直接使用 Bellman optimality backup：</p>
 <div class="math-block multi"><div><span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)</span></div><div><span class="math-text">= max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sub><span class="math-text">k</span></sub>(s')]</span></div></div>
 
@@ -472,7 +555,7 @@ repeat:
 <li>Value Iteration 每次更新都直接对动作取 max。</li>
 </ul>
 <p>最后从 <span class="math-text">V<sup><span class="math-text">*</span></sup></span> 导出策略：</p>
-<div class="math-block multi"><div><span class="math-text">π<sup><span class="math-text">*</span></sup>(s) = argmax<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sup><span class="math-text">*</span></sup>(s')]</span></div></div>
+<div class="math-block multi"><div><span class="math-text">π<sup><span class="math-text">*</span></sup>(s) = arg max<sub><span class="math-text">a</span></sub> ∑<sub><span class="math-text">s'</span></sub> P(s' ∣ s, a)</span></div><div><span class="math-text">[R(s, a, s') + γ V<sup><span class="math-text">*</span></sup>(s')]</span></div></div>
 
 <p>伪代码：</p>
 <pre><code class="language-text">initialize V(s) arbitrarily
@@ -485,8 +568,8 @@ repeat:
 until delta &lt; threshold
 derive pi from V
 </code></pre>
-<h2>2.7 GPI 框架与 DP 局限</h2>
-<h3>2.7.1 Generalized Policy Iteration</h3>
+<h2 id="section-2-7">2.7 GPI 框架与 DP 局限</h2>
+<h3 id="section-2-7-1">2.7.1 Generalized Policy Iteration</h3>
 <p>Generalized Policy Iteration，简称 GPI，指的是 policy evaluation 和 policy improvement 相互作用的一大类方法。</p>
 <p>核心思想：</p>
 <ul>
@@ -502,7 +585,7 @@ derive pi from V
 <li>Q-learning：用采样逼近 optimal Bellman backup。</li>
 <li>Actor-Critic：critic 做 evaluation，actor 做 improvement。</li>
 </ul>
-<h3>2.7.2 DP 的局限性</h3>
+<h3 id="section-2-7-2">2.7.2 DP 的局限性</h3>
 <p>动态规划方法有两个主要限制：</p>
 <ol>
 <li>需要已知完整环境模型 <span class="math-text">P</span> 和 <span class="math-text">R</span>。</li>
@@ -514,7 +597,7 @@ derive pi from V
 <li>TD 不需要模型，也不需要等 episode 结束。</li>
 <li>Deep RL 用神经网络处理大规模状态空间。</li>
 </ul>
-<h2>2.8 本章例子：小型 GridWorld 上的 DP</h2>
+<h2 id="section-2-8">2.8 本章例子：小型 GridWorld 上的 DP</h2>
 <p>假设一个 3x3 GridWorld：</p>
 <ul>
 <li>右下角是终点，reward 为 +10。</li>
@@ -522,7 +605,7 @@ derive pi from V
 <li>普通移动 reward 为 -0.1。</li>
 <li>每个动作都是确定性的。</li>
 </ul>
-<h3>2.8.1 Policy Evaluation 例子</h3>
+<h3 id="section-2-8-1">2.8.1 Policy Evaluation 例子</h3>
 <p>如果当前策略是在每个格子随机选择上下左右，那么 policy evaluation 做的是：</p>
 <blockquote>
 <p>固定这个随机策略，计算每个格子的长期价值。</p>
@@ -534,7 +617,7 @@ derive pi from V
 <li>如果随机策略经常撞墙，撞墙附近的价值会被拉低。</li>
 </ul>
 <p>这时算法只是在回答：“如果我一直按这个随机策略走，每个格子平均值多少钱？”</p>
-<h3>2.8.2 Policy Improvement 例子</h3>
+<h3 id="section-2-8-2">2.8.2 Policy Improvement 例子</h3>
 <p>有了 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 后，在某个格子比较四个动作：</p>
 <pre><code class="language-text">向上：下一格价值 1.2
 向下：下一格价值 4.8
@@ -542,7 +625,7 @@ derive pi from V
 向右：下一格价值 3.5
 </code></pre>
 <p>policy improvement 会选择“向下”，因为它的一步 reward 加未来价值最大。</p>
-<h3>2.8.3 Value Iteration 例子</h3>
+<h3 id="section-2-8-3">2.8.3 Value Iteration 例子</h3>
 <p>value iteration 不等完整 policy evaluation 收敛，而是每轮直接做：</p>
 <pre><code class="language-text">每个格子都看四个动作，选 Bellman backup 最大的那个。
 </code></pre>
@@ -551,23 +634,33 @@ derive pi from V
 <blockquote>
 <p>DP 的例子一定要强调“已知模型”。GridWorld 里我知道每个动作会到哪个格子，所以能对下一状态做 Bellman backup。到了真实环境里不知道转移模型，就要转向 MC/TD。</p>
 </blockquote>
-<h2>2.9 本章面试高频问题</h2>
-<h3>2.9.1 Policy Evaluation 是什么？</h3>
+<h2 id="section-2-9">2.9 本章面试高频问题</h2>
+<h3 id="section-2-9-1">2.9.1 Policy Evaluation 是什么？</h3>
 <p>给定策略 <span class="math-text">π</span>，根据 Bellman expectation equation 计算该策略下每个状态的价值 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>。</p>
-<h3>2.9.2 Policy Iteration 和 Value Iteration 的区别？</h3>
+<h3 id="section-2-9-2">2.9.2 Policy Iteration 和 Value Iteration 的区别？</h3>
 <p>Policy Iteration 交替进行策略评估和策略改进。Value Iteration 直接使用 Bellman optimality backup，把评估和改进合并在一次 max backup 中。</p>
-<h3>2.9.3 为什么 DP 方法在真实问题中受限？</h3>
+<h3 id="section-2-9-3">2.9.3 为什么 DP 方法在真实问题中受限？</h3>
 <p>因为它通常要求环境模型已知，即知道完整的状态转移概率和奖励函数。而真实环境中模型往往未知，且状态动作空间可能极大。</p>
-<h3>2.9.4 Value Iteration 为什么能得到最优策略？</h3>
+<h3 id="section-2-9-4">2.9.4 Value Iteration 为什么能得到最优策略？</h3>
 <p>它反复应用 Bellman optimality operator。在折扣 MDP 中，该 operator 是 contraction mapping，因此价值函数会收敛到唯一的最优价值函数 <span class="math-text">V<sup><span class="math-text"><em></span></sup></span>，再由 <span class="math-text">V<sup><span class="math-text"></em></span></sup></span> 导出最优策略。</p>
-<h3>2.9.5 GPI 是什么？</h3>
+<h3 id="section-2-9-5">2.9.5 GPI 是什么？</h3>
 <p>GPI 是 policy evaluation 和 policy improvement 交替推进的通用思想。很多强化学习算法都可以看成不同形式的 GPI。</p>
-<h2>2.10 本章练习</h2>
+<h2 id="section-2-10">2.10 本章练习</h2>
 <ol>
 <li>手写 Policy Evaluation 的 Bellman update。</li>
 <li>对比 Policy Iteration 和 Value Iteration 的伪代码。</li>
 <li>解释为什么 Value Iteration 中可以不完整评估一个策略。</li>
 <li>思考：如果状态空间有一亿个状态，表格型 DP 为什么不可行？</li>
 </ol>
+<details class="exercise-answers">
+<summary>参考答案（点击展开）</summary>
+
+<ol>
+<li><strong>Policy Evaluation 更新</strong>：<span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)=∑<sub><span class="math-text">a</span></sub>π(a∣ s)∑<sub><span class="math-text">s&#39;</span></sub>P(s&#39;∣ s,a)[R(s,a,s&#39;)+γ V<sub><span class="math-text">k</span></sub>(s&#39;)]</span>。反复对所有状态执行该 Bellman expectation backup，直到变化足够小。</li>
+<li><strong>两种算法的伪代码差异</strong>：Policy Iteration 的外层循环是“把当前 policy 评估到近似收敛，再做一次 greedy improvement”；Value Iteration 每轮只做一次 optimality backup：<span class="math-text">V<sub><span class="math-text">k+1</span></sub>(s)=max<sub><span class="math-text">a</span></sub>∑<sub><span class="math-text">s&#39;</span></sub>P(s&#39;∣ s,a)[R+γ V<sub><span class="math-text">k</span></sub>(s&#39;)]</span>，收敛后再从 <span class="math-text">V</span> 提取 greedy policy。</li>
+<li><strong>为什么不必完整评估</strong>：策略评估和策略改进可以交错进行。Bellman optimality operator 是 contraction；只要持续做 optimality backup，价值估计就会向 <span class="math-text">V<sup><span class="math-text">*</span></sup></span> 收敛。Value Iteration 等价于把“有限次评估”和“立即改进”合并为一步。</li>
+<li><strong>一亿状态为什么不可行</strong>：至少要存储一亿个 value；每次 sweep 还要遍历每个 state、action 和可能的 next state，并要求完整的 <span class="math-text">P</span>、<span class="math-text">R</span> 模型。内存、计算量和模型获取成本都不可接受，而且无法对未枚举状态泛化，因此需要采样和函数逼近。</li>
+</ol>
+</details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./01-rl-fundamentals-mdp-bellman.html">← 上一章</a><a href="./03-monte-carlo-td-learning.html">下一章 →</a></nav></main></body>
 </html>
