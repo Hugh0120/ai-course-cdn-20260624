@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -419,6 +420,42 @@
 <td>SAC 中 actor 输出的动作分布。</td>
 </tr>
 <tr>
+<td><span class="math-text">w<sup><span class="math-text">-</span></sup></span> / <span class="math-text">θ<sup><span class="math-text">-</span></sup></span></td>
+<td>Target Critic / Actor Parameters</td>
+<td>目标 critic / actor 参数</td>
+<td>从在线参数滞后更新得到、用于构造稳定 target 的参数；上标 <span class="math-text">-</span> 表示 target network。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup></span> / <span class="math-text">μ<sup><span class="math-text">-</span></sup></span></td>
+<td>Target Critic / Target Actor</td>
+<td>目标 Q 网络 / 目标 actor</td>
+<td>TD3/SAC 中的 target 网络简写；<span class="math-text">i</span> 是 twin critic 的编号。</td>
+</tr>
+<tr>
+<td><span class="math-text">(s,a,r,s&#39;,d)</span></td>
+<td>Transition Tuple</td>
+<td>转移样本五元组</td>
+<td>replay buffer 中的当前状态、动作、奖励、下一状态和终止指示量。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span> / <code>done</code></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td><span class="math-text">d=1</span> 时没有后续价值，<span class="math-text">d=0</span> 时可以从 <span class="math-text">s&#39;</span> bootstrap。</td>
+</tr>
+<tr>
+<td><span class="math-text">D</span></td>
+<td>Replay-buffer Distribution</td>
+<td>回放数据分布</td>
+<td>公式 <span class="math-text">s∼ D</span> 表示从 replay buffer 的样本状态中取期望。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制下一状态 soft value 或 Q value 的权重。</td>
+</tr>
+<tr>
 <td><span class="math-text">y</span></td>
 <td>Bellman Target</td>
 <td>Bellman 目标</td>
@@ -447,6 +484,18 @@
 <td>Temperature</td>
 <td>温度系数</td>
 <td>SAC 中 reward 和 entropy 的权衡参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">t</span></sub></span></td>
+<td>Exploration Noise</td>
+<td>探索噪声</td>
+<td>DDPG/TD3 与环境交互时加到确定性动作上的噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">clip</span></sub></span></td>
+<td>Clipped Target Noise</td>
+<td>截断目标噪声</td>
+<td>TD3 构造 target action 时加入并限制幅度的平滑噪声；不是 PPO 的 clipping range。</td>
 </tr>
 <tr>
 <td>off-policy</td>
@@ -565,7 +614,7 @@
 <div class="math-block"><span class="math-text">a = μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
 
 <p>或者输出动作分布：</p>
-<div class="math-block"><span class="math-text">a ~ π<sub><span class="math-text">θ</span></sub>(. ∣ s)</span></div>
+<div class="math-block"><span class="math-text">a ∼ π<sub><span class="math-text">θ</span></sub>(· ∣ s)</span></div>
 
 <h3 id="section-10-5-2">10.5.2 从 DQN 到 Actor 的推理过程</h3>
 <p>DQN 在离散动作中可以做：</p>
@@ -590,8 +639,9 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <li>Target critic。</li>
 </ul>
 <p>Critic target：</p>
-<div class="math-block"><span class="math-text">y = r + γ Q<sub><span class="math-text">w<sup><span class="math-text">-</span></sup></span></sub>(s', μ<sub><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></sub>(s'))</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) Q<sub><span class="math-text">w<sup><span class="math-text">-</span></sup></span></sub>(s', μ<sub><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></sub>(s'))</span></div>
 
+<p>这里 <span class="math-text">d</span> 是 replay transition 的终止指示量：<span class="math-text">d=1</span> 时 target 只剩即时奖励 <span class="math-text">r</span>；<span class="math-text">d=0</span> 时才加入下一状态的 bootstrap value。</p>
 <p>Critic loss：</p>
 <div class="math-block"><span class="math-text">L(w) = 𝔼[(Q<sub><span class="math-text">w</span></sub>(s,a) - y)<sup><span class="math-text">2</span></sup>]</span></div>
 
@@ -641,7 +691,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <div class="math-block"><span class="math-text">Q<sub><span class="math-text">1</span></sub>(s,a), Q<sub><span class="math-text">2</span></sub>(s,a)</span></div>
 
 <p>target 使用两者较小值：</p>
-<div class="math-block"><span class="math-text">y = r + γ min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a')</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a')</span></div>
 
 <p>这样可以缓解 overestimation bias。</p>
 <h4 id="section-10-7-1-2">10.7.1.2 Delayed Policy Update</h4>
@@ -652,7 +702,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <p>target action 加入 clipped noise：</p>
 <div class="math-block"><span class="math-text">a' = μ<sup><span class="math-text">-</span></sup>(s') + ε<sub><span class="math-text">clip</span></sub></span></div>
 
-<p>再用 <span class="math-text">a&#39;</span> 计算 target。</p>
+<p>这里 <span class="math-text">ε<sub><span class="math-text">clip</span></sub></span> 通常由零均值高斯噪声截断得到，<span class="math-text">a&#39;</span> 还会再限制到环境合法动作范围；然后用 <span class="math-text">a&#39;</span> 计算 target。</p>
 <p>直觉：</p>
 <p>让 critic 不要对动作空间中的尖锐错误峰值过拟合，使 Q 函数更平滑。</p>
 <h3 id="section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</h3>
@@ -709,10 +759,10 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <li>temperature parameter <span class="math-text">α</span>。</li>
 </ul>
 <p>Soft Q target：</p>
-<div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a') - α log π(a'∣ s')]</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a') - α log π(a'∣ s')]</span></div>
 
 <p>其中：</p>
-<div class="math-block"><span class="math-text">a' ~ π<sub><span class="math-text">θ</span></sub>(.∣ s')</span></div>
+<div class="math-block"><span class="math-text">a' ∼ π<sub><span class="math-text">θ</span></sub>(·∣ s')</span></div>
 
 <p>Actor objective：</p>
 <div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ) = 𝔼[α log π<sub><span class="math-text">θ</span></sub>(a∣ s) - min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
@@ -729,7 +779,7 @@ actor:   产生让 Q(s, a) 尽量大的动作
 <div class="math-block"><span class="math-text">Q(s',a')-αlogπ(a'∣ s')</span></div>
 
 <p>代回 Bellman target，就得到：</p>
-<div class="math-block"><span class="math-text">y=r+γ[min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a')-αlogπ(a'∣ s')]</span></div>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)[min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a')-αlogπ(a'∣ s')]</span></div>
 
 <p>为什么 actor loss 是：</p>
 <div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ)=𝔼[αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)-min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>

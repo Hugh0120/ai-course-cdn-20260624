@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -401,6 +402,24 @@
 <td>一整段 state-action-reward 序列。</td>
 </tr>
 <tr>
+<td><span class="math-text">p<sub><span class="math-text">θ</span></sub>(τ)</span></td>
+<td>Trajectory Probability</td>
+<td>轨迹概率</td>
+<td>策略参数为 <span class="math-text">θ</span> 时采样到整条轨迹 <span class="math-text">τ</span> 的概率密度或概率质量。</td>
+</tr>
+<tr>
+<td><span class="math-text">p(s<sub><span class="math-text">0</span></sub>)</span></td>
+<td>Initial-state Distribution</td>
+<td>初始状态分布</td>
+<td>环境开始一条轨迹时产生初始状态 <span class="math-text">s<sub><span class="math-text">0</span></sub></span> 的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(s<sub><span class="math-text">t+1</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span></td>
+<td>Environment Transition</td>
+<td>环境转移概率</td>
+<td>执行动作后环境从 <span class="math-text">s<sub><span class="math-text">t</span></sub></span> 转移到 <span class="math-text">s<sub><span class="math-text">t+1</span></sub></span> 的概率，不依赖策略参数 <span class="math-text">θ</span>。</td>
+</tr>
+<tr>
 <td><span class="math-text">J(θ)</span></td>
 <td>Objective Function</td>
 <td>目标函数</td>
@@ -441,6 +460,36 @@
 <td>Advantage Function</td>
 <td>优势函数</td>
 <td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span>，表示动作比平均水平好多少。</td>
+</tr>
+<tr>
+<td><span class="math-text">f<sub><span class="math-text">θ</span></sub>(s)</span></td>
+<td>Policy Logits</td>
+<td>策略 logits</td>
+<td>离散动作策略网络在 softmax 之前输出的未归一化分数。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span> / <span class="math-text">σ<sub><span class="math-text">θ</span></sub>(s)</span></td>
+<td>Gaussian Mean / Standard Deviation</td>
+<td>高斯均值 / 标准差</td>
+<td>连续动作策略在状态 <span class="math-text">s</span> 输出的分布参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">𝒩(μ,σ)</span></td>
+<td>Gaussian Distribution</td>
+<td>高斯分布</td>
+<td>连续动作策略常用的概率分布记号。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">π</span></sub></span></td>
+<td>Policy Learning Rate</td>
+<td>策略学习率</td>
+<td>控制一次 policy gradient 更新的步长。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">H</span></sub></span></td>
+<td>Entropy Coefficient</td>
+<td>熵系数</td>
+<td>控制 entropy regularization 在策略目标中的权重。</td>
 </tr>
 <tr>
 <td><span class="math-text">H(π)</span></td>
@@ -645,7 +694,7 @@
 <h3 id="section-7-7-1">7.7.1 REINFORCE</h3>
 <p>REINFORCE 是最基础的 Monte Carlo policy gradient 算法。</p>
 <p>更新方向：</p>
-<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
+<div class="math-block"><span class="math-text">θ ← θ + α<sub><span class="math-text">π</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
 
 <p>直觉：</p>
 <ul>
@@ -738,7 +787,7 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <p>所以第 7 章和第 8/9 章不是割裂的：后面的 actor-critic、GAE、PPO 都是在让 policy gradient 的学习信号更稳。</p>
 <h3 id="section-7-7-6">7.7.6 Entropy Regularization</h3>
 <p>为了鼓励探索，常在目标中加入 entropy：</p>
-<div class="math-block"><span class="math-text">J(θ) = 𝔼[return] + β 𝔼[H(π<sub><span class="math-text">θ</span></sub>(· ∣ s))]</span></div>
+<div class="math-block"><span class="math-text">J(θ) = 𝔼[return] + β<sub><span class="math-text">H</span></sub> 𝔼[H(π<sub><span class="math-text">θ</span></sub>(· ∣ s))]</span></div>
 
 <p>策略熵：</p>
 <div class="math-block"><span class="math-text">H(π(.∣ s)) = - ∑<sub><span class="math-text">a</span></sub> π(a∣ s) log π(a∣ s)</span></div>
@@ -806,7 +855,7 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <h3 id="section-7-9-1">7.9.1 Policy Gradient 适合什么场景？</h3>
 <p>适合连续动作空间、随机策略建模、需要直接优化策略分布的场景。相比 value-based 方法，不需要对动作做 <span class="math-text">arg max</span>。</p>
 <h3 id="section-7-9-2">7.9.2 REINFORCE 的核心更新是什么？</h3>
-<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
+<div class="math-block"><span class="math-text">θ ← θ + α<sub><span class="math-text">π</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) G<sub><span class="math-text">t</span></sub></span></div>
 
 <p>如果某个动作带来高 return，就提升该动作概率；如果 return 低，就降低该动作概率。</p>
 <h3 id="section-7-9-3">7.9.3 为什么 baseline 不改变梯度期望？</h3>
@@ -819,7 +868,7 @@ GAE/PPO:        用更稳定的 advantage 和受限策略更新
 <ol>
 <li>手写 log-derivative trick 推导。</li>
 <li>证明 action-independent baseline 不引入 bias。</li>
-<li>解释 <span class="math-text">Q(s,a)</span>、<span class="math-text">V(s)</span>、<span class="math-text">A(s,a)</span> 的关系。</li>
+<li>解释 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span>、<span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span>、<span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span> 的关系。</li>
 <li>对比 value-based 和 policy-based 方法。</li>
 </ol>
 <details class="exercise-answers">

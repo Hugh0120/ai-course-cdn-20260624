@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -419,6 +420,18 @@
 <td>critic 网络对状态-动作价值的估计。</td>
 </tr>
 <tr>
+<td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> / <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>True Value Functions under <span class="math-text">π</span></td>
+<td>策略 <span class="math-text">π</span> 下的真实价值函数</td>
+<td>推导 advantage 时使用的理论状态价值与动作价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span></td>
+<td>Advantage Function</td>
+<td>优势函数</td>
+<td>策略 <span class="math-text">π</span> 下动作价值相对状态价值的差，即 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span>。</td>
+</tr>
+<tr>
 <td><span class="math-text">J(θ)</span></td>
 <td>Policy Objective</td>
 <td>策略目标函数</td>
@@ -443,16 +456,46 @@
 <td>actor 和 critic 的训练损失。</td>
 </tr>
 <tr>
+<td><span class="math-text">widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
+<td>Value Target</td>
+<td>价值目标</td>
+<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。</td>
+</tr>
+<tr>
 <td><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></td>
 <td>n-step Return</td>
 <td>n 步回报</td>
 <td>n-step bootstrap target。</td>
 </tr>
 <tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制未来 reward 和 value 的权重。</td>
+</tr>
+<tr>
 <td><span class="math-text">λ</span></td>
 <td>GAE Lambda</td>
 <td>GAE 衰减参数</td>
 <td>控制 bias 和 variance 的折中。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">π</span></sub></span> / <span class="math-text">α<sub><span class="math-text">V</span></sub></span></td>
+<td>Actor / Critic Learning Rate</td>
+<td>Actor / Critic 学习率</td>
+<td>分别控制策略参数 <span class="math-text">θ</span> 和价值参数 <span class="math-text">w</span> 的更新步长。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">H</span></sub></span></td>
+<td>Entropy Coefficient</td>
+<td>熵系数</td>
+<td>控制 entropy bonus 的强度。</td>
+</tr>
+<tr>
+<td><span class="math-text">c<sub><span class="math-text">v</span></sub></span></td>
+<td>Value-loss Coefficient</td>
+<td>价值损失系数</td>
+<td>控制 value loss 在总 loss 中的权重。</td>
 </tr>
 <tr>
 <td>on-policy</td>
@@ -560,7 +603,7 @@
 <li>Critic：价值网络 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span> 或 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>，负责评估动作或状态。</li>
 </ul>
 <p>Actor 用 critic 提供的学习信号更新策略：</p>
-<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A(s,a)]</span></div></div>
+<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div></div>
 
 <p>Critic 学习价值函数：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">w</span></sub>(s) ≈ V<sub><span class="math-text">π</span></sub>(s)</span></div>
@@ -582,10 +625,10 @@
 <li>如果低于当前价值估计，说明这个动作比预期差。</li>
 </ul>
 <p>Actor 更新：</p>
-<div class="math-block"><span class="math-text">θ ← θ + α ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) δ<sub><span class="math-text">t</span></sub></span></div>
+<div class="math-block"><span class="math-text">θ ← θ + α<sub><span class="math-text">π</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) δ<sub><span class="math-text">t</span></sub></span></div>
 
 <p>Critic 更新：</p>
-<div class="math-block"><span class="math-text">w ← w - β ∇ (r<sub><span class="math-text">t</span></sub> + γ V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t+1</span></sub>) - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+<div class="math-block"><span class="math-text">w ← w - α<sub><span class="math-text">V</span></sub> ∇ (r<sub><span class="math-text">t</span></sub> + γ V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t+1</span></sub>) - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
 
 <h3 id="section-8-5-3">8.5.3 为什么 TD Error 可以近似 Advantage</h3>
 <p>Advantage 的定义是：</p>
@@ -662,10 +705,10 @@
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) A<sub><span class="math-text">t</span></sub></span></div>
 
 <p>Value loss：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (R<sub><span class="math-text">t</span></sub> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
 
 <p>Entropy bonus：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub> = - β H(π<sub><span class="math-text">θ</span></sub>(· ∣ s<sub><span class="math-text">t</span></sub>))</span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub> = - β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(· ∣ s<sub><span class="math-text">t</span></sub>))</span></div>
 
 <p>整体最小化：</p>
 <div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> + L<sub><span class="math-text">entropy</span></sub></span></div>
@@ -802,7 +845,7 @@ A2C target: r + gamma V(s&#39;)
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>Actor 和 critic loss</strong>：一种常见写法是 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-𝔼[logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)hat A<sub><span class="math-text">t</span></sub>]</span>，<span class="math-text">L<sub><span class="math-text">critic</span></sub>=𝔼[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-hat V<sub><span class="math-text">t</span></sub>)<sup><span class="math-text">2</span></sup>]</span>。工程上常组合为 <span class="math-text">L=L<sub><span class="math-text">actor</span></sub>+c<sub><span class="math-text">v</span></sub>L<sub><span class="math-text">critic</span></sub>-β H(π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))</span>；计算 actor loss 时通常对 <span class="math-text">hat A<sub><span class="math-text">t</span></sub></span> stop gradient。</li>
+<li><strong>Actor 和 critic loss</strong>：一种常见写法是 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-𝔼[logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)hat A<sub><span class="math-text">t</span></sub>]</span>，<span class="math-text">L<sub><span class="math-text">critic</span></sub>=𝔼[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span>。工程上常组合为 <span class="math-text">L=L<sub><span class="math-text">actor</span></sub>+c<sub><span class="math-text">v</span></sub>L<sub><span class="math-text">critic</span></sub>-β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))</span>；计算 actor loss 时通常对 <span class="math-text">hat A<sub><span class="math-text">t</span></sub></span> stop gradient。</li>
 <li><strong>TD error 与 advantage</strong>：<span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span>。给定 <span class="math-text">(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span> 取条件期望后，<span class="math-text">𝔼[δ<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)=A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>。所以单步 TD error 是 advantage 的有噪声样本估计。</li>
 <li><strong>N-step return</strong>：连续展开 return 递归 <span class="math-text">n</span> 次，得到 <span class="math-text">G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>=r<sub><span class="math-text">t</span></sub>+γ r<sub><span class="math-text">t+1</span></sub>+·s+γ<sup><span class="math-text">n-1</span></sup>r<sub><span class="math-text">t+n-1</span></sub>+γ<sup><span class="math-text">n</span></sup>V(s<sub><span class="math-text">t+n</span></sub>)</span>。若在 <span class="math-text">n</span> 步内终止，则终止后的 bootstrap value 为 0。</li>
 <li><strong><span class="math-text">λ</span> 的作用</strong>：GAE 使用 <span class="math-text">hat A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ,λ)</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span>。<span class="math-text">λ</span> 小时更接近一步 TD，bias 较大但 variance 较小；<span class="math-text">λ</span> 接近 1 时更接近长回报，bias 较小但 variance 较大。它是 bias-variance tradeoff 的旋钮。</li>

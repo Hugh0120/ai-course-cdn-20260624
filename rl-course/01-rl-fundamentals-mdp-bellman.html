@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -449,6 +450,12 @@
 <td>Discount Factor</td>
 <td>折扣因子</td>
 <td>控制未来 reward 权重的系数。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span></td>
+<td>Learning Rate / Step Size</td>
+<td>学习率 / 步长</td>
+<td>控制一次 TD 或 Q-learning 更新吸收多少新误差信号，通常满足 <span class="math-text">0&lt;α≤ 1</span>。</td>
 </tr>
 <tr>
 <td>RL</td>

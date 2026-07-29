@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -423,6 +424,12 @@
 <td>Value Estimate at iteration <span class="math-text">k</span></td>
 <td>第 <span class="math-text">k</span> 次迭代的价值估计</td>
 <td>value iteration / policy evaluation 中的中间估计。</td>
+</tr>
+<tr>
+<td><span class="math-text">V<sup><span class="math-text"><em></span></sup>(s)</span> / <span class="math-text">π<sup><span class="math-text"></em></span></sup>(s)</span></td>
+<td>Optimal Value / Policy</td>
+<td>最优价值 / 最优策略</td>
+<td>Bellman optimality backup 的收敛结果，以及由它导出的最优动作规则。</td>
 </tr>
 <tr>
 <td><span class="math-text">γ</span></td>

@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -417,6 +418,18 @@
 <td>State / Action / Reward</td>
 <td>状态 / 动作 / 奖励</td>
 <td>一步交互中的随机变量。</td>
+</tr>
+<tr>
+<td><span class="math-text">(s,a,r,s&#39;)</span></td>
+<td>Sampled Transition</td>
+<td>采样转移</td>
+<td>当前状态、实际动作、即时奖励和下一状态的一次具体交互样本。</td>
+</tr>
+<tr>
+<td><span class="math-text">π(a∣ s)</span></td>
+<td>Policy</td>
+<td>策略</td>
+<td>在状态 <span class="math-text">s</span> 选择动作 <span class="math-text">a</span> 的概率；下标 <span class="math-text">π</span> 表示“在该策略下”。</td>
 </tr>
 <tr>
 <td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>

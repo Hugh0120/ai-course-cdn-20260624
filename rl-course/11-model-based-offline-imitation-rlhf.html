@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -423,6 +424,72 @@
 <td>Dynamics Model</td>
 <td>动力学模型</td>
 <td>参数 <span class="math-text">φ</span> 下预测下一状态的模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">widehat P(s&#39;∣ s,a)</span></td>
+<td>Learned Transition Model</td>
+<td>学得的转移模型</td>
+<td>对真实环境转移概率 <span class="math-text">P(s&#39;∣ s,a)</span> 的近似。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ(a∣ s)</span></td>
+<td>Behavior Policy</td>
+<td>行为策略</td>
+<td>产生离线数据集 <span class="math-text">D</span> 的策略，可来自旧系统、人类或多个策略的混合。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span> / <code>done</code></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td>离线 transition 是否到达真正终止状态；<span class="math-text">d=1</span> 时后续 bootstrap value 为 0。</td>
+</tr>
+<tr>
+<td><span class="math-text">a<sub><span class="math-text">expert</span></sub></span></td>
+<td>Expert Action</td>
+<td>专家动作</td>
+<td>模仿学习数据中专家在状态 <span class="math-text">s</span> 给出的动作标签。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span></td>
+<td>Policy Parameters</td>
+<td>策略参数</td>
+<td>Behavior Cloning 或 RL 优化中当前 policy 的可学习参数。</td>
+</tr>
+<tr>
+<td><span class="math-text">σ(x)</span></td>
+<td>Logistic Sigmoid</td>
+<td>Logistic Sigmoid 函数</td>
+<td>将实数差值映射到 <span class="math-text">(0,1)</span>，在 pairwise reward loss 中表示偏好概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">r<sub><span class="math-text">chosen</span></sub></span> / <span class="math-text">r<sub><span class="math-text">rejected</span></sub></span></td>
+<td>Chosen / Rejected Reward Score</td>
+<td>被选 / 被拒回答的奖励分数</td>
+<td>reward model 给一对回答输出的标量分数。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">RM</span></sub></span></td>
+<td>Reward-model Loss</td>
+<td>奖励模型损失</td>
+<td>用 chosen/rejected 分数差训练 pairwise preference 的损失。</td>
+</tr>
+<tr>
+<td><span class="math-text">π</span> / <span class="math-text">π<sub><span class="math-text">ref</span></sub></span></td>
+<td>Current / Reference Policy</td>
+<td>当前 / 参考策略</td>
+<td>RLHF 中正在优化的 policy，以及用于约束它不要偏离太远的固定参考模型。</td>
+</tr>
+<tr>
+<td><span class="math-text">r<sub><span class="math-text">RM</span></sub></span> / <span class="math-text">r<sub><span class="math-text">total</span></sub></span></td>
+<td>RM / Total Reward</td>
+<td>奖励模型分数 / 总奖励</td>
+<td>PPO 优化时的原始 reward model 分数，以及加入 KL 惩罚后的训练奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">KL</span></sub></span></td>
+<td>KL-penalty Coefficient</td>
+<td>KL 惩罚系数</td>
+<td>控制偏离参考策略的惩罚强度。</td>
 </tr>
 <tr>
 <td>BC</td>
@@ -697,9 +764,9 @@
 <h3 id="section-11-7-1">11.7.1 Offline RL</h3>
 <p>Offline RL，也叫 batch RL，目标是在不继续和环境交互的情况下，只用固定数据集学习策略。</p>
 <p>数据集：</p>
-<div class="math-block"><span class="math-text">D = {(s, a, r, s')}</span></div>
+<div class="math-block"><span class="math-text">D = {(s, a, r, s', d)}</span></div>
 
-<p>这些数据来自某个 behavior policy，可能是人类、旧系统或混合策略。</p>
+<p>每条记录包含当前状态 <span class="math-text">s</span>、动作 <span class="math-text">a</span>、奖励 <span class="math-text">r</span>、下一状态 <span class="math-text">s&#39;</span> 和终止标记 <span class="math-text">d</span>。这些数据来自某个 behavior policy <span class="math-text">μ(a∣ s)</span>，可能是人类、旧系统或混合策略。</p>
 <p>与 online RL 的区别：</p>
 <ul>
 <li>online RL 可以探索并收集新数据。</li>
@@ -804,7 +871,7 @@
 <div class="math-block"><span class="math-text">r<sub><span class="math-text">chosen</span></sub> &gt; r<sub><span class="math-text">rejected</span></sub></span></div>
 
 <p>常见 pairwise loss：</p>
-<div class="math-block"><span class="math-text">L = - log σ(r<sub><span class="math-text">chosen</span></sub> - r<sub><span class="math-text">rejected</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">RM</span></sub> = - log σ(r<sub><span class="math-text">chosen</span></sub> - r<sub><span class="math-text">rejected</span></sub>)</span></div>
 
 <h3 id="section-11-9-2">11.9.2 RLHF 中的 PPO</h3>
 <p>在 RLHF 中，policy 是语言模型。动作是 token，trajectory 是生成序列。</p>
@@ -814,7 +881,7 @@
 <li>KL penalty，限制新模型不要偏离 reference model 太远。</li>
 </ul>
 <p>形式：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">total</span></sub> = r<sub><span class="math-text">RM</span></sub> - β KL(π  ∥  π<sub><span class="math-text">ref</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">total</span></sub> = r<sub><span class="math-text">RM</span></sub> - β<sub><span class="math-text">KL</span></sub> KL(π  ∥  π<sub><span class="math-text">ref</span></sub>)</span></div>
 
 <p>为什么需要 KL penalty？</p>
 <ul>

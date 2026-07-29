@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -395,6 +396,48 @@
 <td>状态 <span class="math-text">s</span> 下动作 <span class="math-text">a</span> 的长期价值；<span class="math-text">Q</span> 表示 action quality。</td>
 </tr>
 <tr>
+<td><span class="math-text">V(s)</span></td>
+<td>State-value Function</td>
+<td>状态价值函数</td>
+<td>Dueling DQN 中状态 <span class="math-text">s</span> 本身的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">A(s,a)</span></td>
+<td>Advantage Function</td>
+<td>优势函数</td>
+<td>动作 <span class="math-text">a</span> 相对状态平均水平的额外价值；这里的斜体 <span class="math-text">A</span> 不是动作集合。</td>
+</tr>
+<tr>
+<td><span class="math-text">𝒜</span> / <span class="math-text">∣𝒜∣</span></td>
+<td>Action Set / Number of Actions</td>
+<td>动作集合 / 动作数量</td>
+<td><span class="math-text">𝒜</span> 是离散动作集合，<span class="math-text">∣𝒜∣</span> 是其中动作的个数。</td>
+</tr>
+<tr>
+<td><span class="math-text">(s,a,r,s&#39;,d)</span></td>
+<td>Transition Tuple</td>
+<td>转移样本五元组</td>
+<td>当前状态、动作、即时奖励、下一状态和终止指示量；代码常把 <span class="math-text">d</span> 写成 <code>done</code>。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span> / <code>done</code></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td><span class="math-text">d=1</span> 表示真正终止，target 不再 bootstrap；<span class="math-text">d=0</span> 表示可以继续估计未来价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制下一状态价值在 TD target 中的权重。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span></td>
+<td>Learning Rate / Step Size</td>
+<td>学习率 / 步长</td>
+<td>Q-learning 更新中吸收 TD error 的比例。</td>
+</tr>
+<tr>
 <td><span class="math-text">y</span></td>
 <td>TD Target / Bellman Target</td>
 <td>TD 目标 / Bellman 目标</td>
@@ -431,6 +474,12 @@
 <td>replay buffer 中样本 <span class="math-text">i</span> 被采样的概率。</td>
 </tr>
 <tr>
+<td><span class="math-text">δ<sub><span class="math-text">i</span></sub></span></td>
+<td>TD Error of Sample <span class="math-text">i</span></td>
+<td>第 <span class="math-text">i</span> 条样本的 TD 误差</td>
+<td>target <span class="math-text">y<sub><span class="math-text">i</span></sub></span> 与当前预测 <span class="math-text">Q(s<sub><span class="math-text">i</span></sub>,a<sub><span class="math-text">i</span></sub>;θ)</span> 的差。</td>
+</tr>
+<tr>
 <td><span class="math-text">N</span></td>
 <td>Buffer Size / Sample Count</td>
 <td>buffer 大小 / 样本数</td>
@@ -443,10 +492,16 @@
 <td>修正非均匀采样 bias 的权重。</td>
 </tr>
 <tr>
-<td><span class="math-text">α</span> / <span class="math-text">β</span></td>
+<td><span class="math-text">α<sub><span class="math-text">p</span></sub></span> / <span class="math-text">β<sub><span class="math-text">IS</span></sub></span></td>
 <td>Priority Exponent / IS Correction Exponent</td>
 <td>优先级指数 / 重要性采样修正指数</td>
-<td>Prioritized Replay 中控制采样偏斜和 bias 修正的参数。</td>
+<td>Prioritized Replay 中控制采样偏斜和 bias 修正的参数；<span class="math-text">α<sub><span class="math-text">p</span></sub></span> 与学习率 <span class="math-text">α</span> 不是同一个量。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">p</span></sub></span></td>
+<td>Priority Floor</td>
+<td>优先级下限常数</td>
+<td>防止 TD error 为零的样本获得零采样概率的小正数；与 epsilon-greedy 的探索率无关。</td>
 </tr>
 <tr>
 <td>TD</td>
@@ -570,10 +625,10 @@
 <div class="math-block"><span class="math-text">network(s) → [Q(s, a<sub><span class="math-text">1</span></sub>), Q(s, a<sub><span class="math-text">2</span></sub>), …, Q(s, a<sub><span class="math-text">n</span></sub>)]</span></div>
 
 <h3 id="section-6-5-2">6.5.2 DQN Loss</h3>
-<p>DQN 的 target：</p>
-<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
+<p>DQN 的 transition 记为 <span class="math-text">(s,a,r,s&#39;,d)</span>，其中 <span class="math-text">d∈{0,1}</span>。统一写成带终止掩码的 target：</p>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
 
-<p>如果 <span class="math-text">s&#39;</span> 是终止状态：</p>
+<p>如果 <span class="math-text">s&#39;</span> 是终止状态，<span class="math-text">d=1</span>，上式自动退化为：</p>
 <div class="math-block"><span class="math-text">y = r</span></div>
 
 <p>损失函数：</p>
@@ -593,12 +648,12 @@
 <div class="math-block"><span class="math-text">Q(s,a)← Q(s,a)+α[y-Q(s,a)]</span></div>
 
 <p>其中：</p>
-<div class="math-block"><span class="math-text">y=r+γmax<sub><span class="math-text">a'</span></sub>Q(s',a')</span></div>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)max<sub><span class="math-text">a'</span></sub>Q(s',a')</span></div>
 
 <p>如果用神经网络 <span class="math-text">Q(s,a;θ)</span> 代替表格，就不能直接“修改表格里的一个格子”。我们能做的是让网络当前输出靠近 target <span class="math-text">y</span>。</p>
 <p>于是 RL 更新变成一个监督学习式回归问题：</p>
 <pre><code class="language-text">input:  (s, a)
-label:  y = r + gamma max Q_target(s&#39;, a&#39;)
+label:  y = r + gamma (1 - done) max Q_target(s&#39;, a&#39;)
 predict: Q(s, a; theta)
 loss:   (y - Q(s, a; theta))^2
 </code></pre>
@@ -634,6 +689,36 @@ for each step:
 <p>Replay buffer 存储 transition：</p>
 <pre><code class="language-text">(s, a, r, s&#39;, done)
 </code></pre>
+<p>字段逐一解释：</p>
+<div class="table-scroll"><table class="standard-table">
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>s</code></td>
+<td>执行动作之前的当前状态。</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>agent 在 <code>s</code> 中实际执行的动作。</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>执行动作后环境返回的即时奖励。</td>
+</tr>
+<tr>
+<td><code>s&#39;</code></td>
+<td>环境转移到的下一状态。</td>
+</tr>
+<tr>
+<td><code>done</code></td>
+<td>数学公式中的 <span class="math-text">d</span>；真正终止时为 1，否则为 0。</td>
+</tr>
+</tbody></table></div>
+<p>在 Gymnasium API 中，环境通常把结束拆成 <code>terminated</code> 和 <code>truncated</code>：<code>terminated</code> 表示任务定义的真正终止，通常应令 <span class="math-text">d=1</span>；<code>truncated</code> 常表示时间上限等外部截断，通常仍允许从最终观测 bootstrap。具体环境若把截断也定义成没有未来价值，则按任务语义处理。</p>
 <p>作用：</p>
 <ul>
 <li>打破连续样本之间的相关性。</li>
@@ -646,11 +731,11 @@ for each step:
 </blockquote>
 <h3 id="section-6-6-2">6.6.2 Target Network</h3>
 <p>如果 target 使用 online network：</p>
-<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div>
 
 <p>那么 <span class="math-text">θ</span> 每次更新都会改变 target，训练会追逐一个移动目标。</p>
 <p>DQN 使用 target network：</p>
-<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ<sup><span class="math-text">-</span></sup>)</span></div>
 
 <p><span class="math-text">θ<sup><span class="math-text">-</span></sup></span> 每隔固定步数从 <span class="math-text">θ</span> 同步一次，或使用软更新。</p>
 <p>面试表达：</p>
@@ -664,7 +749,7 @@ for each step:
 
 <p>同一个 max 操作既选择动作又评估动作，容易产生 overestimation bias。</p>
 <p>Double DQN 将动作选择和动作评估拆开：</p>
-<div class="math-block multi"><div><span class="math-text">a<sup><span class="math-text">*</span></sup> = arg max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div><div><span class="math-text">y = r + γ Q(s', a<sup><span class="math-text">*</span></sup>; θ<sup><span class="math-text">-</span></sup>)</span></div></div>
+<div class="math-block multi"><div><span class="math-text">a<sup><span class="math-text">*</span></sup> = arg max<sub><span class="math-text">a'</span></sub> Q(s', a'; θ)</span></div><div><span class="math-text">y = r + γ(1-d) Q(s', a<sup><span class="math-text">*</span></sup>; θ<sup><span class="math-text">-</span></sup>)</span></div></div>
 
 <p>其中：</p>
 <ul>
@@ -685,7 +770,7 @@ for each step:
 <p>Double DQN 把这两步拆开：</p>
 <div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>=arg max<sub><span class="math-text">a'</span></sub>Q(s',a';θ)</span></div>
 
-<div class="math-block"><span class="math-text">y=r+γ Q(s',a<sup><span class="math-text">*</span></sup>;θ<sup><span class="math-text">-</span></sup>)</span></div>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)Q(s',a<sup><span class="math-text">*</span></sup>;θ<sup><span class="math-text">-</span></sup>)</span></div>
 
 <p>这样选择动作时的噪声和评估动作时的噪声不完全相同，正噪声被重复放大的程度下降，因此 overestimation bias 更小。</p>
 <p>面试表达：</p>
@@ -696,9 +781,17 @@ for each step:
 <p>Dueling DQN 将 Q 函数分解为状态价值和动作优势：</p>
 <div class="math-block"><span class="math-text">Q(s, a) = V(s) + A(s, a)</span></div>
 
-<p>实际为了可辨识性，常用：</p>
+<p>这里的斜体 <span class="math-text">A(s,a)</span> 是 <strong>Advantage Function（优势函数）</strong>：它回答“在状态 <span class="math-text">s</span> 下，动作 <span class="math-text">a</span> 比该状态的平均动作好多少”。花体 <span class="math-text">𝒜</span> 才是 <strong>Action Set（动作集合）</strong>，<span class="math-text">∣𝒜∣</span> 是离散动作数量。</p>
+<p>直接写 <span class="math-text">Q=V+A</span> 不可辨识：任取常数 <span class="math-text">c</span>，把 <span class="math-text">V(s)</span> 改成 <span class="math-text">V(s)+c</span>，同时把所有 <span class="math-text">A(s,a)</span> 改成 <span class="math-text">A(s,a)-c</span>，得到的 <span class="math-text">Q(s,a)</span> 完全不变。网络因此无法唯一确定哪部分该归给 <span class="math-text">V</span>、哪部分该归给 <span class="math-text">A</span>。</p>
+<p>实际常把同一状态下所有动作的 advantage 减去均值：</p>
 <div class="math-block"><span class="math-text">Q(s, a) = V(s) + A(s, a) - 1 / ∣𝒜∣∑<sub><span class="math-text">a'</span></sub> A(s, a')</span></div>
 
+<p>减去均值后，聚合层使用的是“相对优势”，从而消除任意整体平移。这里 <span class="math-text">a&#39;</span> 只是遍历动作集合 <span class="math-text">𝒜</span> 的求和下标。</p>
+<p>数值例子：某状态的 <span class="math-text">V(s)=5</span>，两个动作的原始 advantage 分别是 <span class="math-text">[2,0]</span>，均值为 1。聚合后的 Q 值是：</p>
+<pre><code class="language-text">Q(s, left)  = 5 + 2 - 1 = 6
+Q(s, right) = 5 + 0 - 1 = 4
+</code></pre>
+<p>所以 <span class="math-text">V(s)=5</span> 表示状态整体水平，动作的中心化 advantage <span class="math-text">[1,-1]</span> 决定两个动作相对这个水平的上下浮动。</p>
 <p>直觉：</p>
 <p>有些状态下，知道状态本身好不好比区分每个动作更重要。Dueling 结构让网络分别学习：</p>
 <ul>
@@ -709,14 +802,15 @@ for each step:
 <h3 id="section-6-7-4">6.7.4 Prioritized Experience Replay</h3>
 <p>普通 replay buffer 均匀采样 transition。<br>Prioritized Replay 更倾向采样 TD error 大的样本。</p>
 <p>优先级：</p>
-<div class="math-block"><span class="math-text">p<sub><span class="math-text">i</span></sub> = ∣δ<sub><span class="math-text">i</span></sub>∣ + ε</span></div>
+<div class="math-block multi"><div><span class="math-text">δ<sub><span class="math-text">i</span></sub> = y<sub><span class="math-text">i</span></sub> - Q(s<sub><span class="math-text">i</span></sub>,a<sub><span class="math-text">i</span></sub>;θ)</span></div><div><span class="math-text">p<sub><span class="math-text">i</span></sub> = ∣δ<sub><span class="math-text">i</span></sub>∣ + ε<sub><span class="math-text">p</span></sub></span></div></div>
 
 <p>采样概率：</p>
-<div class="math-block"><span class="math-text">P(i) = p<sub><span class="math-text">i</span></sub><sup><span class="math-text">α</span></sup> / ∑<sub><span class="math-text">k</span></sub> p<sub><span class="math-text">k</span></sub><sup><span class="math-text">α</span></sup></span></div>
+<div class="math-block"><span class="math-text">P(i) = p<sub><span class="math-text">i</span></sub><sup><span class="math-text">α<sub><span class="math-text">p</span></sub></span></sup> / ∑<sub><span class="math-text">k</span></sub> p<sub><span class="math-text">k</span></sub><sup><span class="math-text">α<sub><span class="math-text">p</span></sub></span></sup></span></div>
 
 <p>为了修正非均匀采样带来的 bias，使用 importance sampling weight：</p>
-<div class="math-block"><span class="math-text">w<sub><span class="math-text">i</span></sub> = (1 / (N P(i)))<sup><span class="math-text">β</span></sup></span></div>
+<div class="math-block"><span class="math-text">w<sub><span class="math-text">i</span></sub> = (1 / (N P(i)))<sup><span class="math-text">β<sub><span class="math-text">IS</span></sub></span></sup></span></div>
 
+<p>其中 <span class="math-text">δ<sub><span class="math-text">i</span></sub></span> 是第 <span class="math-text">i</span> 条样本的 TD error，<span class="math-text">ε<sub><span class="math-text">p</span></sub>&gt;0</span> 防止零优先级，<span class="math-text">α<sub><span class="math-text">p</span></sub></span> 控制采样偏向程度，<span class="math-text">β<sub><span class="math-text">IS</span></sub></span> 控制 importance sampling 修正强度；求和下标 <span class="math-text">k</span> 遍历 buffer 中的候选样本。实现中常再用 batch 内最大权重归一化 <span class="math-text">w<sub><span class="math-text">i</span></sub></span>，避免梯度尺度突然变大。</p>
 <p>直觉：</p>
 <p>TD error 大的样本说明当前模型学得不好，更值得训练。</p>
 <h3 id="section-6-7-5">6.7.5 Rainbow DQN</h3>

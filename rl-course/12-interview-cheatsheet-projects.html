@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -390,10 +391,16 @@
 <td>RL 标准建模。</td>
 </tr>
 <tr>
-<td><span class="math-text">S</span> / <span class="math-text">A</span> / <span class="math-text">R</span></td>
-<td>State / Action / Reward</td>
-<td>状态 / 动作 / 奖励</td>
-<td>MDP 三个基础元素。</td>
+<td><span class="math-text">S</span> / <span class="math-text">A</span> / <span class="math-text">P</span> / <span class="math-text">R</span></td>
+<td>State / Action / Transition / Reward</td>
+<td>状态 / 动作 / 转移 / 奖励</td>
+<td>MDP 的状态空间、动作空间、环境转移和奖励函数。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制未来 reward 在 return 或 Bellman target 中的权重。</td>
 </tr>
 <tr>
 <td><span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
@@ -414,10 +421,64 @@
 <td>策略 <span class="math-text">π</span> 下状态-动作对 <span class="math-text">(s,a)</span> 的长期价值。</td>
 </tr>
 <tr>
+<td><span class="math-text">V<sup><span class="math-text"><em></span></sup>(s)</span> / <span class="math-text">Q<sup><span class="math-text"></em></span></sup>(s,a)</span></td>
+<td>Optimal Value Functions</td>
+<td>最优价值函数</td>
+<td>在所有策略中可达到的最优状态价值和动作价值。</td>
+</tr>
+<tr>
 <td><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span></td>
 <td>Advantage Function</td>
 <td>优势函数</td>
 <td>动作相对状态平均价值的优势；这里的 <span class="math-text">A</span> 不是 action space。</td>
+</tr>
+<tr>
+<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td>Advantage Estimate</td>
+<td>优势估计</td>
+<td>PPO 等算法在样本时刻 <span class="math-text">t</span> 使用的 advantage 估计值。</td>
+</tr>
+<tr>
+<td><span class="math-text">δ<sub><span class="math-text">t</span></sub></span></td>
+<td>TD Error</td>
+<td>时序差分误差</td>
+<td>一步 TD target 与当前价值估计的差。</td>
+</tr>
+<tr>
+<td><span class="math-text">rho<sub><span class="math-text">t</span></sub>(θ)</span></td>
+<td>PPO Probability Ratio</td>
+<td>PPO 概率比</td>
+<td>新策略与旧策略对样本动作的概率之比；特意用 <span class="math-text">rho</span> 避免和 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 混淆。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε<sub><span class="math-text">clip</span></sub></span></td>
+<td>PPO Clipping Range</td>
+<td>PPO 截断范围</td>
+<td>限制 PPO probability ratio 的变化幅度；不是 epsilon-greedy 的探索率。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>Bellman Target</td>
+<td>Bellman 目标</td>
+<td>DQN 或 SAC 中用于训练 critic/Q 网络的目标值。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup></span></td>
+<td>Target Twin Q Network</td>
+<td>目标双 Q 网络</td>
+<td>SAC target 中第 <span class="math-text">i</span> 个滞后更新的 critic。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">SAC</span></sub></span></td>
+<td>SAC Temperature</td>
+<td>SAC 温度系数</td>
+<td>控制 reward 和 entropy 在 SAC 目标中的权衡。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td><span class="math-text">d=1</span> 时 transition 真正终止，target 不再 bootstrap。</td>
 </tr>
 <tr>
 <td><span class="math-text">J(θ)</span></td>
@@ -468,10 +529,16 @@
 <td>同策略表示采样策略和学习目标一致；异策略表示用一个策略的数据学习另一个策略。</td>
 </tr>
 <tr>
+<td><span class="math-text">ε<sub><span class="math-text">explore</span></sub></span></td>
+<td>Exploration Probability</td>
+<td>探索概率</td>
+<td>epsilon-greedy 中随机探索的概率。</td>
+</tr>
+<tr>
 <td>epsilon-greedy</td>
 <td>Epsilon-greedy Policy</td>
 <td>epsilon-greedy 策略</td>
-<td>以 <span class="math-text">ε</span> 概率随机探索，否则选当前最优动作。</td>
+<td>以 <span class="math-text">ε<sub><span class="math-text">explore</span></sub></span> 概率随机探索，否则选当前最优动作。</td>
 </tr>
 <tr>
 <td>SARSA</td>
@@ -610,16 +677,16 @@
 <div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>Policy Gradient：</p>
-<div class="math-block"><span class="math-text">∇ J(θ) = 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A(s,a)]</span></div>
+<div class="math-block"><span class="math-text">∇ J(θ) = 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div>
 
-<p>PPO ratio：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+<p>PPO ratio。这里用 <span class="math-text">rho<sub><span class="math-text">t</span></sub></span> 表示 probability ratio，避免和即时 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 使用同一个字母：</p>
+<div class="math-block"><span class="math-text">rho<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>PPO clipped objective：</p>
-<div class="math-block"><span class="math-text">𝔼[min(r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(r<sub><span class="math-text">t</span></sub>, 1 - ε, 1 + ε) A<sub><span class="math-text">t</span></sub>)]</span></div>
+<div class="math-block"><span class="math-text">𝔼[min(rho<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(rho<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
 
 <p>SAC soft target：</p>
-<div class="math-block"><span class="math-text">y = r + γ [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α log π(a'∣ s')]</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α<sub><span class="math-text">SAC</span></sub> log π(a'∣ s')]</span></div>
 
 <h3 id="section-12-5-2">12.5.2 算法横向对比</h3>
 <div class="table-scroll"><table class="wide-table">
@@ -741,7 +808,7 @@
 <p>缓解 DQN 中 <span class="math-text">max</span> 操作造成的 Q 值过估计。它用 online network 选动作，用 target network 评估动作。</p>
 <h4 id="section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</h4>
 <p>如果某个动作带来正 advantage，就增加该动作在该状态下的概率；如果 advantage 为负，就降低概率。公式是：</p>
-<div class="math-block"><span class="math-text">∇ J = 𝔼[∇ log π(a∣ s) A(s,a)]</span></div>
+<div class="math-block"><span class="math-text">∇ J = 𝔼[∇ log π(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div>
 
 <h4 id="section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</h4>
 <p>因为 baseline 不依赖 action，而：</p>

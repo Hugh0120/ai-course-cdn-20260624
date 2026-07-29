@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -419,6 +420,18 @@
 <td>到时刻 <span class="math-text">t</span> 为止动作 <span class="math-text">a</span> 被选过多少次。</td>
 </tr>
 <tr>
+<td><span class="math-text">ε</span></td>
+<td>Exploration Probability</td>
+<td>探索概率</td>
+<td>epsilon-greedy 中随机选择动作的概率。</td>
+</tr>
+<tr>
+<td><span class="math-text">P(a∣ s)</span></td>
+<td>Action Sampling Probability</td>
+<td>动作采样概率</td>
+<td>softmax exploration 在状态 <span class="math-text">s</span> 选择动作 <span class="math-text">a</span> 的概率。</td>
+</tr>
+<tr>
 <td><span class="math-text">μ<sub><span class="math-text">a</span></sub></span> / <span class="math-text">μ<sup><span class="math-text">*</span></sup></span></td>
 <td>Mean Reward / Best Mean Reward</td>
 <td>平均奖励 / 最优平均奖励</td>
@@ -435,6 +448,24 @@
 <td>Temperature</td>
 <td>温度参数</td>
 <td>softmax exploration 中控制分布平滑程度。</td>
+</tr>
+<tr>
+<td><span class="math-text">c</span></td>
+<td>Exploration Coefficient</td>
+<td>探索系数</td>
+<td>UCB 中控制不确定性 bonus 强度的正数。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ<sub><span class="math-text">a</span></sub></span></td>
+<td>Bernoulli Success Probability</td>
+<td>Bernoulli 成功概率</td>
+<td>Thompson Sampling 例子中动作 <span class="math-text">a</span> 的未知真实点击率。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">a</span></sub></span> / <span class="math-text">β<sub><span class="math-text">a</span></sub></span></td>
+<td>Beta Posterior Parameters</td>
+<td>Beta 后验参数</td>
+<td>分别累计动作 <span class="math-text">a</span> 的成功和失败证据；不是学习率或熵系数。</td>
 </tr>
 <tr>
 <td>RL</td>
@@ -582,7 +613,7 @@ otherwise:
 <p>softmax exploration 按照 action-value 的 softmax 概率采样动作：</p>
 <div class="math-block"><span class="math-text">P(a ∣ s) = exp(Q(s,a) / τ) / ∑<sub><span class="math-text">b</span></sub> exp(Q(s,b) / τ)</span></div>
 
-<p><span class="math-text">τ</span> 是 temperature：</p>
+<p>其中 <span class="math-text">b</span> 只是遍历全部候选动作的求和下标，<span class="math-text">P(a∣ s)</span> 是最终采样动作 <span class="math-text">a</span> 的概率，<span class="math-text">τ</span> 是 temperature：</p>
 <ul>
 <li><span class="math-text">τ</span> 大：分布更平，探索更多。</li>
 <li><span class="math-text">τ</span> 小：分布更尖，接近 greedy。</li>

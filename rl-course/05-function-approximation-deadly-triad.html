@@ -304,6 +304,7 @@
       min-width: 640px;
       margin: 0;
     }
+    .table-scroll .standard-table { min-width: 0; }
     .table-scroll .symbol-table { min-width: 720px; }
     .table-scroll .wide-table { min-width: 760px; }
     .exercise-answers .math-text {
@@ -407,6 +408,12 @@
 <td>策略网络或价值网络的可学习参数。</td>
 </tr>
 <tr>
+<td><span class="math-text">w<sup><span class="math-text">-</span></sup></span></td>
+<td>Target Network Weights</td>
+<td>目标网络权重</td>
+<td>从在线权重 <span class="math-text">w</span> 延迟同步或软更新得到的参数。</td>
+</tr>
+<tr>
 <td><span class="math-text">y</span></td>
 <td>Target</td>
 <td>训练目标值</td>
@@ -417,6 +424,42 @@
 <td>Loss Function</td>
 <td>损失函数</td>
 <td>训练价值网络时最小化的目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">(s,a,r,s&#39;,d)</span></td>
+<td>Transition Tuple</td>
+<td>转移样本五元组</td>
+<td>当前状态、动作、即时奖励、下一状态和终止指示量；代码常把 <span class="math-text">d</span> 写成 <code>done</code>。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span> / <code>done</code></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td><span class="math-text">d=1</span> 表示该转移到达真正终止状态，<span class="math-text">d=0</span> 表示仍可从 <span class="math-text">s&#39;</span> bootstrap。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>控制 Bellman target 中未来价值的权重。</td>
+</tr>
+<tr>
+<td><span class="math-text">d<sub><span class="math-text">μ</span></sub>(s,a)</span></td>
+<td>Behavior Distribution</td>
+<td>行为分布</td>
+<td>行为策略 <span class="math-text">μ</span> 与环境交互后在状态-动作对上的访问分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ</span></td>
+<td>Behavior Policy</td>
+<td>行为策略</td>
+<td>实际产生训练数据的策略；可与目标策略 <span class="math-text">π</span> 不同。</td>
+</tr>
+<tr>
+<td><span class="math-text">τ<sub><span class="math-text">soft</span></sub></span></td>
+<td>Soft-update Rate</td>
+<td>软更新系数</td>
+<td>控制目标网络每次从在线网络吸收多少新参数，通常远小于 1。</td>
 </tr>
 <tr>
 <td>behavior policy</td>
@@ -642,6 +685,7 @@
 <p>Replay buffer 存储历史 transition：</p>
 <pre><code class="language-text">(s, a, r, s&#39;, done)
 </code></pre>
+<p>五个字段依次是当前状态 <span class="math-text">s</span>、已执行动作 <span class="math-text">a</span>、即时奖励 <span class="math-text">r</span>、下一状态 <span class="math-text">s&#39;</span> 和终止标记 <code>done</code>。下文用数学符号 <span class="math-text">d∈{0,1}</span> 表示 <code>done</code>；<span class="math-text">d=1</span> 时没有可继续估计的未来回报。</p>
 <p>训练时从 buffer 中随机采样 mini-batch。</p>
 <p>好处：</p>
 <ul>
@@ -656,18 +700,18 @@
 <li>分布偏移仍然存在。</li>
 </ul>
 <h3 id="section-5-7-3">5.7.3 Target Network 的稳定作用</h3>
-<p>如果 target 和 online prediction 使用同一个网络：</p>
-<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w)</span></div>
+<p>如果 target 和 online prediction 使用同一个网络，带终止掩码的 target 是：</p>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) max<sub><span class="math-text">a'</span></sub> Q(s', a'; w)</span></div>
 
 <p>那么模型参数一更新，target 也立刻变化，训练目标非常不稳定。</p>
 <p>Target network 使用滞后的参数 <span class="math-text">w<sup><span class="math-text">-</span></sup></span>：</p>
-<div class="math-block"><span class="math-text">y = r + γ max<sub><span class="math-text">a'</span></sub> Q(s', a'; w<sup><span class="math-text">-</span></sup>)</span></div>
+<div class="math-block"><span class="math-text">y = r + γ(1-d) max<sub><span class="math-text">a'</span></sub> Q(s', a'; w<sup><span class="math-text">-</span></sup>)</span></div>
 
 <p>每隔一段时间同步：</p>
 <div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← w</span></div>
 
 <p>或者软更新：</p>
-<div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ w + (1 - τ) w<sup><span class="math-text">-</span></sup></span></div>
+<div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ<sub><span class="math-text">soft</span></sub> w + (1 - τ<sub><span class="math-text">soft</span></sub>) w<sup><span class="math-text">-</span></sup></span></div>
 
 <h2 id="section-5-8">5.8 本章例子：为什么表格法不够</h2>
 <h3 id="section-5-8-1">5.8.1 例子 1：Atari 像素输入</h3>
