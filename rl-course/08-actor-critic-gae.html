@@ -456,10 +456,10 @@
 <td>actor 和 critic 的训练损失。</td>
 </tr>
 <tr>
-<td><span class="math-text">widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
+<td><span class="math-text">V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
 <td>Value Target</td>
 <td>价值目标</td>
-<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。</td>
+<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。上标 target 用来区别当前预测 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)</span>。</td>
 </tr>
 <tr>
 <td><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></td>
@@ -594,6 +594,11 @@
 <td>共享网络 / 分离网络</td>
 <td>actor 和 critic 共用一部分网络，或各自用独立网络。</td>
 </tr>
+<tr>
+<td>stop gradient</td>
+<td>停止梯度</td>
+<td>计算 actor loss 时把 advantage 当作固定学习信号，不让 actor 的梯度反向修改 advantage 的构造过程。</td>
+</tr>
 </tbody></table></div>
 <h2 id="section-8-5">8.5 Actor-Critic 基础</h2>
 <h3 id="section-8-5-1">8.5.1 Actor-Critic 基本思想</h3>
@@ -705,7 +710,7 @@
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) A<sub><span class="math-text">t</span></sub></span></div>
 
 <p>Value loss：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
 
 <p>Entropy bonus：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub> = - β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(· ∣ s<sub><span class="math-text">t</span></sub>))</span></div>
@@ -845,10 +850,10 @@ A2C target: r + gamma V(s&#39;)
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>Actor 和 critic loss</strong>：一种常见写法是 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-𝔼[logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)hat A<sub><span class="math-text">t</span></sub>]</span>，<span class="math-text">L<sub><span class="math-text">critic</span></sub>=𝔼[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span>。工程上常组合为 <span class="math-text">L=L<sub><span class="math-text">actor</span></sub>+c<sub><span class="math-text">v</span></sub>L<sub><span class="math-text">critic</span></sub>-β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))</span>；计算 actor loss 时通常对 <span class="math-text">hat A<sub><span class="math-text">t</span></sub></span> stop gradient。</li>
+<li><strong>Actor 和 critic loss</strong>：一种常见写法是 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-𝔼[logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)A<sub><span class="math-text">t</span></sub>]</span>，<span class="math-text">L<sub><span class="math-text">critic</span></sub>=𝔼[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span>。工程上常组合为 <span class="math-text">L=L<sub><span class="math-text">actor</span></sub>+c<sub><span class="math-text">v</span></sub>L<sub><span class="math-text">critic</span></sub>-β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))</span>；计算 actor loss 时通常对 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> stop gradient。</li>
 <li><strong>TD error 与 advantage</strong>：<span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span>。给定 <span class="math-text">(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span> 取条件期望后，<span class="math-text">𝔼[δ<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)=A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>。所以单步 TD error 是 advantage 的有噪声样本估计。</li>
 <li><strong>N-step return</strong>：连续展开 return 递归 <span class="math-text">n</span> 次，得到 <span class="math-text">G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>=r<sub><span class="math-text">t</span></sub>+γ r<sub><span class="math-text">t+1</span></sub>+·s+γ<sup><span class="math-text">n-1</span></sup>r<sub><span class="math-text">t+n-1</span></sub>+γ<sup><span class="math-text">n</span></sup>V(s<sub><span class="math-text">t+n</span></sub>)</span>。若在 <span class="math-text">n</span> 步内终止，则终止后的 bootstrap value 为 0。</li>
-<li><strong><span class="math-text">λ</span> 的作用</strong>：GAE 使用 <span class="math-text">hat A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ,λ)</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span>。<span class="math-text">λ</span> 小时更接近一步 TD，bias 较大但 variance 较小；<span class="math-text">λ</span> 接近 1 时更接近长回报，bias 较小但 variance 较大。它是 bias-variance tradeoff 的旋钮。</li>
+<li><strong><span class="math-text">λ</span> 的作用</strong>：GAE 使用 <span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ,λ)</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span>。<span class="math-text">λ</span> 小时更接近一步 TD，bias 较大但 variance 较小；<span class="math-text">λ</span> 接近 1 时更接近长回报，bias 较小但 variance 较大。它是 bias-variance tradeoff 的旋钮。</li>
 </ol>
 </details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav></main></body>

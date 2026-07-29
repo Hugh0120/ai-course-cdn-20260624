@@ -426,10 +426,10 @@
 <td>参数 <span class="math-text">φ</span> 下预测下一状态的模型。</td>
 </tr>
 <tr>
-<td><span class="math-text">widehat P(s&#39;∣ s,a)</span></td>
+<td><span class="math-text">P<sub><span class="math-text">φ</span></sub>(s&#39;∣ s,a)</span></td>
 <td>Learned Transition Model</td>
 <td>学得的转移模型</td>
-<td>对真实环境转移概率 <span class="math-text">P(s&#39;∣ s,a)</span> 的近似。</td>
+<td>参数 <span class="math-text">φ</span> 下对真实环境转移概率 <span class="math-text">P(s&#39;∣ s,a)</span> 的近似。</td>
 </tr>
 <tr>
 <td><span class="math-text">μ(a∣ s)</span></td>
@@ -904,7 +904,7 @@
 <h2 id="section-11-10">11.10 本章例子：四类高级 RL 场景</h2>
 <h3 id="section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</h3>
 <p>机器人先学习一个 dynamics model：</p>
-<div class="math-block"><span class="math-text">P̂(s'∣ s,a)</span></div>
+<div class="math-block"><span class="math-text">P<sub><span class="math-text">φ</span></sub>(s'∣ s,a)</span></div>
 
 <p>然后在模型里模拟不同动作序列：</p>
 <pre><code class="language-text">动作序列 1 -&gt; 预测会撞墙

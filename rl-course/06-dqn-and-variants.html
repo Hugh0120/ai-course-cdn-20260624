@@ -423,7 +423,7 @@
 <td><span class="math-text">d</span> / <code>done</code></td>
 <td>Terminal Indicator</td>
 <td>终止指示量</td>
-<td><span class="math-text">d=1</span> 表示真正终止，target 不再 bootstrap；<span class="math-text">d=0</span> 表示可以继续估计未来价值。</td>
+<td><span class="math-text">d=1</span> 表示真正终止，target 不再 bootstrap（不再接入下一状态的估计价值）；<span class="math-text">d=0</span> 表示可以继续估计未来价值。旧代码常把 <span class="math-text">d</span> 命名为 <code>done</code>。</td>
 </tr>
 <tr>
 <td><span class="math-text">γ</span></td>
@@ -588,9 +588,44 @@
 <td>当前 Q 网络要拟合的监督信号，例如 <span class="math-text">r+γmax Q(s&#39;,a&#39;)</span>。</td>
 </tr>
 <tr>
+<td>bootstrap / bootstrapping</td>
+<td>自举</td>
+<td>target 中接入模型自己对下一状态的当前估计，例如 <span class="math-text">r+γ V(s&#39;)</span>；好处是无需等完整 episode，风险是估计误差会传递。</td>
+</tr>
+<tr>
 <td>Huber loss</td>
 <td>Huber 损失</td>
 <td>对异常 TD error 比平方损失更稳的回归损失。</td>
+</tr>
+<tr>
+<td>overestimation bias</td>
+<td>过估计偏差</td>
+<td>对带噪声的多个 Q 估计取最大值时，更容易选中被正噪声高估的动作。</td>
+</tr>
+<tr>
+<td>sample efficiency</td>
+<td>样本效率</td>
+<td>每条环境交互数据能被算法利用到什么程度；replay 复用旧样本可以提高样本效率。</td>
+</tr>
+<tr>
+<td>Gymnasium / API</td>
+<td>Python RL 环境库 / 应用程序编程接口</td>
+<td>Gymnasium 是常用的 Python 强化学习环境库；API 是 Application Programming Interface（应用程序编程接口），规定代码如何调用环境以及环境返回哪些字段。</td>
+</tr>
+<tr>
+<td><code>terminated</code> / <code>truncated</code></td>
+<td>任务终止 / 外部截断</td>
+<td><code>terminated</code> 表示到达任务定义的终止状态；<code>truncated</code> 表示因时间上限等任务外条件停止。二者都会结束当前 episode，但不一定都应清零 bootstrap value。</td>
+</tr>
+<tr>
+<td>stop gradient</td>
+<td>停止梯度</td>
+<td>把 TD target 当作固定监督标签，反向传播时不让梯度穿过 target 分支。</td>
+</tr>
+<tr>
+<td>CleanRL</td>
+<td>CleanRL 开源实现</td>
+<td>一组强调单文件、便于阅读的强化学习算法实现；本章练习只把它作为代码阅读材料。</td>
 </tr>
 <tr>
 <td>Double DQN</td>
@@ -675,11 +710,12 @@ initialize replay buffer
 
 for each step:
     choose action using epsilon-greedy
-    execute action, observe r, s&#39;, done
-    store (s, a, r, s&#39;, done) in replay buffer
+    execute action, observe r, s&#39;, terminated, truncated
+    d = 1 if terminated else 0
+    store (s, a, r, s&#39;, d) in replay buffer
 
     sample minibatch from replay buffer
-    y = r + gamma (1 - done) max_a&#39; Q(s&#39;, a&#39;; theta-)
+    y = r + gamma (1 - d) max_a&#39; Q(s&#39;, a&#39;; theta-)
     minimize [y - Q(s, a; theta)]^2
 
     periodically update target network
@@ -687,7 +723,7 @@ for each step:
 <h2 id="section-6-6">6.6 DQN 稳定组件</h2>
 <h3 id="section-6-6-1">6.6.1 Experience Replay</h3>
 <p>Replay buffer 存储 transition：</p>
-<pre><code class="language-text">(s, a, r, s&#39;, done)
+<pre><code class="language-text">(s, a, r, s&#39;, d)
 </code></pre>
 <p>字段逐一解释：</p>
 <div class="table-scroll"><table class="standard-table">
@@ -714,11 +750,53 @@ for each step:
 <td>环境转移到的下一状态。</td>
 </tr>
 <tr>
-<td><code>done</code></td>
-<td>数学公式中的 <span class="math-text">d</span>；真正终止时为 1，否则为 0。</td>
+<td><code>d</code> / <code>done</code></td>
+<td>训练公式使用的终止掩码；真正终止时为 1，否则为 0。<code>done</code> 是许多旧实现使用的字段名。</td>
 </tr>
 </tbody></table></div>
-<p>在 Gymnasium API 中，环境通常把结束拆成 <code>terminated</code> 和 <code>truncated</code>：<code>terminated</code> 表示任务定义的真正终止，通常应令 <span class="math-text">d=1</span>；<code>truncated</code> 常表示时间上限等外部截断，通常仍允许从最终观测 bootstrap。具体环境若把截断也定义成没有未来价值，则按任务语义处理。</p>
+<p><strong>Gymnasium 到底是什么？</strong></p>
+<p>Gymnasium 是一个常用的 Python 强化学习环境库。它提供统一的环境调用方式，让预置的教学环境和自定义环境都可以通过类似代码交互。API 是 <strong>Application Programming Interface（应用程序编程接口）</strong>；这里具体指 <code>env.step(action)</code> 的返回约定：</p>
+<pre><code class="language-python">(
+    next_state,
+    reward,
+    terminated,
+    truncated,
+    info,
+) = env.step(action)
+</code></pre>
+<div class="table-scroll"><table class="standard-table">
+<thead>
+<tr>
+<th>返回字段</th>
+<th>含义与训练影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>next_state</code></td>
+<td>执行动作后的下一状态，对应公式中的 <span class="math-text">s&#39;</span>。</td>
+</tr>
+<tr>
+<td><code>reward</code></td>
+<td>本步即时奖励，对应公式中的 <span class="math-text">r</span>。</td>
+</tr>
+<tr>
+<td><code>terminated</code></td>
+<td>到达任务本身定义的终止状态，例如杆已经倒下；通常令训练掩码 <span class="math-text">d=1</span>，不再接入下一状态价值。</td>
+</tr>
+<tr>
+<td><code>truncated</code></td>
+<td>因时间上限等外部条件停止，而非任务自然终止；当前 episode 要结束，但若最终观测仍是有效状态，通常令 <span class="math-text">d=0</span> 并继续 bootstrap。</td>
+</tr>
+<tr>
+<td><code>info</code></td>
+<td>环境附带的调试或统计信息，通常不直接进入 DQN target。</td>
+</tr>
+</tbody></table></div>
+<p>因此，“是否需要重置环境”和“是否清零未来价值”是两个问题：</p>
+<pre><code class="language-python">episode_finished = terminated or truncated  # 是否 reset 环境
+d = float(terminated)                       # 是否清零 bootstrap value
+</code></pre>
+<p>为避免把二者混淆，实际 replay buffer 最稳妥的做法是分别保存 <code>terminated</code> 和 <code>truncated</code>，构造 target 时再按任务语义生成 <span class="math-text">d</span>。本课程公式继续使用简洁的五元组 <span class="math-text">(s,a,r,s&#39;,d)</span>。</p>
 <p>作用：</p>
 <ul>
 <li>打破连续样本之间的相关性。</li>
@@ -816,12 +894,12 @@ Q(s, right) = 5 + 0 - 1 = 4
 <h3 id="section-6-7-5">6.7.5 Rainbow DQN</h3>
 <p>Rainbow DQN 组合了多个 DQN 改进：</p>
 <ul>
-<li>Double DQN。</li>
-<li>Dueling Network。</li>
-<li>Prioritized Replay。</li>
-<li>Multi-step Learning。</li>
-<li>Distributional RL。</li>
-<li>NoisyNet。</li>
+<li>Double DQN：拆开动作选择和动作估值，缓解过估计。</li>
+<li>Dueling Network：把 Q 分成状态价值和动作优势两条分支。</li>
+<li>Prioritized Replay：更常抽取 TD error 大的 transition。</li>
+<li>Multi-step Learning（多步学习）：用连续多步真实 reward 加末端 bootstrap value 构造 target，让奖励更快向前传播。</li>
+<li>Distributional RL（分布强化学习）：不只预测 return 的期望，而是预测 return 的概率分布。</li>
+<li>NoisyNet（噪声网络）：给网络参数加入可学习噪声，让策略通过参数扰动进行探索。</li>
 </ul>
 <p>面试中通常了解组件即可，不一定要求完整推导。</p>
 <h2 id="section-6-8">6.8 DQN 适用场景和例子</h2>
@@ -841,7 +919,7 @@ Q(s, right) = 5 + 0 - 1 = 4
 <p>连续控制通常用 DDPG、TD3、SAC、PPO 等算法。</p>
 <h3 id="section-6-8-2">6.8.2 本章例子：从 CartPole 到 DQN</h3>
 <h4 id="section-6-8-2-1">6.8.2.1 例子 1：CartPole</h4>
-<p>CartPole 的状态是：</p>
+<p>CartPole（小车倒立摆）是一个经典控制基准：agent 左右推动小车，目标是让上方的杆尽量保持直立。它的状态是：</p>
 <div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
@@ -907,15 +985,15 @@ Q(s&#39;, a2) = 9.8
 <li>手写 DQN target 和 loss。</li>
 <li>解释 Double DQN 的 target 和 DQN target 的区别。</li>
 <li>画出 Dueling DQN 的网络结构。</li>
-<li>阅读一个 CleanRL DQN 实现，标出 replay buffer、target network、epsilon schedule 的位置。</li>
+<li>阅读一个 CleanRL（便于阅读的单文件 RL 开源实现集合）DQN 实现，标出 replay buffer、target network、epsilon schedule 的位置。</li>
 </ol>
 <details class="exercise-answers">
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><p><strong>DQN target 和 loss</strong>：非终止 transition 的 target 是 <span class="math-text">y=r+γmax<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span>，终止 transition 的 target 是 <span class="math-text">y=r</span>。常用损失为 <span class="math-text">L(θ)=𝔼[(y-Q(s,a;θ))<sup><span class="math-text">2</span></sup>]</span> 或 Huber loss；计算 <span class="math-text">y</span> 时需要 stop gradient。</p>
+<li><p><strong>DQN target 和 loss</strong>：统一 target 是 <span class="math-text">y=r+γ(1-d)max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span>；<span class="math-text">d=1</span> 时自动变成 <span class="math-text">y=r</span>。常用损失为 <span class="math-text">L(θ)=𝔼[(y-Q(s,a;θ))<sup><span class="math-text">2</span></sup>]</span> 或 Huber loss；计算 <span class="math-text">y</span> 时需要 stop gradient（停止梯度），即把 target 当作固定标签。</p>
 </li>
-<li><p><strong>Double DQN 的区别</strong>：普通 DQN 用 target network 同时选动作和估值：<span class="math-text">y=r+γmax<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span>。Double DQN 用 online network 选 <span class="math-text">a<sup><span class="math-text"><em></span></sup>=arg max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ)</span>，再用 target network 估值：<span class="math-text">y=r+γ Q(s&#39;,a<sup><span class="math-text"></em></span></sup>;θ<sup><span class="math-text">-</span></sup>)</span>，从而解耦 selection 和 evaluation。</p>
+<li><p><strong>Double DQN 的区别</strong>：普通 DQN 用 target network 同时选动作和估值：<span class="math-text">y=r+γ(1-d)max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ<sup><span class="math-text">-</span></sup>)</span>。Double DQN 用 online network 选 <span class="math-text">a<sup><span class="math-text"><em></span></sup>=arg max<sub><span class="math-text">a&#39;</span></sub>Q(s&#39;,a&#39;;θ)</span>，再用 target network 估值：<span class="math-text">y=r+γ(1-d)Q(s&#39;,a<sup><span class="math-text"></em></span></sup>;θ<sup><span class="math-text">-</span></sup>)</span>，从而解耦 selection 和 evaluation。</p>
 </li>
 <li><p><strong>Dueling DQN 结构</strong>：</p>
 <pre><code class="language-text">state -&gt; shared encoder -&gt; state-value head V(s) -----+
@@ -925,7 +1003,7 @@ Q(s, a) = V(s) + A(s, a) - mean_a&#39; A(s, a&#39;)
 </code></pre>
 <p>减去平均 advantage 用于消除 <span class="math-text">V</span> 与 <span class="math-text">A</span> 分解的不唯一性。</p>
 </li>
-<li><p><strong>CleanRL 阅读检查点</strong>：replay buffer 通常在初始化区创建，在环境交互后调用 <code>add</code>，训练时调用 <code>sample</code>；target network 在 online network 之后创建，按固定频率复制参数；epsilon schedule 在选动作前根据 <code>global_step</code> 计算，随机数小于 epsilon 时采样随机动作，否则用 Q 网络取 <code>argmax</code>。阅读时还应检查 terminal mask、learning-starts 和 target-update frequency。</p>
+<li><p><strong>CleanRL 阅读检查点</strong>：replay buffer 通常在初始化区创建，在环境交互后调用 <code>add</code>，训练时调用 <code>sample</code>；target network 在 online network 之后创建，按固定频率复制参数；epsilon schedule（探索率随训练进度变化的规则）在选动作前根据 <code>global_step</code>（累计环境交互步数）计算，随机数小于 epsilon 时采样随机动作，否则用 Q 网络取 <code>argmax</code>。阅读时还应检查 terminal mask（终止掩码 <span class="math-text">d</span>）、learning-starts（开始梯度更新前至少积累多少 transition）和 target-update frequency（目标网络同步间隔）。</p>
 </li>
 </ol>
 </details>

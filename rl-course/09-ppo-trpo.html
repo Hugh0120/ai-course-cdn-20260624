@@ -456,10 +456,10 @@
 <td>PPO 的 value head 对状态 <span class="math-text">s</span> 的价值预测。</td>
 </tr>
 <tr>
-<td><span class="math-text">widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
+<td><span class="math-text">V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
 <td>Value Target</td>
 <td>价值目标</td>
-<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。</td>
+<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。上标 target 用来区别当前预测 <span class="math-text">V(s<sub><span class="math-text">t</span></sub>)</span>。</td>
 </tr>
 <tr>
 <td><span class="math-text">c<sub><span class="math-text">v</span></sub></span> / <span class="math-text">c<sub><span class="math-text">e</span></sub></span></td>
@@ -708,7 +708,7 @@
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - 𝔼[min(r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(r<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
 
 <p>Value loss：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = 𝔼[(V(s<sub><span class="math-text">t</span></sub>) - widehat V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = 𝔼[(V(s<sub><span class="math-text">t</span></sub>) - V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span></div>
 
 <p>Entropy bonus：</p>
 <div class="math-block"><span class="math-text">Entropy = 𝔼[H(π(·∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
@@ -853,8 +853,8 @@
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>PPO clipped objective</strong>：<span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)=𝔼<sub><span class="math-text">t</span></sub>[min(r<sub><span class="math-text">t</span></sub>(θ)hat A<sub><span class="math-text">t</span></sub>,clip(r<sub><span class="math-text">t</span></sub>(θ),1-ε<sub><span class="math-text">clip</span></sub>,1+ε<sub><span class="math-text">clip</span></sub>)hat A<sub><span class="math-text">t</span></sub>)]</span>，其中 <span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)/π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>。实现成最小化 loss 时通常在该目标前加负号。</li>
-<li><strong>Clipping 的两种情况</strong>：当 <span class="math-text">hat A<sub><span class="math-text">t</span></sub>&gt;0</span>，该动作比平均好，算法想提高其概率；若 ratio 超过 <span class="math-text">1+ε<sub><span class="math-text">clip</span></sub></span>，收益被截住，避免提高过多。当 <span class="math-text">hat A<sub><span class="math-text">t</span></sub>&lt;0</span>，算法想降低该动作概率；若 ratio 低于 <span class="math-text">1-ε<sub><span class="math-text">clip</span></sub></span>，目标被截住，避免一次把概率压得过低。<code>min</code> 与 advantage 的符号共同形成这个效果。</li>
+<li><strong>PPO clipped objective</strong>：<span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)=𝔼<sub><span class="math-text">t</span></sub>[min(r<sub><span class="math-text">t</span></sub>(θ)A<sub><span class="math-text">t</span></sub>,clip(r<sub><span class="math-text">t</span></sub>(θ),1-ε<sub><span class="math-text">clip</span></sub>,1+ε<sub><span class="math-text">clip</span></sub>)A<sub><span class="math-text">t</span></sub>)]</span>，其中 <span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)/π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>。实现成最小化 loss 时通常在该目标前加负号。</li>
+<li><strong>Clipping 的两种情况</strong>：当 <span class="math-text">A<sub><span class="math-text">t</span></sub>&gt;0</span>，该动作比平均好，算法想提高其概率；若 ratio 超过 <span class="math-text">1+ε<sub><span class="math-text">clip</span></sub></span>，收益被截住，避免提高过多。当 <span class="math-text">A<sub><span class="math-text">t</span></sub>&lt;0</span>，算法想降低该动作概率；若 ratio 低于 <span class="math-text">1-ε<sub><span class="math-text">clip</span></sub></span>，目标被截住，避免一次把概率压得过低。<code>min</code> 与 advantage 的符号共同形成这个效果。</li>
 <li><strong>TRPO vs PPO</strong>：TRPO 显式约束平均 KL divergence，并用二阶近似和共轭梯度求解，理论动机清晰但实现复杂。PPO 用 probability ratio clipping 或 KL penalty 近似限制更新，可用普通 minibatch SGD，工程实现更简单。二者通常都是 on-policy。</li>
 <li><strong>三个组件的作用</strong>：GAE 在 advantage 估计的 bias 和 variance 间折中；entropy bonus 防止 policy 过早变得确定、维持探索；advantage normalization 让一个 batch 内的更新尺度更稳定，降低学习率对 reward 量纲的敏感性，但它不改变 advantage 的相对排序。</li>
 </ol>
