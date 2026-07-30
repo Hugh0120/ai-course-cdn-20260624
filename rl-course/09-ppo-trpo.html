@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav><h1 id="chapter-9">第 9 章：TRPO（Trust Region Policy Optimization，信赖域策略优化）、PPO（Proximal Policy Optimization，近端策略优化）与策略更新约束</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-9-1">9.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-9-2">9.2 本章目标</a><a class="toc-link toc-level-2" href="#section-9-3">9.3 本章主线</a><a class="toc-link toc-level-2" href="#section-9-4">9.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-9-5">9.5 为什么要约束策略更新</a><a class="toc-link toc-level-3" href="#section-9-5-1">9.5.1 为什么要限制策略更新</a><a class="toc-link toc-level-3" href="#section-9-5-2">9.5.2 Importance Sampling Ratio</a><a class="toc-link toc-level-3" href="#section-9-5-3">9.5.3 Ratio 从哪里来</a><a class="toc-link toc-level-2" href="#section-9-6">9.6 Trust Region 与 PPO 方法</a><a class="toc-link toc-level-3" href="#section-9-6-1">9.6.1 TRPO</a><a class="toc-link toc-level-3" href="#section-9-6-2">9.6.2 PPO</a><a class="toc-link toc-level-3" href="#section-9-6-3">9.6.3 PPO Clipping 直觉</a><a class="toc-link toc-level-3" href="#section-9-6-4">9.6.4 Clipping 分情况推理</a><a class="toc-link toc-level-4" href="#section-9-6-4-1">9.6.4.1 情况 1：<span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span></a><a class="toc-link toc-level-4" href="#section-9-6-4-2">9.6.4.2 情况 2：<span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span></a><a class="toc-link toc-level-3" href="#section-9-6-5">9.6.5 PPO Loss 组成</a><a class="toc-link toc-level-3" href="#section-9-6-6">9.6.6 PPO 训练流程</a><a class="toc-link toc-level-3" href="#section-9-6-7">9.6.7 PPO 一轮训练的推理顺序</a><a class="toc-link toc-level-2" href="#section-9-7">9.7 PPO 使用场景和对比</a><a class="toc-link toc-level-3" href="#section-9-7-1">9.7.1 PPO 为什么常用</a><a class="toc-link toc-level-3" href="#section-9-7-2">9.7.2 PPO vs DQN</a><a class="toc-link toc-level-2" href="#section-9-8">9.8 本章例子：PPO clipping 怎么工作</a><a class="toc-link toc-level-3" href="#section-9-8-1">9.8.1 Advantage 为正</a><a class="toc-link toc-level-3" href="#section-9-8-2">9.8.2 Advantage 为负</a><a class="toc-link toc-level-3" href="#section-9-8-3">9.8.3 RLHF 例子</a><a class="toc-link toc-level-2" href="#section-9-9">9.9 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-9-9-1">9.9.1 PPO 解决了什么问题？</a><a class="toc-link toc-level-3" href="#section-9-9-2">9.9.2 PPO 的 ratio 是什么？</a><a class="toc-link toc-level-3" href="#section-9-9-3">9.9.3 PPO clipping objective 的直觉？</a><a class="toc-link toc-level-3" href="#section-9-9-4">9.9.4 PPO 和 TRPO 的区别？</a><a class="toc-link toc-level-3" href="#section-9-9-5">9.9.5 PPO 是 on-policy 还是 off-policy？</a><a class="toc-link toc-level-2" href="#section-9-10">9.10 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav><h1 id="chapter-9">第 9 章：TRPO（Trust Region Policy Optimization，信赖域策略优化）、PPO（Proximal Policy Optimization，近端策略优化）与策略更新约束</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-9-1">9.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-9-2">9.2 本章目标</a><a class="toc-link toc-level-2" href="#section-9-3">9.3 本章主线</a><a class="toc-link toc-level-2" href="#section-9-4">9.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-9-5">9.5 为什么要约束策略更新</a><a class="toc-link toc-level-3" href="#section-9-5-1">9.5.1 为什么要限制策略更新</a><a class="toc-link toc-level-3" href="#section-9-5-2">9.5.2 旧策略数据怎样评估新策略：Ratio 从哪里来</a><a class="toc-link toc-level-3" href="#section-9-5-3">9.5.3 为什么有 Ratio 仍然不够</a><a class="toc-link toc-level-2" href="#section-9-6">9.6 Trust Region 与 PPO 方法</a><a class="toc-link toc-level-3" href="#section-9-6-1">9.6.1 TRPO</a><a class="toc-link toc-level-3" href="#section-9-6-2">9.6.2 PPO</a><a class="toc-link toc-level-3" href="#section-9-6-3">9.6.3 PPO Clipping 直觉</a><a class="toc-link toc-level-3" href="#section-9-6-4">9.6.4 Clipping 分情况推理</a><a class="toc-link toc-level-4" href="#section-9-6-4-1">9.6.4.1 情况 1：<span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span></a><a class="toc-link toc-level-4" href="#section-9-6-4-2">9.6.4.2 情况 2：<span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span></a><a class="toc-link toc-level-3" href="#section-9-6-5">9.6.5 PPO Loss 组成</a><a class="toc-link toc-level-3" href="#section-9-6-6">9.6.6 PPO 训练流程</a><a class="toc-link toc-level-3" href="#section-9-6-7">9.6.7 PPO 一轮训练的推理顺序</a><a class="toc-link toc-level-2" href="#section-9-7">9.7 PPO 使用场景和对比</a><a class="toc-link toc-level-3" href="#section-9-7-1">9.7.1 PPO 为什么常用</a><a class="toc-link toc-level-3" href="#section-9-7-2">9.7.2 PPO vs DQN</a><a class="toc-link toc-level-2" href="#section-9-8">9.8 本章例子：PPO clipping 怎么工作</a><a class="toc-link toc-level-3" href="#section-9-8-1">9.8.1 Advantage 为正</a><a class="toc-link toc-level-3" href="#section-9-8-2">9.8.2 Advantage 为负</a><a class="toc-link toc-level-3" href="#section-9-8-3">9.8.3 RLHF 例子</a><a class="toc-link toc-level-2" href="#section-9-9">9.9 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-9-9-1">9.9.1 PPO 解决了什么问题？</a><a class="toc-link toc-level-3" href="#section-9-9-2">9.9.2 PPO 的 ratio 是什么？</a><a class="toc-link toc-level-3" href="#section-9-9-3">9.9.3 PPO clipping objective 的直觉？</a><a class="toc-link toc-level-3" href="#section-9-9-4">9.9.4 PPO 和 TRPO 的区别？</a><a class="toc-link toc-level-3" href="#section-9-9-5">9.9.5 PPO 是 on-policy 还是 off-policy？</a><a class="toc-link toc-level-2" href="#section-9-10">9.10 本章练习</a></nav></details>
 <h2 id="section-9-1">9.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -428,16 +428,16 @@
 <td>当前要优化的策略参数和采样数据时的旧参数。</td>
 </tr>
 <tr>
-<td><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)</span></td>
+<td><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ)</span></td>
 <td>Probability Ratio</td>
 <td>概率比</td>
-<td>新策略和旧策略对同一动作的概率比。</td>
+<td>新策略和旧策略对同一动作的概率比；使用 <span class="math-text">ρ</span> 避免与即时 reward <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span> 混淆。</td>
 </tr>
 <tr>
-<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
+<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span> / <span class="math-text">Â<sub><span class="math-text">t</span></sub></span></td>
 <td>Advantage Estimate</td>
 <td>优势估计</td>
-<td>判断当前动作应提高还是降低概率的信号。</td>
+<td>判断当前动作应提高还是降低概率的样本信号；两种写法都表示估计量，不是真实 <span class="math-text">A<sub><span class="math-text">π</span></sub></span>。</td>
 </tr>
 <tr>
 <td><span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)</span></td>
@@ -633,30 +633,53 @@
 <li>neural policy 的参数小变化可能导致动作分布大变化。</li>
 </ul>
 <p>因此 TRPO/PPO 都试图限制新旧策略距离。</p>
-<h3 id="section-9-5-2">9.5.2 Importance Sampling Ratio</h3>
-<p>PPO/TRPO 常用 ratio：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div>
-
-<p>它表示在同一个 <span class="math-text">(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>)</span> 上，新策略相对于旧策略的概率变化。</p>
-<p>Policy objective 可写成：</p>
-<div class="math-block"><span class="math-text">L(θ) = 𝔼[r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>]</span></div>
-
-<p>如果 <span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span>，希望增加该动作概率，即增大 ratio。<br>如果 <span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span>，希望降低该动作概率，即减小 ratio。</p>
-<h3 id="section-9-5-3">9.5.3 Ratio 从哪里来</h3>
+<h3 id="section-9-5-2">9.5.2 旧策略数据怎样评估新策略：Ratio 从哪里来</h3>
 <p>PPO 的数据是旧策略 <span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub></span> 采样出来的，但我们想评估新策略 <span class="math-text">π<sub><span class="math-text">θ</span></sub></span>。如果完全重新采样，成本很高；如果直接把旧数据当新数据，又会有分布偏差。</p>
 <p>importance sampling 的基本想法是：</p>
 <div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">θ</span></sub></span></sub>[f(a)]
 =𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">old</span></sub></span></sub>[π<sub><span class="math-text">θ</span></sub>(a∣ s) / π<sub><span class="math-text">old</span></sub>(a∣ s)f(a)]</span></div>
 
 <p>所以出现 ratio：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ)
+=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) /
+{π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)}</span></div>
 
-<p>它把“旧策略采到的动作”校正成“新策略下这个动作有多可能”。但 ratio 如果太大或太小，说明新旧策略差异太大，旧数据对新策略的估计就不可靠。这就是后面 clipping 的动机。</p>
+<p>它表示在同一个 <span class="math-text">(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span> 上，新策略相对旧策略把动作概率改了多少：</p>
+<ul>
+<li><span class="math-text">ρ<sub><span class="math-text">t</span></sub>=1</span>：动作概率未变。</li>
+<li><span class="math-text">ρ<sub><span class="math-text">t</span></sub>&gt;1</span>：新策略更偏好该动作。</li>
+<li><span class="math-text">ρ<sub><span class="math-text">t</span></sub>&lt;1</span>：新策略降低了该动作概率。</li>
+</ul>
+<p>使用第 8 章已经算好的 advantage estimate，surrogate objective 写成：</p>
+<div class="math-block"><span class="math-text">L<sup><span class="math-text">surrogate</span></sup>(θ)
+=𝔼<sub><span class="math-text">t</span></sub>[ρ<sub><span class="math-text">t</span></sub>(θ)Â<sub><span class="math-text">t</span></sub>]</span></div>
+
+<ul>
+<li><span class="math-text">Â<sub><span class="math-text">t</span></sub>&gt;0</span>：希望增大 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span>，提高好动作概率。</li>
+<li><span class="math-text">Â<sub><span class="math-text">t</span></sub>&lt;0</span>：希望减小 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span>，降低差动作概率。</li>
+</ul>
+<p>这里要明确输入依赖：<span class="math-text">Â<sub><span class="math-text">t</span></sub></span> 是旧策略 rollout 上计算出的固定学习信号，通常来自 GAE；优化 Actor 时对它 stop gradient。</p>
+<h3 id="section-9-5-3">9.5.3 为什么有 Ratio 仍然不够</h3>
+<p>Action probability ratio 修正了“同一状态下动作概率变了多少”，但普通 surrogate objective 仍有近似：</p>
+<ul>
+<li>Rollout 中的状态由旧策略访问得到。</li>
+<li>新策略变化后，未来访问的状态分布也会变化。</li>
+<li>单步 action ratio 没有完整修正长轨迹状态分布的变化。</li>
+<li><span class="math-text">ρ<sub><span class="math-text">t</span></sub></span> 过大或过小时，少数样本会主导梯度，估计方差上升。</li>
+</ul>
+<p>因此 ratio 不是允许无限复用旧数据的许可证。如果新旧策略差异太大，旧 rollout 对新策略的估计仍然不可靠。</p>
+<p>这就引出下一节：</p>
+<pre><code class="language-text">普通 Policy Gradient：沿梯度更新
+  -&gt; ratio：有限利用旧策略 rollout 评估新策略
+  -&gt; ratio 变化太大：surrogate 不再可靠
+  -&gt; TRPO：显式限制 KL trust region
+  -&gt; PPO：用 clipping 做一阶近似
+</code></pre>
 <h2 id="section-9-6">9.6 Trust Region 与 PPO 方法</h2>
 <h3 id="section-9-6-1">9.6.1 TRPO</h3>
 <p>TRPO 是 Trust Region Policy Optimization。</p>
 <p>它希望在提升 surrogate objective 的同时，限制新旧策略的 KL divergence：</p>
-<div class="math-block multi"><div><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼[r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>]</span></div><div><span class="math-text">subject to  𝔼[KL(π<sub><span class="math-text">old</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>)  ∥  π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))] ≤ δ<sub><span class="math-text">KL</span></sub></span></div></div>
+<div class="math-block multi"><div><span class="math-text">max<sub><span class="math-text">θ</span></sub> 𝔼[ρ<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>]</span></div><div><span class="math-text">subject to  𝔼[KL(π<sub><span class="math-text">old</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>)  ∥  π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))] ≤ δ<sub><span class="math-text">KL</span></sub></span></div></div>
 
 <p>核心思想：</p>
 <blockquote>
@@ -670,16 +693,42 @@
 <p>缺点：</p>
 <ul>
 <li>实现复杂。</li>
-<li>需要二阶近似、conjugate gradient、line search。</li>
+<li>需要额外处理策略分布的曲率、更新方向和可行步长。</li>
 <li>工程成本较高。</li>
 </ul>
+<p>这三个词的关系是：</p>
+<div class="table-scroll"><table class="three-col-table">
+<thead>
+<tr>
+<th>组件</th>
+<th>中文含义</th>
+<th>在 TRPO 中做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>second-order approximation</td>
+<td>二阶近似</td>
+<td>用 KL 对参数的局部曲率描述“策略分布变了多远”，而不只看普通梯度方向。</td>
+</tr>
+<tr>
+<td>conjugate gradient</td>
+<td>共轭梯度法</td>
+<td>近似求解由曲率矩阵决定的更新方向，避免显式构造和求逆巨大矩阵。</td>
+</tr>
+<tr>
+<td>line search</td>
+<td>线搜索</td>
+<td>沿候选方向缩小步长，直到 surrogate 改善且 KL constraint 真正满足。</td>
+</tr>
+</tbody></table></div>
+<p>所以 TRPO 的稳定性不是只来自写了一个 KL 符号，而是需要一套求方向、定步长和验约束的优化过程。</p>
 <h3 id="section-9-6-2">9.6.2 PPO</h3>
 <p>PPO 是 Proximal Policy Optimization。它保留了限制策略更新幅度的思想，但实现更简单。</p>
 <p>PPO clipped objective：</p>
-<div class="math-block multi"><div><span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)</span></div><div><span class="math-text">= 𝔼[min(r<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>,</span></div><div><span class="math-text">clip(r<sub><span class="math-text">t</span></sub>(θ), 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div></div>
+<div class="math-block multi"><div><span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)</span></div><div><span class="math-text">= 𝔼[min(ρ<sub><span class="math-text">t</span></sub>(θ) A<sub><span class="math-text">t</span></sub>,</span></div><div><span class="math-text">clip(ρ<sub><span class="math-text">t</span></sub>(θ), 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div></div>
 
 <p>其中：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p><span class="math-text">ε<sub><span class="math-text">clip</span></sub></span> 常用 <span class="math-text">0.1</span> 或 <span class="math-text">0.2</span>。</p>
 <h3 id="section-9-6-3">9.6.3 PPO Clipping 直觉</h3>
@@ -703,14 +752,14 @@
 <p>PPO 的 min 不是为了让公式复杂，而是为了“好方向可以走，但不要走太猛”。</p>
 <h4 id="section-9-6-4-1">9.6.4.1 情况 1：<span class="math-text">A<sub><span class="math-text">t</span></sub> &gt; 0</span></h4>
 <p>动作比平均水平好，应该提高它的概率。未截断目标是：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub></span></div>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub></span></div>
 
-<p>当 <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 从 1 增大时，目标变大，表示鼓励新策略更常选这个动作。但如果 <span class="math-text">r<sub><span class="math-text">t</span></sub> &gt; 1+ε<sub><span class="math-text">clip</span></sub></span>，说明概率已经提高太多。此时 clipped 项固定在：</p>
+<p>当 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span> 从 1 增大时，目标变大，表示鼓励新策略更常选这个动作。但如果 <span class="math-text">ρ<sub><span class="math-text">t</span></sub> &gt; 1+ε<sub><span class="math-text">clip</span></sub></span>，说明概率已经提高太多。此时 clipped 项固定在：</p>
 <div class="math-block"><span class="math-text">(1+ε<sub><span class="math-text">clip</span></sub>)A<sub><span class="math-text">t</span></sub></span></div>
 
 <p>再提高概率也不会得到更多收益，梯度被压住。</p>
 <h4 id="section-9-6-4-2">9.6.4.2 情况 2：<span class="math-text">A<sub><span class="math-text">t</span></sub> &lt; 0</span></h4>
-<p>动作比平均水平差，应该降低它的概率。因为 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 是负数，减小 <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 会让 <span class="math-text">r<sub><span class="math-text">t</span></sub>A<sub><span class="math-text">t</span></sub></span> 变大，看起来是好事。但如果 <span class="math-text">r<sub><span class="math-text">t</span></sub> &lt; 1-ε<sub><span class="math-text">clip</span></sub></span>，说明概率已经降低太多。clipped 项固定在：</p>
+<p>动作比平均水平差，应该降低它的概率。因为 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 是负数，减小 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span> 会让 <span class="math-text">ρ<sub><span class="math-text">t</span></sub>A<sub><span class="math-text">t</span></sub></span> 变大，看起来是好事。但如果 <span class="math-text">ρ<sub><span class="math-text">t</span></sub> &lt; 1-ε<sub><span class="math-text">clip</span></sub></span>，说明概率已经降低太多。clipped 项固定在：</p>
 <div class="math-block"><span class="math-text">(1-ε<sub><span class="math-text">clip</span></sub>)A<sub><span class="math-text">t</span></sub></span></div>
 
 <p>PPO 取 min，会阻止继续通过过度降低概率来“刷目标”。</p>
@@ -725,7 +774,7 @@
 <div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> - c<sub><span class="math-text">e</span></sub> Entropy</span></div>
 
 <p>如果按最小化写：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - 𝔼[min(r<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(r<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - 𝔼[min(ρ<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(ρ<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
 
 <p>Value loss：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = 𝔼[(V(s<sub><span class="math-text">t</span></sub>) - V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span></div>
@@ -733,14 +782,41 @@
 <p>Entropy bonus：</p>
 <div class="math-block"><span class="math-text">Entropy = 𝔼[H(π(·∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
 
-<p>实际实现中还可能有：</p>
-<ul>
-<li>advantage normalization。</li>
-<li>value clipping。</li>
-<li>gradient clipping。</li>
-<li>target KL early stopping。</li>
-<li>learning rate annealing。</li>
-</ul>
+<p>实际实现中还常见：</p>
+<div class="table-scroll"><table class="three-col-table">
+<thead>
+<tr>
+<th>技巧</th>
+<th>做法</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>advantage normalization</td>
+<td>在 rollout batch 内把 advantage 减均值、除标准差</td>
+<td>稳定 Actor loss 的数值尺度；不改变样本好坏排序。</td>
+</tr>
+<tr>
+<td>value clipping</td>
+<td>限制新旧 value prediction 的变化</td>
+<td>防止 Critic 一次更新过猛；它与 policy ratio clipping 不是同一项。</td>
+</tr>
+<tr>
+<td>gradient clipping</td>
+<td>限制整体梯度范数</td>
+<td>避免异常 minibatch 造成极大参数更新。</td>
+</tr>
+<tr>
+<td>target KL early stopping</td>
+<td>实测新旧策略 KL 超阈值时提前结束当前 epoch</td>
+<td>Clipping 不是严格 KL 约束，因此增加额外安全检查。</td>
+</tr>
+<tr>
+<td>learning-rate annealing</td>
+<td>训练后期逐步降低学习率</td>
+<td>让后期策略更新更细，减少振荡。</td>
+</tr>
+</tbody></table></div>
 <h3 id="section-9-6-6">9.6.6 PPO 训练流程</h3>
 <pre><code class="language-text">for each iteration:
     collect rollout using pi_old
@@ -828,7 +904,7 @@
 <h2 id="section-9-8">9.8 本章例子：PPO clipping 怎么工作</h2>
 <p>假设某个动作在旧策略下概率是 0.20，新策略下概率是 0.26。</p>
 <p>importance ratio 是：</p>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>=0.26 / 0.20=1.3</span></div>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>=0.26 / 0.20=1.3</span></div>
 
 <p>如果 <span class="math-text">ε<sub><span class="math-text">clip</span></sub>=0.2</span>，允许范围是：</p>
 <div class="math-block"><span class="math-text">[0.8,1.2]</span></div>
@@ -853,7 +929,7 @@
 <h3 id="section-9-9-1">9.9.1 PPO 解决了什么问题？</h3>
 <p>PPO 解决普通 policy gradient 更新过大导致策略崩掉的问题。它通过 clipping objective 限制新旧策略概率比的变化，使策略更新更稳定。</p>
 <h3 id="section-9-9-2">9.9.2 PPO 的 ratio 是什么？</h3>
-<div class="math-block"><span class="math-text">r<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>它衡量新策略相对于采样数据的旧策略，对同一动作概率改变了多少。</p>
 <h3 id="section-9-9-3">9.9.3 PPO clipping objective 的直觉？</h3>
@@ -873,7 +949,7 @@
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>PPO clipped objective</strong>：<span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)=𝔼<sub><span class="math-text">t</span></sub>[min(r<sub><span class="math-text">t</span></sub>(θ)A<sub><span class="math-text">t</span></sub>,clip(r<sub><span class="math-text">t</span></sub>(θ),1-ε<sub><span class="math-text">clip</span></sub>,1+ε<sub><span class="math-text">clip</span></sub>)A<sub><span class="math-text">t</span></sub>)]</span>，其中 <span class="math-text">r<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)/π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>。实现成最小化 loss 时通常在该目标前加负号。</li>
+<li><strong>PPO clipped objective</strong>：<span class="math-text">L<sup><span class="math-text">CLIP</span></sup>(θ)=𝔼<sub><span class="math-text">t</span></sub>[min(ρ<sub><span class="math-text">t</span></sub>(θ)A<sub><span class="math-text">t</span></sub>,clip(ρ<sub><span class="math-text">t</span></sub>(θ),1-ε<sub><span class="math-text">clip</span></sub>,1+ε<sub><span class="math-text">clip</span></sub>)A<sub><span class="math-text">t</span></sub>)]</span>，其中 <span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ)=π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)/π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>。实现成最小化 loss 时通常在该目标前加负号。</li>
 <li><strong>Clipping 的两种情况</strong>：当 <span class="math-text">A<sub><span class="math-text">t</span></sub>&gt;0</span>，该动作比平均好，算法想提高其概率；若 ratio 超过 <span class="math-text">1+ε<sub><span class="math-text">clip</span></sub></span>，收益被截住，避免提高过多。当 <span class="math-text">A<sub><span class="math-text">t</span></sub>&lt;0</span>，算法想降低该动作概率；若 ratio 低于 <span class="math-text">1-ε<sub><span class="math-text">clip</span></sub></span>，目标被截住，避免一次把概率压得过低。<code>min</code> 与 advantage 的符号共同形成这个效果。</li>
 <li><strong>TRPO vs PPO</strong>：TRPO 显式约束平均 KL divergence，并用二阶近似和共轭梯度求解，理论动机清晰但实现复杂。PPO 用 probability ratio clipping 或 KL penalty 近似限制更新，可用普通 minibatch SGD，工程实现更简单。二者通常都是 on-policy。</li>
 <li><strong>三个组件的作用</strong>：GAE 在 advantage 估计的 bias 和 variance 间折中；entropy bonus 防止 policy 过早变得确定、维持探索；advantage normalization 让一个 batch 内的更新尺度更稳定，降低学习率对 reward 量纲的敏感性，但它不改变 advantage 的相对排序。</li>

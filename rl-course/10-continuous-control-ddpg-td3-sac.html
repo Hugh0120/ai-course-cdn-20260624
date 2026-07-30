@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav><h1 id="chapter-10">第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-10-1">10.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-10-2">10.2 本章目标</a><a class="toc-link toc-level-2" href="#section-10-3">10.3 本章主线</a><a class="toc-link toc-level-2" href="#section-10-4">10.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-10-5">10.5 连续动作问题和 Actor 思路</a><a class="toc-link toc-level-3" href="#section-10-5-1">10.5.1 连续动作空间的挑战</a><a class="toc-link toc-level-3" href="#section-10-5-2">10.5.2 从 DQN 到 Actor 的推理过程</a><a class="toc-link toc-level-2" href="#section-10-6">10.6 DDPG：确定性 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-6-1">10.6.1 DDPG</a><a class="toc-link toc-level-3" href="#section-10-6-2">10.6.2 DDPG 的问题</a><a class="toc-link toc-level-2" href="#section-10-7">10.7 TD3：修正 DDPG 的过估计和不稳定</a><a class="toc-link toc-level-3" href="#section-10-7-1">10.7.1 TD3</a><a class="toc-link toc-level-4" href="#section-10-7-1-1">10.7.1.1 Clipped Double Q-learning</a><a class="toc-link toc-level-4" href="#section-10-7-1-2">10.7.1.2 Delayed Policy Update</a><a class="toc-link toc-level-4" href="#section-10-7-1-3">10.7.1.3 Target Policy Smoothing</a><a class="toc-link toc-level-3" href="#section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</a><a class="toc-link toc-level-2" href="#section-10-8">10.8 SAC：最大熵 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-8-1">10.8.1 SAC</a><a class="toc-link toc-level-3" href="#section-10-8-2">10.8.2 SAC 的组件</a><a class="toc-link toc-level-3" href="#section-10-8-3">10.8.3 SAC Soft Target 的推理过程</a><a class="toc-link toc-level-3" href="#section-10-8-4">10.8.4 Entropy Regularization 的意义</a><a class="toc-link toc-level-2" href="#section-10-9">10.9 连续控制算法对比和选型</a><a class="toc-link toc-level-3" href="#section-10-9-1">10.9.1 DDPG vs TD3 vs SAC</a><a class="toc-link toc-level-3" href="#section-10-9-2">10.9.2 本章例子：连续控制怎么选算法</a><a class="toc-link toc-level-4" href="#section-10-9-2-1">10.9.2.1 例子 1：机械臂控制</a><a class="toc-link toc-level-4" href="#section-10-9-2-2">10.9.2.2 例子 2：DDPG 的问题</a><a class="toc-link toc-level-4" href="#section-10-9-2-3">10.9.2.3 例子 3：TD3 怎么修</a><a class="toc-link toc-level-4" href="#section-10-9-2-4">10.9.2.4 例子 4：SAC 为什么适合探索</a><a class="toc-link toc-level-2" href="#section-10-10">10.10 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-10-10-1">10.10.1 为什么 DQN 不适合连续动作？</a><a class="toc-link toc-level-3" href="#section-10-10-2">10.10.2 DDPG 的核心是什么？</a><a class="toc-link toc-level-3" href="#section-10-10-3">10.10.3 TD3 相比 DDPG 做了哪些改进？</a><a class="toc-link toc-level-3" href="#section-10-10-4">10.10.4 SAC 为什么稳定？</a><a class="toc-link toc-level-3" href="#section-10-10-5">10.10.5 SAC 中 <span class="math-text">α</span> 是什么？</a><a class="toc-link toc-level-2" href="#section-10-11">10.11 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav><h1 id="chapter-10">第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-10-1">10.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-10-2">10.2 本章目标</a><a class="toc-link toc-level-2" href="#section-10-3">10.3 本章主线</a><a class="toc-link toc-level-2" href="#section-10-4">10.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-10-5">10.5 连续动作问题和 Actor 思路</a><a class="toc-link toc-level-3" href="#section-10-5-1">10.5.1 连续动作空间的挑战</a><a class="toc-link toc-level-3" href="#section-10-5-2">10.5.2 从 DQN 到 Actor 的推理过程</a><a class="toc-link toc-level-3" href="#section-10-5-3">10.5.3 混合动作为什么不能直接套纯 DDPG、TD3 或 SAC</a><a class="toc-link toc-level-2" href="#section-10-6">10.6 DDPG：确定性 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-6-1">10.6.1 DDPG</a><a class="toc-link toc-level-3" href="#section-10-6-2">10.6.2 DDPG 的问题</a><a class="toc-link toc-level-2" href="#section-10-7">10.7 TD3：修正 DDPG 的过估计和不稳定</a><a class="toc-link toc-level-3" href="#section-10-7-1">10.7.1 TD3</a><a class="toc-link toc-level-4" href="#section-10-7-1-1">10.7.1.1 Clipped Double Q-learning</a><a class="toc-link toc-level-4" href="#section-10-7-1-2">10.7.1.2 Delayed Policy Update</a><a class="toc-link toc-level-4" href="#section-10-7-1-3">10.7.1.3 Target Policy Smoothing</a><a class="toc-link toc-level-3" href="#section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</a><a class="toc-link toc-level-2" href="#section-10-8">10.8 SAC：最大熵 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-8-1">10.8.1 SAC</a><a class="toc-link toc-level-3" href="#section-10-8-2">10.8.2 SAC 的组件</a><a class="toc-link toc-level-3" href="#section-10-8-3">10.8.3 SAC Soft Target 的推理过程</a><a class="toc-link toc-level-3" href="#section-10-8-4">10.8.4 Entropy Regularization 的意义</a><a class="toc-link toc-level-2" href="#section-10-9">10.9 连续控制算法对比和选型</a><a class="toc-link toc-level-3" href="#section-10-9-1">10.9.1 DDPG vs TD3 vs SAC</a><a class="toc-link toc-level-3" href="#section-10-9-2">10.9.2 本章例子：连续控制怎么选算法</a><a class="toc-link toc-level-4" href="#section-10-9-2-1">10.9.2.1 例子 1：机械臂控制</a><a class="toc-link toc-level-4" href="#section-10-9-2-2">10.9.2.2 例子 2：DDPG 的问题</a><a class="toc-link toc-level-4" href="#section-10-9-2-3">10.9.2.3 例子 3：TD3 怎么修</a><a class="toc-link toc-level-4" href="#section-10-9-2-4">10.9.2.4 例子 4：SAC 为什么适合探索</a><a class="toc-link toc-level-2" href="#section-10-10">10.10 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-10-10-1">10.10.1 为什么 DQN 不适合连续动作？</a><a class="toc-link toc-level-3" href="#section-10-10-2">10.10.2 DDPG 的核心是什么？</a><a class="toc-link toc-level-3" href="#section-10-10-3">10.10.3 TD3 相比 DDPG 做了哪些改进？</a><a class="toc-link toc-level-3" href="#section-10-10-4">10.10.4 SAC 为什么稳定？</a><a class="toc-link toc-level-3" href="#section-10-10-5">10.10.5 SAC 中 <span class="math-text">α</span> 是什么？</a><a class="toc-link toc-level-2" href="#section-10-11">10.11 本章练习</a></nav></details>
 <h2 id="section-10-1">10.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -422,6 +422,12 @@
 <td>最大熵 off-policy actor-critic 算法。</td>
 </tr>
 <tr>
+<td><span class="math-text">S<sub><span class="math-text">t</span></sub></span> / <span class="math-text">A<sub><span class="math-text">t</span></sub></span> / <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></td>
+<td>State / Action / Reward Random Variable</td>
+<td>状态 / 动作 / 奖励随机变量</td>
+<td>时刻 <span class="math-text">t</span> 的状态、动作和执行动作后收到的奖励。</td>
+</tr>
+<tr>
 <td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
 <td>Critic Action-value Function</td>
 <td>Critic 动作价值函数</td>
@@ -438,6 +444,24 @@
 <td>Stochastic Actor</td>
 <td>随机 actor</td>
 <td>SAC 中 actor 输出的动作分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">K<sub><span class="math-text">t</span></sub></span> / <span class="math-text">U<sub><span class="math-text">t</span></sub></span></td>
+<td>Discrete Type / Continuous Parameter</td>
+<td>离散类型 / 连续参数</td>
+<td>混合动作中时刻 <span class="math-text">t</span> 的离散选择和连续参数随机变量。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub></span> / <span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub></span></td>
+<td>Discrete / Continuous Policy Head</td>
+<td>离散 / 连续策略分支</td>
+<td>混合 Actor 中分别输出 categorical choice 和 conditional continuous distribution 的分支。</td>
+</tr>
+<tr>
+<td><span class="math-text">Â<sub><span class="math-text">t</span></sub></span></td>
+<td>Advantage Estimate</td>
+<td>优势估计</td>
+<td>On-policy 混合 Actor-Critic 更新整个联合动作时使用的相对价值信号。</td>
 </tr>
 <tr>
 <td><span class="math-text">w<sup><span class="math-text">-</span></sup></span> / <span class="math-text">θ<sup><span class="math-text">-</span></sup></span></td>
@@ -646,6 +670,48 @@
 actor:   产生让 Q(s, a) 尽量大的动作
 </code></pre>
 <p>所以连续控制里的 actor 不是装饰，它是在替代 DQN 中对动作的显式枚举或 argmax。</p>
+<h3 id="section-10-5-3">10.5.3 混合动作为什么不能直接套纯 DDPG、TD3 或 SAC</h3>
+<p>第 7 章定义过混合动作：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub>=(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>其中 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 是离散类型，<span class="math-text">U<sub><span class="math-text">t</span></sub></span> 是该类型下的连续参数。例如：</p>
+<pre><code class="language-text">K_t = {等待, 买入, 卖出}
+U_t = [价格, 数量]
+</code></pre>
+<p>纯 DDPG/TD3 的 Actor 假设整个动作都是可微连续向量：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub>=μ<sub><span class="math-text">θ</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它依赖 Critic 对动作的梯度：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+
+<p>但 categorical sample 或离散 <span class="math-text">arg max</span> 对离散类型 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 不可按同样方式直接求导。因此不能让 DDPG 输出一个连续数再四舍五入成动作类型：环境执行的是离散结果，而 Actor/Critic 反传所假设的动作还是原连续数，两者优化语义不一致。</p>
+<p>纯连续 SAC 也通常假设可从连续分布重参数化采样。混合动作需要显式拆成：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(k,u∣ s)
+=π<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(k∣ s)
+π<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(u∣ s,k)</span></div>
+
+<p>相应 Critic 可以写成：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,k,u)</span></div>
+
+<p>常见处理路线：</p>
+<ol>
+<li><strong>On-policy 联合策略</strong>：使用 A2C/PPO 一类 score-function gradient，Actor loss 同时包含 categorical 和 conditional continuous log probability。</li>
+<li><strong>混合 SAC 变体</strong>：离散类型较少时，对 <span class="math-text">k</span> 枚举或取期望；每个 <span class="math-text">k</span> 再对条件连续参数 <span class="math-text">u</span> 采样并计算 soft Q。</li>
+<li><strong>参数化动作方法</strong>：离散分支选择动作类型，连续分支只输出被选类型需要的参数，Critic 对 <span class="math-text">(s,k,u)</span> 联合估值。</li>
+</ol>
+<p>以 joint Actor-Critic 为例：</p>
+<div class="math-block multi"><div><span class="math-text">L<sub><span class="math-text">actor</span></sub>
+=-𝔼[
+(logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(K<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>))
+Â<sub><span class="math-text">t</span></sub>]</span></div></div>
+
+<p>这里有三个实现边界：</p>
+<ul>
+<li>只训练实际被选中的 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 所对应的连续参数分支。</li>
+<li>不同离散类型的连续参数维度和合法范围要分别 mask。</li>
+<li>categorical entropy 与 continuous entropy 尺度不同，需要分别监控或加权。</li>
+</ul>
+<p>所以本章后续 DDPG、TD3、SAC 的标准公式都默认 <strong>纯连续动作空间</strong>。遇到离散加连续的混合空间时，应先写清联合动作分解，再选择或改造算法，不能只说“Actor 可以输出连续动作”就结束。</p>
 <h2 id="section-10-6">10.6 DDPG：确定性 Actor-Critic</h2>
 <h3 id="section-10-6-1">10.6.1 DDPG</h3>
 <p>DDPG 是 Deep Deterministic Policy Gradient。</p>

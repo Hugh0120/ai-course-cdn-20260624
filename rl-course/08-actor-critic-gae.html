@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>强化学习面试课程 · 第 8 章：Actor-Critic、A2C（Advantage Actor-Critic，优势 Actor-Critic）、A3C（Asynchronous Advantage Actor-Critic，异步优势 Actor-Critic）与 GAE（Generalized Advantage Estimation，广义优势估计）</title>
+  <title>强化学习面试课程 · 第 8 章：Actor-Critic：从 Monte Carlo Baseline 到 TD、GAE 与 A2C/A3C</title>
   <style>
   @page {
     size: A4;
@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav><h1 id="chapter-8">第 8 章：Actor-Critic、A2C（Advantage Actor-Critic，优势 Actor-Critic）、A3C（Asynchronous Advantage Actor-Critic，异步优势 Actor-Critic）与 GAE（Generalized Advantage Estimation，广义优势估计）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-8-1">8.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-8-2">8.2 本章目标</a><a class="toc-link toc-level-2" href="#section-8-3">8.3 本章主线</a><a class="toc-link toc-level-2" href="#section-8-4">8.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-8-5">8.5 Actor-Critic 基础</a><a class="toc-link toc-level-3" href="#section-8-5-1">8.5.1 Actor-Critic 基本思想</a><a class="toc-link toc-level-3" href="#section-8-5-2">8.5.2 TD Error 作为 Advantage</a><a class="toc-link toc-level-3" href="#section-8-5-3">8.5.3 为什么 TD Error 可以近似 Advantage</a><a class="toc-link toc-level-3" href="#section-8-5-4">8.5.4 Actor-Critic vs REINFORCE</a><a class="toc-link toc-level-2" href="#section-8-6">8.6 A2C / A3C：Actor-Critic 的采样组织方式</a><a class="toc-link toc-level-3" href="#section-8-6-1">8.6.1 A2C</a><a class="toc-link toc-level-3" href="#section-8-6-2">8.6.2 A3C</a><a class="toc-link toc-level-2" href="#section-8-7">8.7 多步回报与 GAE</a><a class="toc-link toc-level-3" href="#section-8-7-1">8.7.1 N-step Return</a><a class="toc-link toc-level-3" href="#section-8-7-2">8.7.2 Generalized Advantage Estimation</a><a class="toc-link toc-level-3" href="#section-8-7-3">8.7.3 GAE 的推理过程</a><a class="toc-link toc-level-2" href="#section-8-8">8.8 Actor-Critic 网络结构选择</a><a class="toc-link toc-level-3" href="#section-8-8-1">8.8.1 Shared Network vs Separate Network</a><a class="toc-link toc-level-2" href="#section-8-9">8.9 本章例子：Actor 和 Critic 分工</a><a class="toc-link toc-level-3" href="#section-8-9-1">8.9.1 例子 1：游戏 agent</a><a class="toc-link toc-level-3" href="#section-8-9-2">8.9.2 例子 2：A2C 和 REINFORCE 对比</a><a class="toc-link toc-level-3" href="#section-8-9-3">8.9.3 例子 3：GAE 的直觉</a><a class="toc-link toc-level-2" href="#section-8-10">8.10 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-8-10-1">8.10.1 Actor-Critic 中 actor 和 critic 分别做什么？</a><a class="toc-link toc-level-3" href="#section-8-10-2">8.10.2 Actor-Critic 相比 REINFORCE 的优势？</a><a class="toc-link toc-level-3" href="#section-8-10-3">8.10.3 TD error 为什么可以作为 advantage？</a><a class="toc-link toc-level-3" href="#section-8-10-4">8.10.4 A2C 和 A3C 的区别？</a><a class="toc-link toc-level-3" href="#section-8-10-5">8.10.5 GAE 解决什么问题？</a><a class="toc-link toc-level-2" href="#section-8-11">8.11 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav><h1 id="chapter-8">第 8 章：Actor-Critic：从 Monte Carlo Baseline 到 TD、GAE 与 A2C/A3C</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-8-1">8.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-8-2">8.2 本章目标</a><a class="toc-link toc-level-2" href="#section-8-3">8.3 本章主线与章节边界</a><a class="toc-link toc-level-2" href="#section-8-4">8.4 从 Learned Baseline 到 Critic</a><a class="toc-link toc-level-3" href="#section-8-4-1">8.4.1 第 7 章 Baseline 的限制</a><a class="toc-link toc-level-3" href="#section-8-4-2">8.4.2 Critic 的关键变化是 Bootstrap</a><a class="toc-link toc-level-3" href="#section-8-4-3">8.4.3 为什么 Target 要 Stop Gradient</a><a class="toc-link toc-level-2" href="#section-8-5">8.5 一步 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-8-5-1">8.5.1 TD Residual</a><a class="toc-link toc-level-3" href="#section-8-5-2">8.5.2 为什么 <span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 可以估计 Advantage</a><a class="toc-link toc-level-3" href="#section-8-5-3">8.5.3 Actor 怎样使用它</a><a class="toc-link toc-level-3" href="#section-8-5-4">8.5.4 一次更新的数值例子</a><a class="toc-link toc-level-2" href="#section-8-6">8.6 n-step Actor-Critic</a><a class="toc-link toc-level-3" href="#section-8-6-1">8.6.1 为什么不一定只看一步</a><a class="toc-link toc-level-3" href="#section-8-6-2">8.6.2 n 控制什么</a><a class="toc-link toc-level-3" href="#section-8-6-3">8.6.3 截断不一定等于真正终止</a><a class="toc-link toc-level-2" href="#section-8-7">8.7 GAE：平滑组合不同时间尺度</a><a class="toc-link toc-level-3" href="#section-8-7-1">8.7.1 从连续 TD Residual 出发</a><a class="toc-link toc-level-3" href="#section-8-7-2">8.7.2 GAE 与 n-step Advantage 的关系</a><a class="toc-link toc-level-3" href="#section-8-7-3">8.7.3 <span class="math-text">λ</span> 的含义</a><a class="toc-link toc-level-3" href="#section-8-7-4">8.7.4 数值例子</a><a class="toc-link toc-level-3" href="#section-8-7-5">8.7.5 Return Target 与 Advantage 的关系</a><a class="toc-link toc-level-2" href="#section-8-8">8.8 Actor-Critic 的完整优化目标</a><a class="toc-link toc-level-3" href="#section-8-8-1">8.8.1 Actor Loss</a><a class="toc-link toc-level-3" href="#section-8-8-2">8.8.2 Critic Loss</a><a class="toc-link toc-level-3" href="#section-8-8-3">8.8.3 Entropy Bonus 属于哪里</a><a class="toc-link toc-level-3" href="#section-8-8-4">8.8.4 总 Loss</a><a class="toc-link toc-level-3" href="#section-8-8-5">8.8.5 共享网络与分离网络</a><a class="toc-link toc-level-2" href="#section-8-9">8.9 混合动作空间中的 Actor-Critic</a><a class="toc-link toc-level-2" href="#section-8-10">8.10 A2C 与 A3C：采样组织方式</a><a class="toc-link toc-level-3" href="#section-8-10-1">8.10.1 先区分 Framework 和 Algorithm</a><a class="toc-link toc-level-3" href="#section-8-10-2">8.10.2 A3C</a><a class="toc-link toc-level-3" href="#section-8-10-3">8.10.3 A2C</a><a class="toc-link toc-level-2" href="#section-8-11">8.11 一轮训练的完整数据流</a><a class="toc-link toc-level-2" href="#section-8-12">8.12 本章例子与对比</a><a class="toc-link toc-level-3" href="#section-8-12-1">8.12.1 REINFORCE 与 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-8-12-2">8.12.2 游戏 Agent</a><a class="toc-link toc-level-3" href="#section-8-12-3">8.12.3 为什么 Critic 不直接决定动作</a><a class="toc-link toc-level-2" href="#section-8-13">8.13 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-8-13-1">8.13.1 Actor 和 Critic 分别做什么？</a><a class="toc-link toc-level-3" href="#section-8-13-2">8.13.2 TD Residual 为什么能估计 Advantage？</a><a class="toc-link toc-level-3" href="#section-8-13-3">8.13.3 n-step 与 GAE 的关系？</a><a class="toc-link toc-level-3" href="#section-8-13-4">8.13.4 为什么 Actor Loss 要对 Advantage Stop Gradient？</a><a class="toc-link toc-level-3" href="#section-8-13-5">8.13.5 A2C 和 A3C 区别？</a><a class="toc-link toc-level-3" href="#section-8-13-6">8.13.6 Entropy Bonus 是 Actor-Critic 必需的吗？</a><a class="toc-link toc-level-2" href="#section-8-14">8.14 本章练习</a></nav></details>
 <h2 id="section-8-1">8.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -404,106 +404,136 @@
 </tr>
 </thead>
 <tbody><tr>
+<td>AC</td>
+<td>Actor-Critic</td>
+<td>行动者-评价者框架</td>
+<td>Actor 学策略，Critic 学价值并给 Actor 提供学习信号。</td>
+</tr>
+<tr>
 <td>A2C</td>
 <td>Advantage Actor-Critic</td>
 <td>优势 Actor-Critic</td>
-<td>同步采样和更新的 actor-critic 方法。</td>
+<td>多环境同步采样、统一更新的 on-policy Actor-Critic 算法。</td>
 </tr>
 <tr>
 <td>A3C</td>
 <td>Asynchronous Advantage Actor-Critic</td>
 <td>异步优势 Actor-Critic</td>
-<td>多 worker 异步更新的 actor-critic 方法。</td>
+<td>多 worker 异步采样并更新共享参数的算法。</td>
 </tr>
 <tr>
 <td>GAE</td>
 <td>Generalized Advantage Estimation</td>
 <td>广义优势估计</td>
-<td>用 <span class="math-text">λ</span> 在 TD 和 MC advantage 之间折中。</td>
+<td>对多步 TD residual 加权，构造 advantage estimate。</td>
 </tr>
 <tr>
-<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></td>
+<td>TD</td>
+<td>Temporal Difference</td>
+<td>时序差分</td>
+<td>使用 reward 加下一状态价值进行 bootstrap 的估计方法。</td>
+</tr>
+<tr>
+<td>MC</td>
+<td>Monte Carlo</td>
+<td>蒙特卡洛</td>
+<td>使用完整实际 return、不 bootstrap 的估计方法。</td>
+</tr>
+<tr>
+<td><span class="math-text">S<sub><span class="math-text">t</span></sub></span> / <span class="math-text">A<sub><span class="math-text">t</span></sub></span> / <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></td>
+<td>State / Action / Reward Random Variable</td>
+<td>状态 / 动作 / 奖励随机变量</td>
+<td>时刻 <span class="math-text">t</span> 的状态、动作和执行动作后收到的奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span></td>
 <td>Actor Policy</td>
 <td>Actor 策略</td>
-<td>actor 网络输出的动作分布。</td>
+<td>参数为 <span class="math-text">θ</span> 的动作分布。</td>
+</tr>
+<tr>
+<td><span class="math-text">θ</span></td>
+<td>Actor Parameters</td>
+<td>Actor 参数</td>
+<td>策略网络的可学习参数。</td>
 </tr>
 <tr>
 <td><span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span></td>
-<td>Critic Value Function</td>
-<td>Critic 状态价值函数</td>
-<td>critic 网络对状态价值的估计。</td>
+<td>Critic State-value Estimate</td>
+<td>Critic 状态价值估计</td>
+<td>参数为 <span class="math-text">w</span> 的价值网络输出。</td>
 </tr>
 <tr>
-<td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
-<td>Critic Action-value Function</td>
-<td>Critic 动作价值函数</td>
-<td>critic 网络对状态-动作价值的估计。</td>
+<td><span class="math-text">w</span></td>
+<td>Critic Parameters</td>
+<td>Critic 参数</td>
+<td>价值网络的可学习参数。</td>
 </tr>
 <tr>
 <td><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> / <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span></td>
-<td>True Value Functions under <span class="math-text">π</span></td>
-<td>策略 <span class="math-text">π</span> 下的真实价值函数</td>
-<td>推导 advantage 时使用的理论状态价值与动作价值。</td>
+<td>True Value Functions</td>
+<td>理论价值函数</td>
+<td>策略 <span class="math-text">π</span> 下的真实条件期望，用于推导。</td>
 </tr>
 <tr>
 <td><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a)</span></td>
 <td>Advantage Function</td>
-<td>优势函数</td>
-<td>策略 <span class="math-text">π</span> 下动作价值相对状态价值的差，即 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span>。</td>
+<td>理论优势函数</td>
+<td><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)-V<sub><span class="math-text">π</span></sub>(s)</span>。</td>
 </tr>
 <tr>
-<td><span class="math-text">J(θ)</span></td>
-<td>Policy Objective</td>
-<td>策略目标函数</td>
-<td>actor 要最大化的目标。</td>
+<td><span class="math-text">Â<sub><span class="math-text">t</span></sub></span></td>
+<td>Advantage Estimate</td>
+<td>优势估计量</td>
+<td>实际更新 Actor 时使用的带噪声估计；帽子表示它不是真实 <span class="math-text">A<sub><span class="math-text">π</span></sub></span>。</td>
 </tr>
 <tr>
 <td><span class="math-text">δ<sub><span class="math-text">t</span></sub></span></td>
-<td>TD Error</td>
-<td>时序差分误差</td>
-<td>可作为一步 advantage 估计。</td>
+<td>TD Residual / TD Error</td>
+<td>TD 残差 / 时序差分误差</td>
+<td>一步 bootstrap target 与当前 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 的差。</td>
 </tr>
 <tr>
-<td><span class="math-text">A<sub><span class="math-text">t</span></sub></span></td>
-<td>Advantage Estimate</td>
-<td>优势估计</td>
-<td>策略更新时衡量动作好坏的信号。</td>
+<td><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup></span></td>
+<td>One-step Value Target</td>
+<td>一步价值目标</td>
+<td><span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span>。</td>
 </tr>
 <tr>
-<td><span class="math-text">L<sub><span class="math-text">policy</span></sub></span> / <span class="math-text">L<sub><span class="math-text">value</span></sub></span></td>
-<td>Policy Loss / Value Loss</td>
-<td>策略损失 / 价值损失</td>
-<td>actor 和 critic 的训练损失。</td>
+<td><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></td>
+<td>n-step Value Target</td>
+<td>n 步价值目标</td>
+<td>连续 n 步实际 reward 加第 n 步 bootstrap value。</td>
 </tr>
 <tr>
-<td><span class="math-text">V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span></td>
-<td>Value Target</td>
-<td>价值目标</td>
-<td>用 return 或 bootstrap 构造、用于训练 critic 的监督目标。上标 target 用来区别当前预测 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)</span>。</td>
-</tr>
-<tr>
-<td><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></td>
-<td>n-step Return</td>
-<td>n 步回报</td>
-<td>n-step bootstrap target。</td>
+<td><span class="math-text">d<sub><span class="math-text">t</span></sub></span></td>
+<td>Terminal Indicator</td>
+<td>终止指示量</td>
+<td>真正终止时为 1，此后没有环境定义的未来价值。</td>
 </tr>
 <tr>
 <td><span class="math-text">γ</span></td>
 <td>Discount Factor</td>
 <td>折扣因子</td>
-<td>控制未来 reward 和 value 的权重。</td>
+<td>控制未来 reward/value 的权重。</td>
 </tr>
 <tr>
 <td><span class="math-text">λ</span></td>
 <td>GAE Lambda</td>
 <td>GAE 衰减参数</td>
-<td>控制 bias 和 variance 的折中。</td>
+<td>控制 advantage estimate 看多远。</td>
 </tr>
 <tr>
-<td><span class="math-text">α<sub><span class="math-text">π</span></sub></span> / <span class="math-text">α<sub><span class="math-text">V</span></sub></span></td>
-<td>Actor / Critic Learning Rate</td>
-<td>Actor / Critic 学习率</td>
-<td>分别控制策略参数 <span class="math-text">θ</span> 和价值参数 <span class="math-text">w</span> 的更新步长。</td>
+<td><span class="math-text">L<sub><span class="math-text">actor</span></sub></span> / <span class="math-text">L<sub><span class="math-text">critic</span></sub></span></td>
+<td>Actor / Critic Loss</td>
+<td>Actor / Critic 损失</td>
+<td>分别更新策略和价值网络。</td>
+</tr>
+<tr>
+<td><span class="math-text">H(π)</span></td>
+<td>Policy Entropy</td>
+<td>策略熵</td>
+<td>衡量动作分布随机程度。</td>
 </tr>
 <tr>
 <td><span class="math-text">β<sub><span class="math-text">H</span></sub></span></td>
@@ -512,368 +542,606 @@
 <td>控制 entropy bonus 的强度。</td>
 </tr>
 <tr>
-<td><span class="math-text">c<sub><span class="math-text">v</span></sub></span></td>
+<td><span class="math-text">c<sub><span class="math-text">V</span></sub></span></td>
 <td>Value-loss Coefficient</td>
 <td>价值损失系数</td>
-<td>控制 value loss 在总 loss 中的权重。</td>
+<td>共享总 loss 中 Critic loss 的权重。</td>
+</tr>
+<tr>
+<td><span class="math-text">sg(·)</span></td>
+<td>Stop Gradient</td>
+<td>停止梯度</td>
+<td>前向使用数值，反向不沿该路径传播梯度。</td>
+</tr>
+<tr>
+<td><span class="math-text">K<sub><span class="math-text">t</span></sub></span> / <span class="math-text">U<sub><span class="math-text">t</span></sub></span></td>
+<td>Discrete Type / Continuous Parameter</td>
+<td>离散类型 / 连续参数随机变量</td>
+<td>混合动作 <span class="math-text">A<sub><span class="math-text">t</span></sub>=(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span> 的两个组成部分。</td>
+</tr>
+<tr>
+<td><span class="math-text">N</span> / <span class="math-text">T</span></td>
+<td>Number of Environments / Rollout Length</td>
+<td>并行环境数 / Rollout 长度</td>
+<td>A2C 中同步采样的环境数量和每个环境采样的步数。</td>
 </tr>
 <tr>
 <td>on-policy</td>
 <td>On-policy Learning</td>
 <td>同策略学习</td>
-<td>数据来自当前正在更新的策略。</td>
-</tr>
-<tr>
-<td>TD</td>
-<td>Temporal Difference</td>
-<td>时序差分</td>
-<td>critic 常用 TD error 做估计。</td>
-</tr>
-<tr>
-<td>MC</td>
-<td>Monte Carlo</td>
-<td>蒙特卡洛</td>
-<td>GAE 的另一端近似完整 return。</td>
-</tr>
-<tr>
-<td>REINFORCE</td>
-<td>REINFORCE algorithm</td>
-<td>REINFORCE 算法</td>
-<td>Actor-Critic 要改进的高方差 policy gradient 基线。</td>
-</tr>
-<tr>
-<td>PPO</td>
-<td>Proximal Policy Optimization</td>
-<td>近端策略优化</td>
-<td>常结合 GAE 使用的策略优化算法。</td>
+<td>Rollout 由当前正在更新的策略产生。</td>
 </tr>
 </tbody></table></div>
 <h2 id="section-8-2">8.2 本章目标</h2>
-<p>本章学习 Actor-Critic 框架。你需要掌握：</p>
+<p>学完本章，你应该能说明：</p>
+<ol>
+<li>第 7 章的 learned baseline 为什么还不是本章意义下的 Critic。</li>
+<li>Critic 怎样通过 bootstrap 从 Monte Carlo baseline 过渡到 TD value learning。</li>
+<li>为什么一步 TD residual 的条件期望等于 advantage。</li>
+<li>n-step advantage 和 GAE 怎样在 bias 与 variance 之间折中。</li>
+<li>Actor loss、Critic loss、stop gradient 和 entropy bonus 分别做什么。</li>
+<li>A2C/A3C 是怎样组织采样与更新的，而不是把它们当成突然出现的新公式。</li>
+</ol>
+<h2 id="section-8-3">8.3 本章主线与章节边界</h2>
+<p>第 7 章停在：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">MC</span></sup>
+=G<sub><span class="math-text">t</span></sub>-b<sub><span class="math-text">φ</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它已经能降低方差，但仍要等完整回报 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。本章按下面顺序解决这个等待和高方差问题：</p>
+<pre><code class="language-text">REINFORCE with learned baseline
+  -&gt; baseline 用完整 G_t 回归，仍是 Monte Carlo
+  -&gt; 允许 Value estimator 用下一状态价值 bootstrap
+  -&gt; 得到一步 TD Critic
+  -&gt; TD residual 可估计 advantage
+  -&gt; 用 n-step 在一步 TD 与完整 MC 之间折中
+  -&gt; 用 GAE 平滑组合多个时间尺度
+  -&gt; 写出 Actor/Critic/Entropy 三类 loss
+  -&gt; A2C/A3C 只是采样和更新的组织方式
+</code></pre>
+<p>本章不处理“策略一步更新太大”的问题；那是第 9 章 TRPO/PPO 的主题。</p>
+<h2 id="section-8-4">8.4 从 Learned Baseline 到 Critic</h2>
+<h3 id="section-8-4-1">8.4.1 第 7 章 Baseline 的限制</h3>
+<p>REINFORCE with baseline 训练：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">b</span></sub>(w)
+=𝔼<sub><span class="math-text">t</span></sub>[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-G<sub><span class="math-text">t</span></sub>)<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>这里把 baseline 直接记为 <span class="math-text">V<sub><span class="math-text">w</span></sub></span>，因为它试图近似 <span class="math-text">V<sub><span class="math-text">π</span></sub></span>。但监督标签 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 只有等未来轨迹走完后才能得到。</p>
+<p>优点：</p>
 <ul>
-<li>actor 和 critic 的职责。</li>
-<li>Actor-Critic 如何结合 policy gradient 和 value learning。</li>
-<li>TD error 如何作为 advantage 估计。</li>
-<li>A2C 和 A3C。</li>
-<li>Generalized Advantage Estimation。</li>
+<li>标签不 bootstrap，估计目标直接来自真实轨迹。</li>
+<li>在样本足够时，对当前策略价值的估计偏差较小。</li>
 </ul>
-<h2 id="section-8-3">8.3 本章主线</h2>
-<p>第 7 章的纯 policy gradient 可以直接优化策略，但 Monte Carlo return 方差高。第 3 章的 TD value learning 方差低但主要解决估值。本章把两者合并：actor 负责更新策略，critic 负责估计 value 或 advantage。GAE 则进一步在 MC 和 TD 之间调节 bias/variance。</p>
-<h2 id="section-8-4">8.4 本章新增概念说明</h2>
-<p>Actor-Critic 的词容易混在一起，先按角色定义：</p>
-<div class="table-scroll"><table class="three-col-table">
+<p>问题：</p>
+<ul>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub></span> 方差高。</li>
+<li>长 episode 要等很久才能更新。</li>
+<li>每条轨迹只能提供一次具体未来，样本效率较低。</li>
+</ul>
+<h3 id="section-8-4-2">8.4.2 Critic 的关键变化是 Bootstrap</h3>
+<p>由 Bellman expectation：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)
+=𝔼<sub><span class="math-text">π</span></sub>[
+R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)
+∣ S<sub><span class="math-text">t</span></sub>=s<sub><span class="math-text">t</span></sub>]</span></div>
+
+<p>Critic 用当前价值估计构造一步 target：</p>
+<div class="math-block"><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>
+=R<sub><span class="math-text">t+1</span></sub>
++γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span></div>
+
+<p>再训练：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">critic</span></sub>(w)
+=𝔼<sub><span class="math-text">t</span></sub>
+[
+(
+V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)-sg(Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>)
+)<sup><span class="math-text">2</span></sup>
+]</span></div>
+
+<p>这就是 bootstrap：target 的一部分来自模型自己的下一状态预测，而不是全部等待真实未来奖励。</p>
+<p>它带来明确交换：</p>
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
-<th>名词</th>
-<th>中文</th>
-<th>先记住什么</th>
+<th>目标</th>
+<th>等待时间</th>
+<th>方差</th>
+<th>估计偏差</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>actor</td>
-<td>行动者 / 策略网络</td>
-<td>负责输出动作或动作分布。</td>
+<td>完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>长</td>
+<td>高</td>
+<td>不含 bootstrap bias</td>
 </tr>
 <tr>
-<td>critic</td>
-<td>评价者 / 价值网络</td>
-<td>负责估计 <span class="math-text">V(s)</span>、<span class="math-text">Q(s,a)</span> 或 advantage，给 actor 提供学习信号。</td>
-</tr>
-<tr>
-<td>actor-critic</td>
-<td>Actor-Critic 框架</td>
-<td>actor 学策略，critic 学价值，用 critic 降低 policy gradient 方差。</td>
-</tr>
-<tr>
-<td>TD error</td>
-<td>时序差分误差</td>
-<td>一步 target 和当前价值估计的差，可近似 advantage。</td>
-</tr>
-<tr>
-<td>A2C</td>
-<td>Advantage Actor-Critic</td>
-<td>同步采样和更新的 actor-critic 方法。</td>
-</tr>
-<tr>
-<td>A3C</td>
-<td>Asynchronous Advantage Actor-Critic</td>
-<td>多 worker 异步采样和更新的 actor-critic 方法。</td>
-</tr>
-<tr>
-<td>n-step return</td>
-<td>n 步回报</td>
-<td>用未来 n 步真实 reward 加 bootstrap target 构造学习信号。</td>
-</tr>
-<tr>
-<td>GAE</td>
-<td>广义优势估计</td>
-<td>把多个步数的 TD residual 加权平均，平衡 bias 和 variance。</td>
-</tr>
-<tr>
-<td>shared network / separate network</td>
-<td>共享网络 / 分离网络</td>
-<td>actor 和 critic 共用一部分网络，或各自用独立网络。</td>
-</tr>
-<tr>
-<td>stop gradient</td>
-<td>停止梯度</td>
-<td>计算 actor loss 时把 advantage 当作固定学习信号，不让 actor 的梯度反向修改 advantage 的构造过程。</td>
+<td>一步 <span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup></span></td>
+<td>一步</td>
+<td>较低</td>
+<td>受 Critic 误差影响</td>
 </tr>
 </tbody></table></div>
-<h2 id="section-8-5">8.5 Actor-Critic 基础</h2>
-<h3 id="section-8-5-1">8.5.1 Actor-Critic 基本思想</h3>
-<p>Actor-Critic 有两个部分：</p>
-<ul>
-<li>Actor：策略网络 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，负责选动作。</li>
-<li>Critic：价值网络 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span> 或 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>，负责评估动作或状态。</li>
-</ul>
-<p>Actor 用 critic 提供的学习信号更新策略：</p>
-<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J(θ)</span></div><div><span class="math-text">= 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div></div>
+<h3 id="section-8-4-3">8.4.3 为什么 Target 要 Stop Gradient</h3>
+<p>更新当前 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span> 时，<span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup></span> 被当作监督目标：</p>
+<div class="math-block"><span class="math-text">sg(Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>)</span></div>
 
-<p>Critic 学习价值函数：</p>
-<div class="math-block"><span class="math-text">V<sub><span class="math-text">w</span></sub>(s) ≈ V<sub><span class="math-text">π</span></sub>(s)</span></div>
+<p>如果不 stop gradient，优化器可能同时改变当前预测和 target 中的下一状态预测，目标会跟着被拟合对象一起移动。基础 TD Critic 通常只对 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span> 这一侧求梯度。</p>
+<h2 id="section-8-5">8.5 一步 Actor-Critic</h2>
+<h3 id="section-8-5-1">8.5.1 TD Residual</h3>
+<p>一步 TD residual 定义为：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>
+=R<sub><span class="math-text">t+1</span></sub>
++γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)
+-V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
 
-<p>直觉：</p>
+<p>它回答：</p>
 <blockquote>
-<p>Actor 负责做决策，critic 负责评价决策质量。Critic 降低了纯 Monte Carlo policy gradient 的方差，让策略更新更稳定。</p>
+<p>执行动作后的即时奖励加下一状态估值，是否超过了行动前对当前状态的预期？</p>
 </blockquote>
-<h3 id="section-8-5-2">8.5.2 TD Error 作为 Advantage</h3>
-<p>TD error：</p>
-<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
-
-<p>它可以看成一步 advantage 的估计：</p>
-<div class="math-block"><span class="math-text">A(s<sub><span class="math-text">t</span></sub>, a<sub><span class="math-text">t</span></sub>) ≈ δ<sub><span class="math-text">t</span></sub></span></div>
-
-<p>直觉：</p>
 <ul>
-<li>如果实际 reward 加下一状态价值高于当前价值估计，说明这个动作比预期好。</li>
-<li>如果低于当前价值估计，说明这个动作比预期差。</li>
+<li><span class="math-text">δ<sub><span class="math-text">t</span></sub>&gt;0</span>：结果比当前状态平均预期好。</li>
+<li><span class="math-text">δ<sub><span class="math-text">t</span></sub>&lt;0</span>：结果比预期差。</li>
 </ul>
-<p>Actor 更新：</p>
-<div class="math-block"><span class="math-text">θ ← θ + α<sub><span class="math-text">π</span></sub> ∇ log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) δ<sub><span class="math-text">t</span></sub></span></div>
+<h3 id="section-8-5-2">8.5.2 为什么 <span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 可以估计 Advantage</h3>
+<p>理论 advantage：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)
+=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
 
-<p>Critic 更新：</p>
-<div class="math-block"><span class="math-text">w ← w - α<sub><span class="math-text">V</span></sub> ∇ (r<sub><span class="math-text">t</span></sub> + γ V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t+1</span></sub>) - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
+<p>动作价值可写成：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)
+=𝔼[
+R<sub><span class="math-text">t+1</span></sub>+γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)
+∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]</span></div>
 
-<h3 id="section-8-5-3">8.5.3 为什么 TD Error 可以近似 Advantage</h3>
-<p>Advantage 的定义是：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span></div>
+<p>代入：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)
+=𝔼[
+R<sub><span class="math-text">t+1</span></sub>
++γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)
+-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)
+∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]</span></div>
 
-<p>而动作价值可以拆成“一步 reward + 下一状态价值”：</p>
-<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=𝔼[r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)]</span></div>
+<p>如果 <span class="math-text">V<sub><span class="math-text">w</span></sub>≈ V<sub><span class="math-text">π</span></sub></span>，并用一次 transition 近似条件期望：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>
+=δ<sub><span class="math-text">t</span></sub></span></div>
 
-<p>把它代入 advantage：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=𝔼[r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)]</span></div>
+<p>必须保留两个限定：</p>
+<ol>
+<li><span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 是一次采样的 advantage estimate，不是真实 advantage。</li>
+<li><span class="math-text">V<sub><span class="math-text">w</span></sub></span> 不准时，<span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 会带有 Critic bias。</li>
+</ol>
+<h3 id="section-8-5-3">8.5.3 Actor 怎样使用它</h3>
+<p>Actor 最大化：</p>
+<div class="math-block"><span class="math-text">J<sub><span class="math-text">actor</span></sub>(θ)
+=𝔼<sub><span class="math-text">t</span></sub>
+[logπ<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t</span></sub>]</span></div>
 
-<p>如果用一次采样近似这个期望，就得到：</p>
-<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V(s<sub><span class="math-text">t+1</span></sub>)-V(s<sub><span class="math-text">t</span></sub>)</span></div>
+<p>实现成最小化 loss：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">actor</span></sub>(θ)
+=-𝔼<sub><span class="math-text">t</span></sub>
+[
+logπ<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)
+sg(Â<sub><span class="math-text">t</span></sub>)
+]</span></div>
 
-<p>所以 TD error 不是随便定义的误差，它正是“一步采样下的 advantage 估计”。</p>
-<p>面试里可以这样讲：</p>
-<blockquote>
-<p>如果执行动作后得到的 reward 加下一状态价值超过当前状态价值，说明这个动作比平均动作好，advantage 为正；反之说明动作低于预期，advantage 为负。</p>
-</blockquote>
-<h3 id="section-8-5-4">8.5.4 Actor-Critic vs REINFORCE</h3>
+<p>这里也要 stop gradient：</p>
+<ul>
+<li>Actor 更新只改变“选这个动作的概率”。</li>
+<li>Critic/advantage 的参数由自己的价值目标更新。</li>
+<li>否则 Actor loss 可能沿 <span class="math-text">Â<sub><span class="math-text">t</span></sub></span> 反向修改 Critic，混淆两个优化目标。</li>
+</ul>
+<h3 id="section-8-5-4">8.5.4 一次更新的数值例子</h3>
+<p>假设：</p>
+<pre><code class="language-text">R_{t+1} = 2
+gamma = 0.9
+d_t = 0
+V_w(s_t) = 5
+V_w(s_{t+1}) = 6
+</code></pre>
+<p>一步 target：</p>
+<div class="math-block"><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>=2+0.9×6=7.4</span></div>
+
+<p>TD residual：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=7.4-5=2.4</span></div>
+
+<p>这次动作结果比当前状态的预期高 2.4，因此：</p>
+<ul>
+<li>Actor 提高该动作概率。</li>
+<li>Critic 把 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 从 5 往 target 7.4 拉近。</li>
+</ul>
+<p>如果 <span class="math-text">d<sub><span class="math-text">t</span></sub>=1</span>，则：</p>
+<div class="math-block"><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>=R<sub><span class="math-text">t+1</span></sub>=2</span></div>
+
+<p>真正终止后没有环境定义的下一状态价值。</p>
+<h2 id="section-8-6">8.6 n-step Actor-Critic</h2>
+<h3 id="section-8-6-1">8.6.1 为什么不一定只看一步</h3>
+<p>一步 TD 很快、方差低，但高度依赖 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span>。如果 Critic 早期很不准，Actor 会被带偏。</p>
+<p>可以先观察 n 步真实 reward，再 bootstrap：</p>
+<div class="math-block multi"><div><span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>
+=R<sub><span class="math-text">t+1</span></sub>
++γ R<sub><span class="math-text">t+2</span></sub>
++·s</span></div><div><span class="math-text">+γ<sup><span class="math-text">n-1</span></sup>R<sub><span class="math-text">t+n</span></sub>
++γ<sup><span class="math-text">n</span></sup> V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+n</span></sub>)</span></div></div>
+
+<p>如果 n 步内真正终止，终止后的 reward 和 bootstrap value 都不再加入。</p>
+<p>对应的 n-step advantage estimate：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>
+=Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>-V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<h3 id="section-8-6-2">8.6.2 n 控制什么</h3>
+<div class="table-scroll"><table class="wide-table">
+<thead>
+<tr>
+<th>n 的大小</th>
+<th>真实 reward 比例</th>
+<th>Bootstrap 依赖</th>
+<th>方差</th>
+<th>Critic bias</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>小</td>
+<td>少</td>
+<td>强</td>
+<td>较低</td>
+<td>较强</td>
+</tr>
+<tr>
+<td>大</td>
+<td>多</td>
+<td>弱</td>
+<td>较高</td>
+<td>较弱</td>
+</tr>
+<tr>
+<td>到 episode 末尾</td>
+<td>完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>无</td>
+<td>最高</td>
+<td>无 bootstrap bias</td>
+</tr>
+</tbody></table></div>
+<p>n-step 不是独立的新算法，而是 advantage/value target 的时间尺度选择。</p>
+<h3 id="section-8-6-3">8.6.3 截断不一定等于真正终止</h3>
+<p>并行采样常固定收集 T 步 rollout。到达 rollout 边界只表示“这批数据暂时截断”，不一定表示环境真正结束。</p>
+<ul>
+<li>真正 terminal：后续价值为 0。</li>
+<li>仅 rollout truncation：通常仍用 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+T</span></sub>)</span> bootstrap。</li>
+</ul>
+<p>如果把所有 rollout 边界都当 terminal，会系统性低估末端状态价值。</p>
+<h2 id="section-8-7">8.7 GAE：平滑组合不同时间尺度</h2>
+<h3 id="section-8-7-1">8.7.1 从连续 TD Residual 出发</h3>
+<p>一步 advantage estimate 是：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>=δ<sub><span class="math-text">t</span></sub></span></div>
+
+<p>如果下一步也持续比预期好，<span class="math-text">δ<sub><span class="math-text">t+1</span></sub></span> 也应该回传到当前动作，只是影响要衰减：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>+γλδ<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>继续累加得到 GAE：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ,λ)</span></sup>
+=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>
+(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div>
+
+<p>有限 rollout 中可从后往前递推：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+=δ<sub><span class="math-text">t</span></sub>
++γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub></span></div>
+
+<h3 id="section-8-7-2">8.7.2 GAE 与 n-step Advantage 的关系</h3>
+<p>GAE 也可理解为对不同 n-step advantage estimate 做指数加权：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
+=(1-λ)
+∑<sub><span class="math-text">n=1</span></sub><sup><span class="math-text">∞</span></sup>
+λ<sup><span class="math-text">n-1</span></sup>Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></div>
+
+<p>因此它不是“另一个突然出现的 advantage 定义”，而是把一步、两步、三步等估计平滑组合起来。</p>
+<h3 id="section-8-7-3">8.7.3 <span class="math-text">λ</span> 的含义</h3>
+<ul>
+<li><span class="math-text">λ=0</span>：<span class="math-text">Â<sub><span class="math-text">t</span></sub>=δ<sub><span class="math-text">t</span></sub></span>，退化为一步 TD。</li>
+<li><span class="math-text">λ</span> 接近 1：纳入更长时间的 residual，更接近长回报。</li>
+<li><span class="math-text">λ</span> 越大：通常 bias 降低、variance 增大。</li>
+<li><span class="math-text">λ</span> 越小：通常 variance 降低、但更依赖 Critic 的短期 bootstrap。</li>
+</ul>
+<p>实践中常见 <span class="math-text">λ=0.95</span>，但它是需要结合任务 horizon、reward 噪声和 Critic 质量调节的超参数，不是理论固定值。</p>
+<h3 id="section-8-7-4">8.7.4 数值例子</h3>
+<p>假设连续三个 TD residual 为：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=2,
+δ<sub><span class="math-text">t+1</span></sub>=1,
+δ<sub><span class="math-text">t+2</span></sub>=-1</span></div>
+
+<p>令：</p>
+<div class="math-block"><span class="math-text">γ=0.9, λ=0.95, γλ=0.855</span></div>
+
+<p>截断到三项：</p>
+<div class="math-block multi"><div><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
+=2+0.855×1+0.855<sup><span class="math-text">2</span></sup>×(-1)</span></div><div><span class="math-text">≈2.124</span></div></div>
+
+<p>当前动作先得到连续正面信号，但第三步出现负面 residual，因此最终 advantage 略高于 2，而不是简单只取第一步的 2。</p>
+<h3 id="section-8-7-5">8.7.5 Return Target 与 Advantage 的关系</h3>
+<p>PPO/A2C 实现中经常先算 GAE advantage，再构造 Critic target：</p>
+<div class="math-block"><span class="math-text">V̂<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>
+=Â<sub><span class="math-text">t</span></sub>+V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>原因是 advantage 定义本来就是：</p>
+<div class="math-block"><span class="math-text">A=Q-V</span></div>
+
+<p>所以“value target = advantage estimate + old value estimate”是在把基线加回去。实现时通常保存 rollout 时的 value prediction，避免更新过程中 target 跟着当前网络反复变化。</p>
+<h2 id="section-8-8">8.8 Actor-Critic 的完整优化目标</h2>
+<h3 id="section-8-8-1">8.8.1 Actor Loss</h3>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">actor</span></sub>
+=-𝔼<sub><span class="math-text">t</span></sub>
+[
+logπ<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)
+sg(Â<sub><span class="math-text">t</span></sub>)
+]</span></div>
+
+<p>它只负责：根据 advantage 的正负调整已采样动作概率。</p>
+<h3 id="section-8-8-2">8.8.2 Critic Loss</h3>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">critic</span></sub>
+=𝔼<sub><span class="math-text">t</span></sub>
+[
+(
+V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)
+-sg(V̂<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)
+)<sup><span class="math-text">2</span></sup>
+]</span></div>
+
+<p>它只负责：让价值预测接近一步、n-step 或 GAE 构造出的 value target。</p>
+<h3 id="section-8-8-3">8.8.3 Entropy Bonus 属于哪里</h3>
+<p>Entropy 不是 REINFORCE 或 Actor-Critic theorem 必然推出来的项，而是额外加入的探索正则。</p>
+<p>策略熵：</p>
+<div class="math-block"><span class="math-text">H(π<sub><span class="math-text">θ</span></sub>(·∣ s))
+=-∑<sub><span class="math-text">a</span></sub>
+π<sub><span class="math-text">θ</span></sub>(a∣ s)
+logπ<sub><span class="math-text">θ</span></sub>(a∣ s)</span></div>
+
+<p>最小化形式可写成：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub>
+=-β<sub><span class="math-text">H</span></sub>
+𝔼<sub><span class="math-text">t</span></sub>[H(π<sub><span class="math-text">θ</span></sub>(·∣ S<sub><span class="math-text">t</span></sub>))]</span></div>
+
+<p>作用：</p>
+<ul>
+<li>防止策略过早变成近乎确定性分布。</li>
+<li>保留探索。</li>
+<li>改善 early training 的状态覆盖。</li>
+</ul>
+<p>它与第 10 章 SAC 的区别是：</p>
+<ul>
+<li>A2C/PPO 常把 entropy 当 regularization bonus。</li>
+<li>SAC 从最大熵目标重新定义 soft value 和 Bellman target，entropy 是算法核心目标的一部分。</li>
+</ul>
+<h3 id="section-8-8-4">8.8.4 总 Loss</h3>
+<p>共享网络实现常写：</p>
+<div class="math-block"><span class="math-text">L
+=L<sub><span class="math-text">actor</span></sub>
++c<sub><span class="math-text">V</span></sub>L<sub><span class="math-text">critic</span></sub>
++L<sub><span class="math-text">entropy</span></sub></span></div>
+
+<p>三个项的职责不同，不能因为写在一个式子里就认为它们来自同一推导。</p>
+<h3 id="section-8-8-5">8.8.5 共享网络与分离网络</h3>
+<p>Actor 和 Critic 可以：</p>
+<ul>
+<li>共享 backbone，使用 policy head 和 value head。</li>
+<li>使用完全分离的两个网络。</li>
+</ul>
+<p>共享网络：</p>
+<ul>
+<li>参数更少，表征可复用。</li>
+<li>Actor/Critic 梯度可能相互干扰。</li>
+<li><span class="math-text">c<sub><span class="math-text">V</span></sub></span> 的尺度更敏感。</li>
+</ul>
+<p>分离网络：</p>
+<ul>
+<li>优化边界更清楚。</li>
+<li>参数和计算更多。</li>
+</ul>
+<h2 id="section-8-9">8.9 混合动作空间中的 Actor-Critic</h2>
+<p>第 7 章把联合动作写成：</p>
+<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub>=(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>其中 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 是离散类型，<span class="math-text">U<sub><span class="math-text">t</span></sub></span> 是该类型下的连续参数。联合 log probability：</p>
+<div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)
+=logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(K<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)
++logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>使用 state-value Critic 时，Actor loss 为：</p>
+<div class="math-block multi"><div><span class="math-text">L<sub><span class="math-text">actor</span></sub>
+=-𝔼<sub><span class="math-text">t</span></sub>[
+(logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(K<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>))
+sg(Â<sub><span class="math-text">t</span></sub>)]</span></div></div>
+
+<p>同一个 <span class="math-text">Â<sub><span class="math-text">t</span></sub></span> 评价整个联合动作。</p>
+<p>State-value Critic 的一个优点是只输入状态：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>它不需要枚举或显式表示复杂的联合动作空间。另一类方法会训练：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>这种 Critic 能更直接区分离散类型和连续参数，但建模与优化更复杂。</p>
+<p>工程上还要注意：</p>
+<ul>
+<li>只计算实际选择的离散分支对应的连续 log probability。</li>
+<li>分别监控 categorical entropy 和 continuous entropy，避免一项支配另一项。</li>
+<li>对离散动作 mask 和连续参数边界使用一致的采样与 log-prob 计算。</li>
+</ul>
+<h2 id="section-8-10">8.10 A2C 与 A3C：采样组织方式</h2>
+<h3 id="section-8-10-1">8.10.1 先区分 Framework 和 Algorithm</h3>
+<p>Actor-Critic 是框架：Actor 用 Critic 的估值信号更新。</p>
+<p>A2C/A3C 是具体的数据采样和参数更新组织方式。它们不会重新定义 advantage，而是选择怎样并行产生 rollout、何时聚合梯度。</p>
+<h3 id="section-8-10-2">8.10.2 A3C</h3>
+<p>A3C 是 Asynchronous Advantage Actor-Critic：</p>
+<ol>
+<li>多个 worker 各自持有环境副本。</li>
+<li>每个 worker 用本地策略采样短 rollout。</li>
+<li>计算 n-step return 或 advantage。</li>
+<li>异步把梯度应用到共享全局网络。</li>
+<li>再从全局网络同步最新参数。</li>
+</ol>
+<p>优点：</p>
+<ul>
+<li>不同 worker 提高状态覆盖和数据多样性。</li>
+<li>在不使用 replay buffer 的 on-policy 场景中降低样本相关性。</li>
+</ul>
+<p>问题：</p>
+<ul>
+<li>异步更新存在参数陈旧和 nondeterminism。</li>
+<li>工程调试较复杂。</li>
+</ul>
+<h3 id="section-8-10-3">8.10.3 A2C</h3>
+<p>A2C 可理解为同步版本：</p>
+<ol>
+<li>N 个环境使用同一版策略并行采样 T 步。</li>
+<li>聚合成 <span class="math-text">N× T</span> 的 rollout batch。</li>
+<li>统一计算 advantage 和 value target。</li>
+<li>对 Actor/Critic 做一次或若干次同步更新。</li>
+</ol>
+<p>A2C 通常更适合现代 GPU batch 计算，结果也更容易复现。</p>
 <div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
 <th>维度</th>
-<th>REINFORCE</th>
+<th>A2C</th>
+<th>A3C</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Worker 更新</td>
+<td>同步聚合</td>
+<td>异步写共享参数</td>
+</tr>
+<tr>
+<td>参数版本</td>
+<td>一批数据基本一致</td>
+<td>Worker 可能稍陈旧</td>
+</tr>
+<tr>
+<td>GPU 利用</td>
+<td>更自然</td>
+<td>相对困难</td>
+</tr>
+<tr>
+<td>可复现性</td>
+<td>较好</td>
+<td>较弱</td>
+</tr>
+<tr>
+<td>核心 advantage</td>
+<td>TD / n-step / GAE 均可</td>
+<td>TD / n-step 为经典做法</td>
+</tr>
+</tbody></table></div>
+<h2 id="section-8-11">8.11 一轮训练的完整数据流</h2>
+<pre><code class="language-text">1. 用当前 policy pi_theta 在多个环境采样 T 步。
+2. 保存 state、action、reward、done、log probability、value estimate。
+3. 在 rollout 末端：
+       terminal -&gt; bootstrap value = 0
+       truncation -&gt; bootstrap value = V_w(last_state)
+4. 从后往前计算 TD residual。
+5. 用 n-step 或 GAE 得到 A_hat_t。
+6. 构造 value target = A_hat_t + rollout-time value estimate。
+7. Actor 最小化 -log_prob * stop_gradient(A_hat_t)。
+8. Critic 回归 stop_gradient(value target)。
+9. 可选加入 entropy bonus。
+10. 更新后丢弃或谨慎限制这批 on-policy rollout 的复用。
+</code></pre>
+<p>这条数据流是理解第 9 章 PPO 的前置输入。PPO 不会重新发明 Critic 或 GAE，而是重点改变第 7 步的 Actor objective，并允许对同一 rollout 做有限的多 epoch 更新。</p>
+<h2 id="section-8-12">8.12 本章例子与对比</h2>
+<h3 id="section-8-12-1">8.12.1 REINFORCE 与 Actor-Critic</h3>
+<div class="table-scroll"><table class="three-col-table">
+<thead>
+<tr>
+<th>维度</th>
+<th>REINFORCE with Baseline</th>
 <th>Actor-Critic</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>策略更新信号</td>
-<td>Monte Carlo return</td>
-<td>critic 估计的 advantage</td>
+<td>Baseline/Value 标签</td>
+<td>完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span></td>
+<td>TD、n-step 或 GAE target</td>
 </tr>
 <tr>
-<td>是否 bootstrap</td>
+<td>Bootstrap</td>
 <td>否</td>
 <td>通常是</td>
 </tr>
 <tr>
+<td>更新等待</td>
+<td>通常到 episode 结束</td>
+<td>短 rollout 后即可</td>
+</tr>
+<tr>
 <td>方差</td>
-<td>高</td>
+<td>较高</td>
 <td>较低</td>
 </tr>
 <tr>
-<td>bias</td>
-<td>较低</td>
-<td>有 critic bias</td>
+<td>估计偏差</td>
+<td>无 bootstrap bias</td>
+<td>有 Critic bias</td>
 </tr>
 <tr>
-<td>是否能在线更新</td>
-<td>通常需要 episode 结束</td>
-<td>可以在线或 n-step 更新</td>
-</tr>
-<tr>
-<td>sample efficiency</td>
-<td>较低</td>
-<td>更高</td>
+<td>学习模块</td>
+<td>Policy + 可选 MC baseline</td>
+<td>Actor + TD Critic</td>
 </tr>
 </tbody></table></div>
-<p>面试表达：</p>
-<blockquote>
-<p>Actor-Critic 用 critic 估计 value 或 advantage，降低 policy gradient 的方差，并允许 TD 式在线更新。但 critic 是函数逼近模型，因此会引入估计 bias。</p>
-</blockquote>
-<h2 id="section-8-6">8.6 A2C / A3C：Actor-Critic 的采样组织方式</h2>
-<h3 id="section-8-6-1">8.6.1 A2C</h3>
-<p>A2C 是 Advantage Actor-Critic。</p>
-<p>目标通常包含三部分：</p>
+<h3 id="section-8-12-2">8.12.2 游戏 Agent</h3>
+<ul>
+<li>Actor 输出移动、攻击、防御的动作分布。</li>
+<li>Critic 估计当前局面的 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span>。</li>
+<li>如果一次动作得到 <span class="math-text">δ<sub><span class="math-text">t</span></sub>&gt;0</span>，说明结果超出当前局面平均预期，Actor 提高该动作概率。</li>
+<li>GAE 会把后面数步持续发生的正负 TD residual 传回当前动作。</li>
+</ul>
+<h3 id="section-8-12-3">8.12.3 为什么 Critic 不直接决定动作</h3>
+<p>在 state-value Actor-Critic 中：</p>
+<ul>
+<li>Critic 只输出 <span class="math-text">V<sub><span class="math-text">w</span></sub>(s)</span>，不负责在动作中取 argmax。</li>
+<li>Actor 输出动作分布并真正执行。</li>
+<li>Critic 的职责是提供相对学习信号，而不是替代 Actor。</li>
+</ul>
+<p>这与 DQN 的 Q 网络直接通过 <span class="math-text">arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span> 选动作不同。</p>
+<h2 id="section-8-13">8.13 本章面试高频问题</h2>
+<h3 id="section-8-13-1">8.13.1 Actor 和 Critic 分别做什么？</h3>
+<p>Actor 输出并更新策略；Critic 估计状态或动作价值，为 Actor 构造较低方差的 advantage estimate。</p>
+<h3 id="section-8-13-2">8.13.2 TD Residual 为什么能估计 Advantage？</h3>
+<p>因为在真实 <span class="math-text">V<sub><span class="math-text">π</span></sub></span> 下：</p>
+<div class="math-block"><span class="math-text">𝔼[δ<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]
+=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)
+=A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>实际用近似 <span class="math-text">V<sub><span class="math-text">w</span></sub></span> 时还会带有 Critic 误差。</p>
+<h3 id="section-8-13-3">8.13.3 n-step 与 GAE 的关系？</h3>
+<p>n-step 选择一个固定 bootstrap horizon；GAE 对多个 n-step advantage estimate 做指数加权，避免只押注一个时间尺度。</p>
+<h3 id="section-8-13-4">8.13.4 为什么 Actor Loss 要对 Advantage Stop Gradient？</h3>
+<p>Advantage 是提供给 Actor 的样本权重。Actor loss 应只更新策略概率，Critic 应由自己的 value loss 更新；否则两类目标的梯度会意外耦合。</p>
+<h3 id="section-8-13-5">8.13.5 A2C 和 A3C 区别？</h3>
+<p>A2C 同步聚合多个环境的 rollout 后更新；A3C 让多个 worker 异步更新共享参数。它们共享 Actor-Critic 基础，主要区别是并行与参数同步方式。</p>
+<h3 id="section-8-13-6">8.13.6 Entropy Bonus 是 Actor-Critic 必需的吗？</h3>
+<p>不是。它是常用探索正则。去掉它仍然是 Actor-Critic，但策略可能更快变得确定、探索不足。</p>
+<h2 id="section-8-14">8.14 本章练习</h2>
 <ol>
-<li>Policy loss。</li>
-<li>Value loss。</li>
-<li>Entropy bonus。</li>
-</ol>
-<p>Policy loss：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">policy</span></sub> = - log π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub> ∣ s<sub><span class="math-text">t</span></sub>) A<sub><span class="math-text">t</span></sub></span></div>
-
-<p>Value loss：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">value</span></sub> = (V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup> - V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>))<sup><span class="math-text">2</span></sup></span></div>
-
-<p>Entropy bonus：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">entropy</span></sub> = - β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(· ∣ s<sub><span class="math-text">t</span></sub>))</span></div>
-
-<p>整体最小化：</p>
-<div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> + L<sub><span class="math-text">entropy</span></sub></span></div>
-
-<p>注意符号：很多实现中是最小化 loss，因此 policy gradient 的最大化目标会写成负号。</p>
-<h3 id="section-8-6-2">8.6.2 A3C</h3>
-<p>A3C 是 Asynchronous Advantage Actor-Critic。</p>
-<p>核心思想：</p>
-<ul>
-<li>多个 worker 并行和环境交互。</li>
-<li>每个 worker 异步更新共享全局网络。</li>
-<li>不同 worker 产生的数据降低样本相关性。</li>
-</ul>
-<p>A3C 在 replay buffer 不常用的 on-policy 场景中，通过并行采样改善数据多样性。这里 on-policy 指数据来自当前正在更新的策略，因此不能像 DQN 那样随意复用很旧的数据。</p>
-<p>A2C 可以看作 A3C 的同步版本：</p>
-<ul>
-<li>A3C：asynchronous。</li>
-<li>A2C：synchronous，多个环境同步采样后统一更新。</li>
-</ul>
-<h2 id="section-8-7">8.7 多步回报与 GAE</h2>
-<h3 id="section-8-7-1">8.7.1 N-step Return</h3>
-<p>一步 TD target：</p>
-<div class="math-block"><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>)</span></div>
-
-<p>n-step return：</p>
-<div class="math-block multi"><div><span class="math-text">R<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup> = r<sub><span class="math-text">t</span></sub> + γ r<sub><span class="math-text">t+1</span></sub> + ... + γ<sup><span class="math-text">n-1</span></sup> r<sub><span class="math-text">t+n-1</span></sub></span></div><div><span class="math-text">+ γ<sup><span class="math-text">n</span></sup> V(s<sub><span class="math-text">t+n</span></sub>)</span></div></div>
-
-<p>n-step return 在 MC 和 TD 之间折中：</p>
-<ul>
-<li><span class="math-text">n</span> 小：bias 较大，variance 较小。</li>
-<li><span class="math-text">n</span> 大：bias 较小，variance 较大。</li>
-</ul>
-<h3 id="section-8-7-2">8.7.2 Generalized Advantage Estimation</h3>
-<p>GAE 用一个参数 <span class="math-text">λ</span> 在不同步数的 advantage 估计之间折中。</p>
-<p>TD residual：</p>
-<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> = r<sub><span class="math-text">t</span></sub> + γ V(s<sub><span class="math-text">t+1</span></sub>) - V(s<sub><span class="math-text">t</span></sub>)</span></div>
-
-<p>GAE：</p>
-<div class="math-block multi"><div><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ, λ)</span></sup></span></div><div><span class="math-text">= ∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup> (γ λ)<sup><span class="math-text">l</span></sup> δ<sub><span class="math-text">t+l</span></sub></span></div></div>
-
-<p>直觉：</p>
-<ul>
-<li><span class="math-text">λ = 0</span>：接近一步 TD，bias 大、variance 小。</li>
-<li><span class="math-text">λ = 1</span>：接近 Monte Carlo，bias 小、variance 大。</li>
-<li>实践中常用 <span class="math-text">λ = 0.95</span>。</li>
-</ul>
-<p>PPO 中经常使用 GAE 估计 advantage。</p>
-<h3 id="section-8-7-3">8.7.3 GAE 的推理过程</h3>
-<p>一步 TD error 方差小，但依赖 critic，bias 可能大。完整 Monte Carlo return bias 小，但方差大。GAE 的想法是：不要只选一个步数，而是把不同步数的 TD residual 加权平均。</p>
-<p>从一步 TD residual 开始：</p>
-<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V(s<sub><span class="math-text">t+1</span></sub>)-V(s<sub><span class="math-text">t</span></sub>)</span></div>
-
-<p>如果下一步也持续“比预期好”，那么 <span class="math-text">δ<sub><span class="math-text">t+1</span></sub></span> 也应该影响当前动作的评价，只是影响要打折：</p>
-<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub> + γλδ<sub><span class="math-text">t+1</span></sub></span></div>
-
-<p>继续往后累加，就得到：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>=δ<sub><span class="math-text">t</span></sub>+γλδ<sub><span class="math-text">t+1</span></sub>+(γλ)<sup><span class="math-text">2</span></sup>δ<sub><span class="math-text">t+2</span></sub>+...</span></div>
-
-<p>也就是：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div>
-
-<p>这里 <span class="math-text">γ</span> 是时间折扣，<span class="math-text">λ</span> 是“愿意看多远的误差信号”：</p>
-<ul>
-<li><span class="math-text">λ</span> 小：更相信短期 bootstrap，更新稳但 bias 大。</li>
-<li><span class="math-text">λ</span> 大：更接近长回报，bias 小但 variance 大。</li>
-</ul>
-<p>实践里 PPO 常用 <span class="math-text">λ=0.95</span>，是因为它通常在稳定性和学习信号之间比较均衡。</p>
-<h2 id="section-8-8">8.8 Actor-Critic 网络结构选择</h2>
-<h3 id="section-8-8-1">8.8.1 Shared Network vs Separate Network</h3>
-<p>Actor 和 critic 可以：</p>
-<ul>
-<li>共享一部分 backbone，分别输出 policy head 和 value head。</li>
-<li>完全分离成两个网络。</li>
-</ul>
-<p>共享 backbone 的优点：</p>
-<ul>
-<li>参数更少。</li>
-<li>表征可以复用。</li>
-</ul>
-<p>风险：</p>
-<ul>
-<li>policy loss 和 value loss 的梯度可能相互干扰。</li>
-<li>需要调节 value loss coefficient。</li>
-</ul>
-<h2 id="section-8-9">8.9 本章例子：Actor 和 Critic 分工</h2>
-<h3 id="section-8-9-1">8.9.1 例子 1：游戏 agent</h3>
-<p>在一个游戏中：</p>
-<ul>
-<li>Actor 负责选择动作，例如移动、攻击、防御。</li>
-<li>Critic 负责评价当前局面值多少钱。</li>
-</ul>
-<p>如果 Actor 做了一个动作后，Critic 发现：</p>
-<pre><code class="language-text">r + gamma V(s&#39;) - V(s) &gt; 0
-</code></pre>
-<p>说明这步结果比预期好，Actor 应该增加这个动作在该状态下的概率。</p>
-<p>如果 TD error 小于 0，则说明这步比预期差，Actor 应该降低该动作概率。</p>
-<h3 id="section-8-9-2">8.9.2 例子 2：A2C 和 REINFORCE 对比</h3>
-<p>REINFORCE 要等一整局结束，用完整 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 更新策略。A2C 用 critic 提供一步或多步 target，可以更早更新。</p>
-<pre><code class="language-text">REINFORCE target: G_t
-A2C target: r + gamma V(s&#39;)
-</code></pre>
-<p>所以 A2C 通常方差更低，但 critic 不准时会带来 bias。</p>
-<h3 id="section-8-9-3">8.9.3 例子 3：GAE 的直觉</h3>
-<p>如果只用一步 TD error，更新稳定但可能短视。</p>
-<p>如果用完整 return，信息完整但方差大。</p>
-<p>GAE 用 <span class="math-text">λ</span> 在中间插值：</p>
-<ul>
-<li><span class="math-text">λ</span> 接近 0：更像一步 TD。</li>
-<li><span class="math-text">λ</span> 接近 1：更像 Monte Carlo。</li>
-</ul>
-<p>面试表达：</p>
-<blockquote>
-<p>Actor-Critic 可以理解成 policy gradient 加一个会估值的助手。Critic 不直接决定动作，而是告诉 Actor 这次动作比预期好还是差。</p>
-</blockquote>
-<h2 id="section-8-10">8.10 本章面试高频问题</h2>
-<h3 id="section-8-10-1">8.10.1 Actor-Critic 中 actor 和 critic 分别做什么？</h3>
-<p>Actor 学习策略并负责选动作。Critic 学习价值函数，用来评价 actor 的动作，并为 policy gradient 提供低方差的 advantage 估计。</p>
-<h3 id="section-8-10-2">8.10.2 Actor-Critic 相比 REINFORCE 的优势？</h3>
-<p>Actor-Critic 用 critic 的 value estimate 替代完整 Monte Carlo return，降低方差，并支持在线或 n-step 更新，sample efficiency 更高。</p>
-<h3 id="section-8-10-3">8.10.3 TD error 为什么可以作为 advantage？</h3>
-<p>TD error 衡量执行动作后的一步结果是否比当前价值估计更好。如果 <span class="math-text">r + γ V(s&#39;) &gt; V(s)</span>，说明动作带来的结果超出预期，可以增加其概率。</p>
-<h3 id="section-8-10-4">8.10.4 A2C 和 A3C 的区别？</h3>
-<p>A3C 使用多个 worker 异步更新全局网络。A2C 是同步版本，多个环境同步采样后统一更新，工程上更稳定、易并行。</p>
-<h3 id="section-8-10-5">8.10.5 GAE 解决什么问题？</h3>
-<p>GAE 在 bias 和 variance 之间做平滑折中，通过 <span class="math-text">λ</span> 控制 advantage 估计更接近一步 TD 还是 Monte Carlo return。</p>
-<h2 id="section-8-11">8.11 本章练习</h2>
-<ol>
-<li>写出 Actor-Critic 的 actor loss 和 critic loss。</li>
-<li>解释 TD error 和 advantage 的关系。</li>
-<li>推导 n-step return。</li>
-<li>说明 GAE 中 <span class="math-text">λ</span> 的作用。</li>
+<li>从 <span class="math-text">A<sub><span class="math-text">π</span></sub>=Q<sub><span class="math-text">π</span></sub>-V<sub><span class="math-text">π</span></sub></span> 推导为什么一步 TD residual 可估计 advantage。</li>
+<li>对给定的 <span class="math-text">R<sub><span class="math-text">t+1</span></sub>=1</span>、<span class="math-text">γ=0.9</span>、<span class="math-text">V(s<sub><span class="math-text">t</span></sub>)=4</span>、<span class="math-text">V(s<sub><span class="math-text">t+1</span></sub>)=5</span>，计算一步 target 和 TD residual。</li>
+<li>写出三步 value target 和对应 advantage estimate。</li>
+<li>解释 GAE 中 <span class="math-text">λ=0</span> 与 <span class="math-text">λ→1</span> 的含义。</li>
+<li>说明 terminal 与 rollout truncation 在 bootstrap mask 上为什么不同。</li>
+<li>写出混合动作 <span class="math-text">(k,u)</span> 的 Actor loss。</li>
+<li>按数据流解释 A2C 一轮 rollout 到更新的全过程。</li>
 </ol>
 <details class="exercise-answers">
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>Actor 和 critic loss</strong>：一种常见写法是 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-𝔼[logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)A<sub><span class="math-text">t</span></sub>]</span>，<span class="math-text">L<sub><span class="math-text">critic</span></sub>=𝔼[(V<sub><span class="math-text">w</span></sub>(s<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>)<sup><span class="math-text">2</span></sup>]</span>。工程上常组合为 <span class="math-text">L=L<sub><span class="math-text">actor</span></sub>+c<sub><span class="math-text">v</span></sub>L<sub><span class="math-text">critic</span></sub>-β<sub><span class="math-text">H</span></sub> H(π<sub><span class="math-text">θ</span></sub>(·∣ s<sub><span class="math-text">t</span></sub>))</span>；计算 actor loss 时通常对 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> stop gradient。</li>
-<li><strong>TD error 与 advantage</strong>：<span class="math-text">δ<sub><span class="math-text">t</span></sub>=r<sub><span class="math-text">t</span></sub>+γ V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t+1</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span>。给定 <span class="math-text">(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span> 取条件期望后，<span class="math-text">𝔼[δ<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]=Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)=A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>。所以单步 TD error 是 advantage 的有噪声样本估计。</li>
-<li><strong>N-step return</strong>：连续展开 return 递归 <span class="math-text">n</span> 次，得到 <span class="math-text">G<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>=r<sub><span class="math-text">t</span></sub>+γ r<sub><span class="math-text">t+1</span></sub>+·s+γ<sup><span class="math-text">n-1</span></sup>r<sub><span class="math-text">t+n-1</span></sub>+γ<sup><span class="math-text">n</span></sup>V(s<sub><span class="math-text">t+n</span></sub>)</span>。若在 <span class="math-text">n</span> 步内终止，则终止后的 bootstrap value 为 0。</li>
-<li><strong><span class="math-text">λ</span> 的作用</strong>：GAE 使用 <span class="math-text">A<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE(γ,λ)</span></sup>=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span>。<span class="math-text">λ</span> 小时更接近一步 TD，bias 较大但 variance 较小；<span class="math-text">λ</span> 接近 1 时更接近长回报，bias 较小但 variance 较大。它是 bias-variance tradeoff 的旋钮。</li>
+<li><strong>TD residual 与 advantage</strong>：<span class="math-text">Q<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ(1-d<sub><span class="math-text">t</span></sub>)V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]</span>。减去 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 后，得到 <span class="math-text">𝔼[δ<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>]=A<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>。用一次 transition 和近似价值 <span class="math-text">V<sub><span class="math-text">w</span></sub></span> 时，<span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 是带采样噪声和 Critic bias 的估计。</li>
+<li><strong>数值题</strong>：未终止时 <span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>=1+0.9×5=5.5</span>，<span class="math-text">δ<sub><span class="math-text">t</span></sub>=5.5-4=1.5</span>。结果高于当前状态预期，Actor 应提高已采样动作概率。</li>
+<li><strong>三步目标</strong>：<span class="math-text">Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(3)</span></sup>=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+γ<sup><span class="math-text">2</span></sup>R<sub><span class="math-text">t+3</span></sub>+γ<sup><span class="math-text">3</span></sup>V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+3</span></sub>)</span>；对应 <span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(3)</span></sup>=Y<sub><span class="math-text">t</span></sub><sup><span class="math-text">(3)</span></sup>-V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span>。若三步内真正终止，终止后的项和 bootstrap value 为 0。</li>
+<li><strong><span class="math-text">λ</span> 两端</strong>：<span class="math-text">λ=0</span> 时 GAE 只保留 <span class="math-text">δ<sub><span class="math-text">t</span></sub></span>，等于一步 TD advantage；<span class="math-text">λ</span> 趋近 1 时更长时间的 residual 权重变大，在 episodic 且边界处理正确时更接近 Monte Carlo advantage。前者通常方差低、bias 高，后者相反。</li>
+<li><strong>Terminal vs truncation</strong>：terminal 表示 MDP 真正结束，环境定义的未来 return 为 0；truncation 只是采样批次或时间上限结束，真实过程可能继续，因此通常需要用最后状态的 <span class="math-text">V<sub><span class="math-text">w</span></sub></span> bootstrap。</li>
+<li><strong>混合动作 loss</strong>：若 <span class="math-text">π(k,u∣ s)=π<sub><span class="math-text">d</span></sub>(k∣ s)π<sub><span class="math-text">c</span></sub>(u∣ s,k)</span>，则 <span class="math-text">L<sub><span class="math-text">actor</span></sub>=-[logπ<sub><span class="math-text">d</span></sub>(k<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)+logπ<sub><span class="math-text">c</span></sub>(u<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,k<sub><span class="math-text">t</span></sub>)]sg(Â<sub><span class="math-text">t</span></sub>)</span>。只计算实际选择的离散分支对应的连续参数 log probability。</li>
+<li><strong>A2C 数据流</strong>：多个环境用同一策略同步采样 T 步，保存动作 log probability 和 value；按 terminal/truncation 决定末端 bootstrap；反向计算 TD residual 和 GAE；构造 value target；Actor 用 <span class="math-text">-logπÂ</span> 更新，Critic 回归 value target，可选加入 entropy bonus；完成后再用新策略采下一批数据。</li>
 </ol>
 </details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./07-policy-gradient.html">← 上一章</a><a href="./09-ppo-trpo.html">下一章 →</a></nav></main></body>

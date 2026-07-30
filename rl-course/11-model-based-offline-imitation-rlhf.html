@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav><h1 id="chapter-11">第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-11-1">11.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-11-2">11.2 本章目标</a><a class="toc-link toc-level-2" href="#section-11-3">11.3 本章主线</a><a class="toc-link toc-level-2" href="#section-11-4">11.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-11-5">11.5 进阶主题总览</a><a class="toc-link toc-level-3" href="#section-11-5-1">11.5.1 四类进阶主题的边界</a><a class="toc-link toc-level-3" href="#section-11-5-2">11.5.2 Model-free vs Model-based</a><a class="toc-link toc-level-2" href="#section-11-6">11.6 Model-based RL</a><a class="toc-link toc-level-3" href="#section-11-6-1">11.6.1 Model-based RL 的流程</a><a class="toc-link toc-level-2" href="#section-11-7">11.7 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-1">11.7.1 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-2">11.7.2 Offline RL 的难点</a><a class="toc-link toc-level-3" href="#section-11-7-3">11.7.3 Offline RL 的常见思路</a><a class="toc-link toc-level-2" href="#section-11-8">11.8 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-1">11.8.1 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-2">11.8.2 Behavior Cloning</a><a class="toc-link toc-level-3" href="#section-11-8-3">11.8.3 DAgger</a><a class="toc-link toc-level-3" href="#section-11-8-4">11.8.4 Inverse Reinforcement Learning</a><a class="toc-link toc-level-2" href="#section-11-9">11.9 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-1">11.9.1 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-2">11.9.2 RLHF 中的 PPO</a><a class="toc-link toc-level-3" href="#section-11-9-3">11.9.3 RLHF 的常见问题</a><a class="toc-link toc-level-2" href="#section-11-10">11.10 本章例子：四类高级 RL 场景</a><a class="toc-link toc-level-3" href="#section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</a><a class="toc-link toc-level-3" href="#section-11-10-2">11.10.2 例子 2：Offline RL 做历史推荐日志</a><a class="toc-link toc-level-3" href="#section-11-10-3">11.10.3 例子 3：Imitation Learning 做驾驶</a><a class="toc-link toc-level-3" href="#section-11-10-4">11.10.4 例子 4：RLHF 做聊天模型</a><a class="toc-link toc-level-2" href="#section-11-11">11.11 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-11-11-1">11.11.1 Model-free 和 model-based RL 区别？</a><a class="toc-link toc-level-3" href="#section-11-11-2">11.11.2 Model-based RL 的主要问题是什么？</a><a class="toc-link toc-level-3" href="#section-11-11-3">11.11.3 Offline RL 为什么难？</a><a class="toc-link toc-level-3" href="#section-11-11-4">11.11.4 Behavior Cloning 的问题？</a><a class="toc-link toc-level-3" href="#section-11-11-5">11.11.5 RLHF 的基本流程？</a><a class="toc-link toc-level-2" href="#section-11-12">11.12 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav><h1 id="chapter-11">第 11 章：Model-based RL（Model-based Reinforcement Learning，基于模型的强化学习）、Offline RL（离线强化学习）、Imitation Learning 与 RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-11-1">11.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-11-2">11.2 本章目标</a><a class="toc-link toc-level-2" href="#section-11-3">11.3 本章主线</a><a class="toc-link toc-level-2" href="#section-11-4">11.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-11-5">11.5 进阶主题总览</a><a class="toc-link toc-level-3" href="#section-11-5-1">11.5.1 四类进阶主题的边界</a><a class="toc-link toc-level-3" href="#section-11-5-2">11.5.2 Model-free vs Model-based</a><a class="toc-link toc-level-2" href="#section-11-6">11.6 Model-based RL</a><a class="toc-link toc-level-3" href="#section-11-6-1">11.6.1 Model-based RL 的流程</a><a class="toc-link toc-level-2" href="#section-11-7">11.7 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-1">11.7.1 Offline RL</a><a class="toc-link toc-level-3" href="#section-11-7-2">11.7.2 Offline RL 的难点</a><a class="toc-link toc-level-3" href="#section-11-7-3">11.7.3 Offline RL 的常见思路</a><a class="toc-link toc-level-3" href="#section-11-7-4">11.7.4 BCQ：把 Policy Improvement 限制在数据支持内</a><a class="toc-link toc-level-3" href="#section-11-7-5">11.7.5 CQL：让没有数据支持的高 Q 付出代价</a><a class="toc-link toc-level-3" href="#section-11-7-6">11.7.6 IQL：不显式查询 OOD 动作</a><a class="toc-link toc-level-3" href="#section-11-7-7">11.7.7 Decision Transformer：把 Offline RL 改写成序列预测</a><a class="toc-link toc-level-3" href="#section-11-7-8">11.7.8 四种方法的统一比较</a><a class="toc-link toc-level-2" href="#section-11-8">11.8 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-1">11.8.1 Imitation Learning</a><a class="toc-link toc-level-3" href="#section-11-8-2">11.8.2 Behavior Cloning</a><a class="toc-link toc-level-3" href="#section-11-8-3">11.8.3 DAgger</a><a class="toc-link toc-level-3" href="#section-11-8-4">11.8.4 Inverse Reinforcement Learning</a><a class="toc-link toc-level-2" href="#section-11-9">11.9 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-1">11.9.1 RLHF</a><a class="toc-link toc-level-3" href="#section-11-9-2">11.9.2 RLHF 中的 PPO</a><a class="toc-link toc-level-3" href="#section-11-9-3">11.9.3 RLHF 的常见问题</a><a class="toc-link toc-level-3" href="#section-11-9-4">11.9.4 DPO：为什么可以不显式训练 Reward Model 和 PPO</a><a class="toc-link toc-level-2" href="#section-11-10">11.10 本章例子：四类高级 RL 场景</a><a class="toc-link toc-level-3" href="#section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</a><a class="toc-link toc-level-3" href="#section-11-10-2">11.10.2 例子 2：Offline RL 做历史推荐日志</a><a class="toc-link toc-level-3" href="#section-11-10-3">11.10.3 例子 3：Imitation Learning 做驾驶</a><a class="toc-link toc-level-3" href="#section-11-10-4">11.10.4 例子 4：RLHF 做聊天模型</a><a class="toc-link toc-level-2" href="#section-11-11">11.11 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-11-11-1">11.11.1 Model-free 和 model-based RL 区别？</a><a class="toc-link toc-level-3" href="#section-11-11-2">11.11.2 Model-based RL 的主要问题是什么？</a><a class="toc-link toc-level-3" href="#section-11-11-3">11.11.3 Offline RL 为什么难？</a><a class="toc-link toc-level-3" href="#section-11-11-4">11.11.4 Behavior Cloning 的问题？</a><a class="toc-link toc-level-3" href="#section-11-11-5">11.11.5 RLHF 的基本流程？</a><a class="toc-link toc-level-2" href="#section-11-12">11.12 本章练习</a></nav></details>
 <h2 id="section-11-1">11.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -500,6 +500,12 @@
 <td>RLHF 中正在优化的 policy，以及用于约束它不要偏离太远的固定参考模型。</td>
 </tr>
 <tr>
+<td><span class="math-text">x</span> / <span class="math-text">y<sup><span class="math-text">+</span></sup></span> / <span class="math-text">y<sup><span class="math-text">-</span></sup></span></td>
+<td>Prompt / Preferred / Rejected Response</td>
+<td>Prompt / 偏好回答 / 被拒回答</td>
+<td>DPO 偏好样本中的输入、优选输出和劣选输出。</td>
+</tr>
+<tr>
 <td><span class="math-text">r<sub><span class="math-text">RM</span></sub></span> / <span class="math-text">r<sub><span class="math-text">total</span></sub></span></td>
 <td>RM / Total Reward</td>
 <td>奖励模型分数 / 总奖励</td>
@@ -560,12 +566,6 @@
 <td>offline RL 代表算法之一。</td>
 </tr>
 <tr>
-<td>BEAR</td>
-<td>Bootstrapping Error Accumulation Reduction</td>
-<td>bootstrap 误差累积降低</td>
-<td>offline RL 代表算法之一。</td>
-</tr>
-<tr>
 <td>CQL</td>
 <td>Conservative Q-Learning</td>
 <td>保守 Q 学习</td>
@@ -576,6 +576,42 @@
 <td>Implicit Q-Learning</td>
 <td>隐式 Q 学习</td>
 <td>不显式查询 OOD action 的 offline RL 方法。</td>
+</tr>
+<tr>
+<td>DT</td>
+<td>Decision Transformer</td>
+<td>决策 Transformer</td>
+<td>把离线轨迹建模成条件序列、根据目标 return 预测动作的方法。</td>
+</tr>
+<tr>
+<td><span class="math-text">α<sub><span class="math-text">CQL</span></sub></span></td>
+<td>CQL Conservative Coefficient</td>
+<td>CQL 保守系数</td>
+<td>控制 CQL 对未支持动作 Q 值的压低强度。</td>
+</tr>
+<tr>
+<td><span class="math-text">τ<sub><span class="math-text">IQL</span></sub></span></td>
+<td>IQL Expectile Level</td>
+<td>IQL 期望分位水平</td>
+<td>控制 IQL 的 value 拟合更偏向数据动作中的高价值部分。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">IQL</span></sub></span></td>
+<td>IQL Advantage Temperature</td>
+<td>IQL 优势温度</td>
+<td>控制 advantage-weighted behavior cloning 的权重集中程度。</td>
+</tr>
+<tr>
+<td><span class="math-text">β<sub><span class="math-text">DPO</span></sub></span></td>
+<td>DPO Preference Temperature</td>
+<td>DPO 偏好温度</td>
+<td>控制 policy 相对 reference model 的偏好优化强度。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">CQL</span></sub></span> / <span class="math-text">L<sub><span class="math-text">V</span></sub></span> / <span class="math-text">L<sub><span class="math-text">π</span></sub></span> / <span class="math-text">L<sub><span class="math-text">DPO</span></sub></span></td>
+<td>CQL / Value / Policy / DPO Loss</td>
+<td>CQL / 价值 / 策略 / DPO 损失</td>
+<td>本章各离线价值学习、策略学习和偏好优化目标。</td>
 </tr>
 <tr>
 <td>OOD</td>
@@ -589,9 +625,10 @@
 <ul>
 <li>model-free vs model-based RL。</li>
 <li>offline RL 的核心难点。</li>
+<li>BCQ、CQL、IQL 与 Decision Transformer 分别怎样处理离线数据约束。</li>
 <li>imitation learning 和 behavior cloning。</li>
 <li>inverse reinforcement learning。</li>
-<li>RLHF 的基本流程。</li>
+<li>PPO-based RLHF 与 DPO 的数据流和边界。</li>
 </ul>
 <h2 id="section-11-3">11.3 本章主线</h2>
 <p>前 10 章主要讨论在线 model-free 学习。本章换成四类现实约束：能不能学或使用环境模型，能不能继续交互，能不能从专家示范学，能不能用人类偏好定义 reward。Model-based RL、Offline RL、Imitation Learning、RLHF 分别对应这些约束，是面试里从经典 RL 扩展到真实系统和大模型对齐的关键桥梁。</p>
@@ -802,22 +839,175 @@
 <p>Offline RL 难在不能通过真实环境纠错。策略可能选择数据分布之外的动作，而 critic 对这些动作的 Q 值没有可靠监督，容易产生过估计并被 policy 利用。</p>
 </blockquote>
 <h3 id="section-11-7-3">11.7.3 Offline RL 的常见思路</h3>
-<p>常见方法会让策略不要偏离数据分布太远，或让 Q 值对 OOD 动作更保守。</p>
-<p>几类思路：</p>
+<p>普通 online Q-learning 的 policy improvement 会查询：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+
+<p>Offline 数据无法验证这个最大值对应的动作是否可靠。不同算法的区别，主要在于怎样避免“从未见过的动作因为估值错误而被选中”：</p>
+<div class="table-scroll"><table class="three-col-table">
+<thead>
+<tr>
+<th>路线</th>
+<th>核心约束</th>
+<th>代表方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>约束候选动作</td>
+<td>只在 behavior data 支持的动作附近优化</td>
+<td>BCQ</td>
+</tr>
+<tr>
+<td>保守价值估计</td>
+<td>主动压低数据外动作的 Q 值</td>
+<td>CQL</td>
+</tr>
+<tr>
+<td>只做 in-sample 学习</td>
+<td>不对数据外动作显式取最大值</td>
+<td>IQL</td>
+</tr>
+<tr>
+<td>条件序列建模</td>
+<td>不做 Bellman maximization，直接预测动作</td>
+<td>Decision Transformer</td>
+</tr>
+</tbody></table></div>
+<p>下面不是要求你背完所有论文细节，而是要看清每种路线究竟把普通 Q-learning 的哪一步改了。</p>
+<h3 id="section-11-7-4">11.7.4 BCQ：把 Policy Improvement 限制在数据支持内</h3>
+<p>BCQ 是 Batch-Constrained deep Q-learning。它的出发点是：</p>
+<blockquote>
+<p>如果离线数据里几乎没出现某个动作，就不要仅凭一个不可靠的高 Q 值选择它。</p>
+</blockquote>
+<p>典型流程：</p>
+<ol>
+<li>从数据集 <span class="math-text">D</span> 学一个 behavior action generator，近似 <span class="math-text">μ(a∣ s)</span>。</li>
+<li>在给定状态 <span class="math-text">s</span> 下，从 generator 采样若干数据分布内的候选动作。</li>
+<li>可用一个小 perturbation network 对候选动作做有限调整。</li>
+<li>只在这些候选动作中选择 Q 值最大的动作。</li>
+</ol>
+<pre><code class="language-text">普通 Q-learning:
+    在整个动作空间 max Q(s, a)
+
+BCQ:
+    先生成 behavior-supported candidates
+    再在候选集合中 max Q(s, a)
+</code></pre>
+<p>BCQ 的收益是减少 OOD action；代价是 learned policy 很难远离 behavior data，也可能无法发现数据覆盖之外的更优策略。</p>
+<h3 id="section-11-7-5">11.7.5 CQL：让没有数据支持的高 Q 付出代价</h3>
+<p>CQL 是 Conservative Q-Learning。它保留 Bellman regression，但额外加入保守正则。</p>
+<p>离散动作下的直观形式：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">CQL</span></sub>
+=L<sub><span class="math-text">Bellman</span></sub>
++α<sub><span class="math-text">CQL</span></sub>
+[
+log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)
+-𝔼<sub><span class="math-text">a∼ D</span></sub>[Q(s,a)]
+]</span></div>
+
+<p>两部分作用：</p>
 <ul>
-<li>Behavior regularization：限制 learned policy 接近 behavior policy。</li>
-<li>Conservative value estimation：压低 OOD action 的 Q 值。</li>
-<li>Importance weighting：修正策略分布差异。</li>
-<li>Sequence modeling：把决策问题转成条件序列建模，例如 Decision Transformer。</li>
+<li><span class="math-text">log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)</span> 会惩罚所有动作中虚高的 Q。</li>
+<li>数据动作的 <span class="math-text">Q(s,a)</span> 被加回来，避免把有真实支持的动作同样压得过低。</li>
 </ul>
-<p>代表算法了解即可：</p>
+<p>结果是：</p>
+<blockquote>
+<p>对数据中出现过的动作可以较有信心；对没覆盖的动作宁可低估，也不要让 policy 利用偶然高估。</p>
+</blockquote>
+<p>连续动作无法枚举求和，实践中会从若干动作分布采样近似该保守项。<span class="math-text">α<sub><span class="math-text">CQL</span></sub></span> 太小可能仍会 OOD 高估，太大则可能过度保守。</p>
+<h3 id="section-11-7-6">11.7.6 IQL：不显式查询 OOD 动作</h3>
+<p>IQL 是 Implicit Q-Learning。它不在下一状态对任意动作做 <span class="math-text">max<sub><span class="math-text">a</span></sub>Q(s&#39;,a)</span>，而是只用数据集中的动作学习。</p>
+<p>第一步，对数据动作的 <span class="math-text">Q(s,a)</span> 做 expectile regression（非对称平方回归），学习一个偏向高价值数据动作的 <span class="math-text">V(s)</span>：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">V</span></sub>
+=𝔼<sub><span class="math-text">(s,a)∼ D</span></sub>
+[
+∣
+τ<sub><span class="math-text">IQL</span></sub>
+-1[Q(s,a)-V(s)&lt;0]
+∣
+(Q(s,a)-V(s))<sup><span class="math-text">2</span></sup>
+]</span></div>
+
+<p>当 <span class="math-text">τ<sub><span class="math-text">IQL</span></sub>&gt;0.5</span> 时，<span class="math-text">V(s)</span> 更靠近数据集中较高的 Q 值，但仍只看真实数据动作。</p>
+<p>第二步，用：</p>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)V(s')</span></div>
+
+<p>训练 Q。这里没有对数据外动作取 max。</p>
+<p>第三步，用 advantage-weighted behavior cloning 学策略：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">π</span></sub>
+=-𝔼<sub><span class="math-text">(s,a)∼ D</span></sub>
+[
+exp(
+β<sub><span class="math-text">IQL</span></sub>(Q(s,a)-V(s))
+)
+logπ<sub><span class="math-text">θ</span></sub>(a∣ s)
+]</span></div>
+
+<p>数据中 advantage 高的动作获得更大模仿权重，差动作权重更低。</p>
+<p>IQL 的主线是：</p>
+<pre><code class="language-text">不生成 OOD action 做 max
+  -&gt; 在数据动作内学习偏高价值的 V
+  -&gt; 用 V bootstrap Q
+  -&gt; 加权模仿数据中的好动作
+</code></pre>
+<h3 id="section-11-7-7">11.7.7 Decision Transformer：把 Offline RL 改写成序列预测</h3>
+<p>Decision Transformer 不显式学习 Bellman Q target，而是把一条轨迹组织成序列：</p>
+<pre><code class="language-text">return-to-go, state, action,
+return-to-go, state, action, ...
+</code></pre>
+<p>训练目标类似监督序列建模：给定历史状态、动作和希望达到的 return-to-go，预测下一个动作。</p>
+<p>部署时：</p>
+<ol>
+<li>指定目标 return。</li>
+<li>输入当前状态和历史轨迹。</li>
+<li>模型预测下一动作。</li>
+<li>执行动作后，根据实际 reward 更新剩余 return-to-go。</li>
+</ol>
+<p>它的优势：</p>
 <ul>
-<li>BCQ。</li>
-<li>BEAR。</li>
-<li>CQL。</li>
-<li>IQL。</li>
-<li>Decision Transformer。</li>
+<li>不需要显式做 OOD action 上的 Bellman maximization。</li>
+<li>可以复用 Transformer 的序列建模能力。</li>
 </ul>
+<p>它的限制：</p>
+<ul>
+<li>本质上仍受离线数据覆盖限制。</li>
+<li>给出数据从未实现过的高目标 return，不代表模型真能组合出更优行为。</li>
+<li>对 reward scale、context length 和轨迹质量敏感。</li>
+</ul>
+<h3 id="section-11-7-8">11.7.8 四种方法的统一比较</h3>
+<div class="table-scroll"><table class="standard-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>是否显式学 Q</th>
+<th>怎样避免 OOD 问题</th>
+<th>主要代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BCQ</td>
+<td>是</td>
+<td>候选动作来自 behavior generator</td>
+<td>策略受数据分布限制较强</td>
+</tr>
+<tr>
+<td>CQL</td>
+<td>是</td>
+<td>压低未支持动作的 Q</td>
+<td>可能过度保守</td>
+</tr>
+<tr>
+<td>IQL</td>
+<td>是</td>
+<td>不对任意 OOD 动作做 max</td>
+<td>依赖数据内存在较好动作</td>
+</tr>
+<tr>
+<td>Decision Transformer</td>
+<td>否</td>
+<td>用条件序列预测替代 Bellman max</td>
+<td>依赖轨迹覆盖和目标 return 条件</td>
+</tr>
+</tbody></table></div>
 <h2 id="section-11-8">11.8 Imitation Learning</h2>
 <h3 id="section-11-8-1">11.8.1 Imitation Learning</h3>
 <p>Imitation Learning 从专家数据中学习策略。</p>
@@ -917,10 +1107,58 @@
 <li>PPO 训练不稳定。</li>
 <li>对齐目标难以完全由标注偏好表达。</li>
 </ul>
-<p>近年也常见不用 RL 的偏好优化方法，例如 DPO。面试中可以简单提到：</p>
-<blockquote>
-<p>DPO 直接从偏好数据推导监督式目标，避免显式训练 reward model 后再跑 PPO，工程上更简单。</p>
-</blockquote>
+<h3 id="section-11-9-4">11.9.4 DPO：为什么可以不显式训练 Reward Model 和 PPO</h3>
+<p>DPO 是 Direct Preference Optimization。它使用同样的 pairwise preference data：</p>
+<div class="math-block"><span class="math-text">(x,y<sup><span class="math-text">+</span></sup>,y<sup><span class="math-text">-</span></sup>)</span></div>
+
+<p>其中 <span class="math-text">x</span> 是 prompt，<span class="math-text">y<sup><span class="math-text">+</span></sup></span> 是 preferred response，<span class="math-text">y<sup><span class="math-text">-</span></sup></span> 是 rejected response。</p>
+<p>DPO loss 的常见形式：</p>
+<div class="math-block multi"><div><span class="math-text">L<sub><span class="math-text">DPO</span></sub>
+=-logσ(
+β<sub><span class="math-text">DPO</span></sub>
+[
+logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x)
+-logπ<sub><span class="math-text">ref</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x)</span></div><div><span class="math-text">-logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">-</span></sup>∣ x)
++logπ<sub><span class="math-text">ref</span></sub>(y<sup><span class="math-text">-</span></sup>∣ x)
+]
+)</span></div></div>
+
+<p>先看括号里的两项：</p>
+<div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x) /
+{π<sub><span class="math-text">ref</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x)}
+-
+logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">-</span></sup>∣ x) /
+{π<sub><span class="math-text">ref</span></sub>(y<sup><span class="math-text">-</span></sup>∣ x)}</span></div>
+
+<p>它要求当前 policy 相对 reference model：</p>
+<ul>
+<li>更多提高 preferred response 的概率。</li>
+<li>更多降低 rejected response 的概率。</li>
+</ul>
+<p>DPO 来自 KL-regularized preference RL 的解析关系：在特定假设下，可以消去显式 reward function，把 reward difference 改写成 policy 与 reference policy 的 log-ratio difference。</p>
+<p>因此经典两条路线是：</p>
+<pre><code class="language-text">PPO-based RLHF:
+    preference data -&gt; reward model
+    -&gt; online sample responses
+    -&gt; PPO maximize RM reward with KL constraint
+
+DPO:
+    preference pairs + reference policy
+    -&gt; directly optimize pairwise classification objective
+</code></pre>
+<p>DPO 的优点：</p>
+<ul>
+<li>不需要单独部署 reward model 做在线打分。</li>
+<li>不需要 rollout + Critic + PPO 的复杂训练循环。</li>
+<li>训练形态接近 supervised fine-tuning。</li>
+</ul>
+<p>DPO 没有自动解决的问题：</p>
+<ul>
+<li>仍依赖偏好数据质量和覆盖。</li>
+<li>主要是 offline preference optimization，不能自动探索数据之外的新行为。</li>
+<li>Reference model 和 <span class="math-text">β<sub><span class="math-text">DPO</span></sub></span> 会影响优化强度。</li>
+<li>它简化了优化流程，不代表“偏好对齐已经没有 reward 或 RL 的概念来源”。</li>
+</ul>
 <h2 id="section-11-10">11.10 本章例子：四类高级 RL 场景</h2>
 <h3 id="section-11-10-1">11.10.1 例子 1：Model-based RL 做机器人规划</h3>
 <p>机器人先学习一个 dynamics model：</p>
@@ -973,6 +1211,8 @@
 <li>解释 offline RL 中的 extrapolation error。</li>
 <li>对比 Behavior Cloning 和 RL。</li>
 <li>画出 RLHF 的四阶段流程。</li>
+<li>分别说明 BCQ、CQL、IQL 和 Decision Transformer 怎样避免直接利用 OOD action。</li>
+<li>对比 PPO-based RLHF 和 DPO 的训练数据流。</li>
 </ol>
 <details class="exercise-answers">
 <summary>参考答案（点击展开）</summary>
@@ -991,6 +1231,10 @@
     -&gt; policy optimization with reward and KL constraint
 </code></pre>
 <p>第四阶段经典做法是 PPO；实际系统也可能采用 DPO 等直接偏好优化方法，此时不显式训练 reward model 并运行在线 PPO。</p>
+</li>
+<li><p><strong>四类 Offline 方法</strong>：BCQ 先从 behavior-supported generator 产生候选动作，只在候选内取高 Q；CQL 对所有动作的虚高 Q 加保守惩罚，同时保留数据动作价值；IQL 只在数据动作上做 expectile value regression，再用 advantage-weighted behavior cloning 学 policy，不显式查询 OOD action；Decision Transformer 不做 Bellman maximization，而是根据历史轨迹和目标 return 监督预测下一动作。</p>
+</li>
+<li><p><strong>PPO-based RLHF vs DPO</strong>：PPO 路线先用偏好对训练 reward model，再让当前 policy 在线生成 response，由 reward model 打分，结合 reference KL 后用 Actor-Critic/PPO 更新。DPO 直接读取固定的 <span class="math-text">(x,y<sup><span class="math-text">+</span></sup>,y<sup><span class="math-text">-</span></sup>)</span> 偏好对，优化 current/reference log-ratio difference，不显式训练 reward model、Critic 或执行 PPO rollout；它更简单，但仍受离线偏好数据覆盖限制。</p>
 </li>
 </ol>
 </details>

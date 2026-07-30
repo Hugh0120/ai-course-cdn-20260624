@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1 id="chapter-12">第 12 章：强化学习面试速查与项目准备</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-12-1">12.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-12-2">12.2 本章目标</a><a class="toc-link toc-level-2" href="#section-12-3">12.3 本章主线</a><a class="toc-link toc-level-2" href="#section-12-4">12.4 本章使用方式</a><a class="toc-link toc-level-2" href="#section-12-5">12.5 速查和高频问答</a><a class="toc-link toc-level-3" href="#section-12-5-1">12.5.1 核心概念速查</a><a class="toc-link toc-level-3" href="#section-12-5-2">12.5.2 算法横向对比</a><a class="toc-link toc-level-3" href="#section-12-5-3">12.5.3 高频概念问答</a><a class="toc-link toc-level-4" href="#section-12-5-3-1">12.5.3.1 RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</a><a class="toc-link toc-level-4" href="#section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</a><a class="toc-link toc-level-4" href="#section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</a><a class="toc-link toc-level-4" href="#section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</a><a class="toc-link toc-level-4" href="#section-12-5-3-10">12.5.3.10 PPO 为什么常用？</a><a class="toc-link toc-level-4" href="#section-12-5-3-11">12.5.3.11 SAC 为什么适合连续控制？</a><a class="toc-link toc-level-4" href="#section-12-5-3-12">12.5.3.12 Offline RL 为什么难？</a><a class="toc-link toc-level-2" href="#section-12-6">12.6 面试表达模板和项目准备</a><a class="toc-link toc-level-3" href="#section-12-6-1">12.6.1 面试中算法讲解模板</a><a class="toc-link toc-level-3" href="#section-12-6-2">12.6.2 项目准备建议</a><a class="toc-link toc-level-3" href="#section-12-6-3">12.6.3 面试例子索引</a><a class="toc-link toc-level-3" href="#section-12-6-4">12.6.4 项目表达模板</a><a class="toc-link toc-level-2" href="#section-12-7">12.7 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-1">12.7.1 CartPole DQN 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-2">12.7.2 LunarLander PPO 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</a><a class="toc-link toc-level-2" href="#section-12-8">12.8 最终复习</a><a class="toc-link toc-level-3" href="#section-12-8-1">12.8.1 面试前最终检查清单</a><a class="toc-link toc-level-3" href="#section-12-8-2">12.8.2 30 分钟口述复习路线</a><a class="toc-link toc-level-2" href="#section-12-9">12.9 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1 id="chapter-12">第 12 章：强化学习面试速查与项目准备</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-12-1">12.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-12-2">12.2 本章目标</a><a class="toc-link toc-level-2" href="#section-12-3">12.3 本章主线</a><a class="toc-link toc-level-2" href="#section-12-4">12.4 本章使用方式</a><a class="toc-link toc-level-2" href="#section-12-5">12.5 速查和高频问答</a><a class="toc-link toc-level-3" href="#section-12-5-1">12.5.1 核心概念速查</a><a class="toc-link toc-level-3" href="#section-12-5-2">12.5.2 算法横向对比</a><a class="toc-link toc-level-3" href="#section-12-5-3">12.5.3 高频概念问答</a><a class="toc-link toc-level-4" href="#section-12-5-3-1">12.5.3.1 RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</a><a class="toc-link toc-level-4" href="#section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</a><a class="toc-link toc-level-4" href="#section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</a><a class="toc-link toc-level-4" href="#section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</a><a class="toc-link toc-level-4" href="#section-12-5-3-10">12.5.3.10 为什么理论公式用 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span>，REINFORCE 实现用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>？</a><a class="toc-link toc-level-4" href="#section-12-5-3-11">12.5.3.11 离散加连续的混合动作怎样建模？</a><a class="toc-link toc-level-4" href="#section-12-5-3-12">12.5.3.12 PPO 为什么常用？</a><a class="toc-link toc-level-4" href="#section-12-5-3-13">12.5.3.13 SAC 为什么适合连续控制？</a><a class="toc-link toc-level-4" href="#section-12-5-3-14">12.5.3.14 Offline RL 为什么难？</a><a class="toc-link toc-level-2" href="#section-12-6">12.6 面试表达模板和项目准备</a><a class="toc-link toc-level-3" href="#section-12-6-1">12.6.1 面试中算法讲解模板</a><a class="toc-link toc-level-3" href="#section-12-6-2">12.6.2 项目准备建议</a><a class="toc-link toc-level-3" href="#section-12-6-3">12.6.3 面试例子索引</a><a class="toc-link toc-level-3" href="#section-12-6-4">12.6.4 项目表达模板</a><a class="toc-link toc-level-2" href="#section-12-7">12.7 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-1">12.7.1 CartPole DQN 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-2">12.7.2 LunarLander PPO 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</a><a class="toc-link toc-level-2" href="#section-12-8">12.8 最终复习</a><a class="toc-link toc-level-3" href="#section-12-8-1">12.8.1 面试前最终检查清单</a><a class="toc-link toc-level-3" href="#section-12-8-2">12.8.2 30 分钟口述复习路线</a><a class="toc-link toc-level-2" href="#section-12-9">12.9 本章练习</a></nav></details>
 <h2 id="section-12-1">12.1 本章符号说明</h2>
 <p>本章是速查表，会集中复现前面章节的核心符号：</p>
 <div class="table-scroll"><table class="symbol-table">
@@ -459,16 +459,28 @@
 <td>PPO 等算法在样本时刻 <span class="math-text">t</span> 使用的 advantage 估计值。</td>
 </tr>
 <tr>
+<td><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">MC</span></sup></span></td>
+<td>Monte Carlo Advantage Estimate</td>
+<td>蒙特卡洛优势估计</td>
+<td>REINFORCE with baseline 中的 <span class="math-text">G<sub><span class="math-text">t</span></sub>-b(s<sub><span class="math-text">t</span></sub>)</span>。</td>
+</tr>
+<tr>
+<td><span class="math-text">K<sub><span class="math-text">t</span></sub></span> / <span class="math-text">U<sub><span class="math-text">t</span></sub></span></td>
+<td>Discrete Type / Continuous Parameter</td>
+<td>离散类型 / 连续参数</td>
+<td>混合动作空间中的 categorical choice 和 conditional continuous parameter。</td>
+</tr>
+<tr>
 <td><span class="math-text">δ<sub><span class="math-text">t</span></sub></span></td>
 <td>TD Error</td>
 <td>时序差分误差</td>
 <td>一步 TD target 与当前价值估计的差。</td>
 </tr>
 <tr>
-<td><span class="math-text">rho<sub><span class="math-text">t</span></sub>(θ)</span></td>
+<td><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ)</span></td>
 <td>PPO Probability Ratio</td>
 <td>PPO 概率比</td>
-<td>新策略与旧策略对样本动作的概率之比；特意用 <span class="math-text">rho</span> 避免和 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 混淆。</td>
+<td>新策略与旧策略对样本动作的概率之比；特意用 <span class="math-text">ρ</span> 避免和 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 混淆。</td>
 </tr>
 <tr>
 <td><span class="math-text">ε<sub><span class="math-text">clip</span></sub></span></td>
@@ -687,6 +699,10 @@
 <p>Advantage：</p>
 <div class="math-block"><span class="math-text">A<sub><span class="math-text">π</span></sub>(s,a) = Q<sub><span class="math-text">π</span></sub>(s,a) - V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
+<p>REINFORCE with baseline 的样本 advantage：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">MC</span></sup>
+=G<sub><span class="math-text">t</span></sub>-b(s<sub><span class="math-text">t</span></sub>)</span></div>
+
 <p>Bellman expectation：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s) = 𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub> + γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>) ∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
@@ -699,11 +715,11 @@
 <p>Policy Gradient：</p>
 <div class="math-block"><span class="math-text">∇ J(θ) = 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div>
 
-<p>PPO ratio。这里用 <span class="math-text">rho<sub><span class="math-text">t</span></sub></span> 表示 probability ratio，避免和即时 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 使用同一个字母：</p>
-<div class="math-block"><span class="math-text">rho<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+<p>PPO ratio。这里用 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span> 表示 probability ratio，避免和即时 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 使用同一个字母：</p>
+<div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>PPO clipped objective：</p>
-<div class="math-block"><span class="math-text">𝔼[min(rho<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(rho<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
+<div class="math-block"><span class="math-text">𝔼[min(ρ<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(ρ<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
 
 <p>SAC soft target：</p>
 <div class="math-block"><span class="math-text">y = r + γ(1-d) [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α<sub><span class="math-text">SAC</span></sub> log π(a'∣ s')]</span></div>
@@ -835,11 +851,22 @@
 <div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a~π</span></sub>[∇ log π(a∣ s)] = 0</span></div>
 
 <p>因此减去 baseline 只改变方差，不改变梯度期望。</p>
-<h4 id="section-12-5-3-10">12.5.3.10 PPO 为什么常用？</h4>
+<h4 id="section-12-5-3-10">12.5.3.10 为什么理论公式用 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span>，REINFORCE 实现用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>？</h4>
+<p>因为：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)=𝔼[G<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>=s,A<sub><span class="math-text">t</span></sub>=a]</span></div>
+
+<p><span class="math-text">Q<sub><span class="math-text">π</span></sub></span> 是条件期望，<span class="math-text">G<sub><span class="math-text">t</span></sub></span> 是一条轨迹上采样到的随机回报。REINFORCE 没有真实 Q 函数，只能用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 作为 Monte Carlo 样本。</p>
+<h4 id="section-12-5-3-11">12.5.3.11 离散加连续的混合动作怎样建模？</h4>
+<p>把动作写成 <span class="math-text">(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span>，并分解联合策略：</p>
+<div class="math-block"><span class="math-text">π(k,u∣ s)
+=π<sub><span class="math-text">d</span></sub>(k∣ s)π<sub><span class="math-text">c</span></sub>(u∣ s,k)</span></div>
+
+<p>先用 categorical head 选择类型 <span class="math-text">k</span>，再由条件连续分支输出该类型所需的参数 <span class="math-text">u</span>。联合 log probability 是两部分之和，并且只训练实际选中类型对应的连续分支。</p>
+<h4 id="section-12-5-3-12">12.5.3.12 PPO 为什么常用？</h4>
 <p>PPO 用 clipped objective 限制新旧策略差异，稳定性好、实现简单、适用面广，是 on-policy actor-critic 中非常常用的工程基线。</p>
-<h4 id="section-12-5-3-11">12.5.3.11 SAC 为什么适合连续控制？</h4>
+<h4 id="section-12-5-3-13">12.5.3.13 SAC 为什么适合连续控制？</h4>
 <p>SAC 是 off-policy，样本效率较高；最大熵目标鼓励探索并提升稳定性；双 Q 网络缓解过估计，因此在连续控制任务中表现稳定。</p>
-<h4 id="section-12-5-3-12">12.5.3.12 Offline RL 为什么难？</h4>
+<h4 id="section-12-5-3-14">12.5.3.14 Offline RL 为什么难？</h4>
 <p>因为不能继续探索收集数据。学习策略可能选择数据集中没覆盖的动作，critic 对这些动作估计不可靠，容易出现 extrapolation error。</p>
 <h2 id="section-12-6">12.6 面试表达模板和项目准备</h2>
 <h3 id="section-12-6-1">12.6.1 面试中算法讲解模板</h3>
@@ -1039,7 +1066,9 @@
 <li>能解释 DQN 两个核心 trick。</li>
 <li>能解释 Double DQN 为什么缓解过估计。</li>
 <li>能推导 policy gradient 的 log-derivative trick。</li>
+<li>能解释 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span> 是 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的条件期望，以及理论 advantage 和样本 advantage estimate 的区别。</li>
 <li>能证明 baseline 不引入 bias。</li>
+<li>能写出离散加连续混合动作的联合策略与 joint log probability。</li>
 <li>能解释 Actor-Critic 和 GAE。</li>
 <li>能手写 PPO clipped objective。</li>
 <li>能解释 SAC 的最大熵目标。</li>

@@ -696,12 +696,12 @@
 </tr>
 <tr>
 <td>第 7 章</td>
-<td>不想通过 argmax Q 选动作时，如何直接优化 policy</td>
-<td>policy-based RL</td>
+<td>不想通过 argmax Q 选动作时，如何从 Policy Gradient 推到 REINFORCE、baseline 与 MC advantage</td>
+<td>policy-based RL，不使用 TD Critic</td>
 </tr>
 <tr>
 <td>第 8 章</td>
-<td>如何同时利用 policy gradient 和 value learning</td>
+<td>如何把 MC baseline 变成 TD Critic，再推到 n-step、GAE 和 A2C/A3C</td>
 <td>actor-critic 框架</td>
 </tr>
 <tr>
@@ -743,8 +743,10 @@
 <li>再拆递归：把 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 写成 <span class="math-text">R<sub><span class="math-text">t+1</span></sub>+γ G<sub><span class="math-text">t+1</span></sub></span>，自然得到 Bellman 思路。</li>
 <li>再区分期望和采样：Bellman 方程是期望形式，TD、SARSA、Q-learning 是用一次 transition 近似这个期望。</li>
 <li>再看函数逼近：DQN 把 tabular update 变成对 Bellman target 的监督回归。</li>
-<li>再看策略优化：policy gradient 用 log-derivative trick 处理“采样分布本身依赖参数”的问题。</li>
-<li>最后看稳定化：baseline、critic、GAE、target network、replay、PPO clipping、SAC entropy 都是在处理方差、偏差、分布漂移或探索。</li>
+<li>再看策略优化：policy gradient 用 log-derivative trick 处理“采样分布本身依赖参数”的问题；理论 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span> 是 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 的条件期望，REINFORCE 用采样 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 估计它。</li>
+<li>再看方差控制：baseline 来自 action-independent control variate；取 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 后，<span class="math-text">G<sub><span class="math-text">t</span></sub>-V<sub><span class="math-text">π</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 是 advantage 的 Monte Carlo 估计。</li>
+<li>再引入 Critic：TD、n-step 和 GAE 用 bootstrap 换取更低方差与更快更新，这时才进入 Actor-Critic。</li>
+<li>最后看稳定化：target network、replay、PPO clipping、SAC entropy 分别处理不同算法中的移动目标、样本相关性、策略漂移和探索。</li>
 </ol>
 <p>面试里如果一时忘公式，可以从这条链路往回推：目标是什么，target 是什么，target 为什么可靠，更新过大或估计不准会出什么问题。</p>
 <h2 id="section-0-6">0.6 新名词阅读约定</h2>
@@ -832,12 +834,12 @@
 <tr>
 <td>第 7 章</td>
 <td><a href="./07-policy-gradient.html">07-policy-gradient</a></td>
-<td>REINFORCE、Policy Gradient、baseline、advantage</td>
+<td>Policy Gradient、REINFORCE、<span class="math-text">Q<sub><span class="math-text">π</span></sub></span> 与 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>、baseline、MC advantage、混合动作策略</td>
 </tr>
 <tr>
 <td>第 8 章</td>
 <td><a href="./08-actor-critic-gae.html">08-actor-critic-gae</a></td>
-<td>Actor-Critic、A2C、A3C、GAE</td>
+<td>从 MC baseline 到 TD Critic、n-step、GAE、A2C/A3C</td>
 </tr>
 <tr>
 <td>第 9 章</td>
