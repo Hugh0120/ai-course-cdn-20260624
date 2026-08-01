@@ -512,10 +512,10 @@
 <td>连续动作策略输出的分布参数。</td>
 </tr>
 <tr>
-<td><span class="math-text">𝒩(μ,σ)</span></td>
-<td>Gaussian Distribution</td>
-<td>高斯分布</td>
-<td>连续动作策略常用的概率分布。</td>
+<td><span class="math-text">𝒩(x;μ,σ)</span></td>
+<td>Gaussian Probability Density</td>
+<td>高斯概率密度</td>
+<td>均值为 <span class="math-text">μ</span>、标准差为 <span class="math-text">σ</span> 的高斯分布在 <span class="math-text">x</span> 处的概率密度；分号左边是被评价的取值，右边是分布参数。</td>
 </tr>
 <tr>
 <td><span class="math-text">K<sub><span class="math-text">t</span></sub></span> / <span class="math-text">U<sub><span class="math-text">t</span></sub></span></td>
@@ -594,13 +594,43 @@
 <div class="math-block"><span class="math-text">a=(a<sub><span class="math-text">1</span></sub>,a<sub><span class="math-text">2</span></sub>,a<sub><span class="math-text">3</span></sub>)</span></div>
 
 <p>策略常输出 Gaussian distribution（高斯分布）的参数：</p>
-<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)=𝒩(μ<sub><span class="math-text">θ</span></sub>(s),σ<sub><span class="math-text">θ</span></sub>(s))</span></div>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)=𝒩(a;μ<sub><span class="math-text">θ</span></sub>(s),σ<sub><span class="math-text">θ</span></sub>(s))</span></div>
 
 <p>如果各维在给定状态下条件独立，可以输出每一维的均值和标准差，并把各维 log probability 相加：</p>
 <div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a∣ s)
 =∑<sub><span class="math-text">j</span></sub>log
 𝒩(a<sub><span class="math-text">j</span></sub>;μ<sub><span class="math-text">θ,j</span></sub>(s),σ<sub><span class="math-text">θ,j</span></sub>(s))</span></div>
 
+<p>逐项解释：</p>
+<ul>
+<li><span class="math-text">𝒩</span>：花体大写 <span class="math-text">N</span>，表示 Normal Distribution（正态分布，也叫高斯分布）的概率密度函数。</li>
+<li><span class="math-text">a<sub><span class="math-text">j</span></sub></span>：本次实际采样并执行的第 <span class="math-text">j</span> 维动作值；<span class="math-text">j</span> 是动作维度索引。</li>
+<li><span class="math-text">μ<sub><span class="math-text">θ,j</span></sub>(s)</span>：策略网络在状态 <span class="math-text">s</span> 下，为第 <span class="math-text">j</span> 维动作预测的均值。</li>
+<li><span class="math-text">σ<sub><span class="math-text">θ,j</span></sub>(s)</span>：策略网络预测的第 <span class="math-text">j</span> 维标准差，表示这一维动作分布有多分散；实现中必须保证它大于 <span class="math-text">0</span>。</li>
+<li>分号 <code>;</code>：只是把“在哪里计算密度”与“分布参数”分开。<span class="math-text">𝒩(a<sub><span class="math-text">j</span></sub>;μ<sub><span class="math-text">j</span></sub>,σ<sub><span class="math-text">j</span></sub>)</span> 的意思是：均值为 <span class="math-text">μ<sub><span class="math-text">j</span></sub></span>、标准差为 <span class="math-text">σ<sub><span class="math-text">j</span></sub></span> 的高斯分布，在 <span class="math-text">a<sub><span class="math-text">j</span></sub></span> 这个位置的密度值。</li>
+<li><span class="math-text">∑<sub><span class="math-text">j</span></sub></span>：把所有动作维度的 log probability 相加。</li>
+</ul>
+<p>更完整地写，条件独立假设先给出联合概率密度：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)
+=∏<sub><span class="math-text">j=1</span></sub><sup><span class="math-text">d</span></sup>
+𝒩(a<sub><span class="math-text">j</span></sub>;μ<sub><span class="math-text">θ,j</span></sub>(s),σ<sub><span class="math-text">θ,j</span></sub>(s))</span></div>
+
+<p>其中 <span class="math-text">d</span> 是连续动作向量的维数。两边取对数后，乘积就变成求和：</p>
+<div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a∣ s)
+=log∏<sub><span class="math-text">j=1</span></sub><sup><span class="math-text">d</span></sup>p<sub><span class="math-text">j</span></sub>
+=∑<sub><span class="math-text">j=1</span></sub><sup><span class="math-text">d</span></sup>log p<sub><span class="math-text">j</span></sub></span></div>
+
+<p>这里 <span class="math-text">p<sub><span class="math-text">j</span></sub>=𝒩(a<sub><span class="math-text">j</span></sub>;μ<sub><span class="math-text">θ,j</span></sub>(s),σ<sub><span class="math-text">θ,j</span></sub>(s))</span>。因此“各维 log probability 相加”并不是经验技巧，而是各维条件独立时联合密度乘法在对数域中的等价写法。</p>
+<p>例如二维动作 <span class="math-text">a=(转向,油门)=(0.2,0.7)</span>。网络在状态 <span class="math-text">s</span> 下输出：</p>
+<div class="math-block"><span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)=(0.1,0.6),
+σ<sub><span class="math-text">θ</span></sub>(s)=(0.2,0.1)</span></div>
+
+<p>那么这次动作的联合 log probability 是：</p>
+<div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a∣ s)
+=log𝒩(0.2;0.1,0.2)
++log𝒩(0.7;0.6,0.1)</span></div>
+
+<p>注意：连续变量取到某个精确数值的概率为 <span class="math-text">0</span>，所以 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span> 在这里严格来说是 probability density（概率密度），不是离散动作中的 probability mass（概率质量）。训练时使用它的 log density，通常仍简称 <code>log probability</code> 或 <code>log_prob</code>。</p>
 <p>这只是常用参数化，不代表连续动作一定服从高斯，也不代表各维一定独立。策略分布应匹配动作约束和问题结构。</p>
 <h3 id="section-7-4-3">7.4.3 离散加连续的混合动作</h3>
 <p>很多任务不是“纯 categorical”或“纯 continuous”，而是一个动作同时包含：</p>
