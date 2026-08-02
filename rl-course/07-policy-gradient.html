@@ -891,9 +891,20 @@ logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">
 <p>看一个单时间步就很直观：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">t</span></sub>=-G<sub><span class="math-text">t</span></sub>logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
+<p>为了只看更新方向，暂记：</p>
+<div class="math-block"><span class="math-text">x<sub><span class="math-text">t</span></sub>=logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p>把已采样的 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 当作常数，则：</p>
+<div class="math-block"><span class="math-text">∂ L<sub><span class="math-text">t</span></sub> / ∂ x<sub><span class="math-text">t</span></sub>=-G<sub><span class="math-text">t</span></sub></span></div>
+
+<p>梯度下降更新为：</p>
+<div class="math-block multi"><div><span class="math-text">x<sub><span class="math-text">t</span></sub>
+← x<sub><span class="math-text">t</span></sub>-α<sub><span class="math-text">π</span></sub>∂ L<sub><span class="math-text">t</span></sub> / ∂ x<sub><span class="math-text">t</span></sub></span></div><div><span class="math-text">=x<sub><span class="math-text">t</span></sub>+α<sub><span class="math-text">π</span></sub> G<sub><span class="math-text">t</span></sub></span></div></div>
+
 <ul>
-<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&gt;0</span>：梯度下降会增大 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>，因而提高该动作的概率或密度。</li>
-<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&lt;0</span>：梯度下降会减小 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>，因而降低该动作的概率或密度。</li>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&gt;0</span>：<span class="math-text">x<sub><span class="math-text">t</span></sub></span> 增大；由于 log 单调递增，该动作的概率或密度提高。</li>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&lt;0</span>：<span class="math-text">x<sub><span class="math-text">t</span></sub></span> 减小，该动作的概率或密度降低。</li>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub>=0</span>：这个时间步不提供策略更新信号。</li>
 </ul>
 <p><span class="math-text">G<sub><span class="math-text">t</span></sub></span> 在这个 loss 中是已采样的权重，实现中应当 <code>detach</code> 或 <code>stop_gradient</code>。对策略依赖采样分布的影响，已经由前面推导的 score-function gradient 处理；不再通过环境或 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 反向传播。</p>
 <h3 id="section-7-6-3">7.6.3 完整训练流程</h3>
