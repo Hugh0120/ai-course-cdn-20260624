@@ -392,7 +392,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav><h1 id="chapter-7">第 7 章：Policy Gradient（PG，策略梯度）I：从随机策略到 REINFORCE 与 Monte Carlo Baseline</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-7-1">7.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-7-2">7.2 本章定位与学习主线</a><a class="toc-link toc-level-3" href="#section-7-2-1">7.2.1 本章解决什么问题</a><a class="toc-link toc-level-3" href="#section-7-2-2">7.2.2 整章推理链</a><a class="toc-link toc-level-3" href="#section-7-2-3">7.2.3 本章与第 8 章的边界</a><a class="toc-link toc-level-2" href="#section-7-3">7.3 策略表示：统一看待离散、连续与混合动作</a><a class="toc-link toc-level-3" href="#section-7-3-1">7.3.1 策略是条件分布</a><a class="toc-link toc-level-3" href="#section-7-3-2">7.3.2 离散动作：Categorical Policy</a><a class="toc-link toc-level-3" href="#section-7-3-3">7.3.3 连续动作：Diagonal Gaussian Policy</a><a class="toc-link toc-level-3" href="#section-7-3-4">7.3.4 离散加连续：Hybrid Action Policy</a><a class="toc-link toc-level-3" href="#section-7-3-5">7.3.5 有界连续动作</a><a class="toc-link toc-level-2" href="#section-7-4">7.4 从策略到轨迹期望目标</a><a class="toc-link toc-level-3" href="#section-7-4-1">7.4.1 轨迹与 Reward-to-go</a><a class="toc-link toc-level-3" href="#section-7-4-2">7.4.2 期望回报目标</a><a class="toc-link toc-level-3" href="#section-7-4-3">7.4.3 梯度难点在轨迹分布</a><a class="toc-link toc-level-2" href="#section-7-5">7.5 从轨迹目标到 Policy Gradient</a><a class="toc-link toc-level-3" href="#section-7-5-1">7.5.1 对采样分布求导</a><a class="toc-link toc-level-3" href="#section-7-5-2">7.5.2 展开轨迹概率</a><a class="toc-link toc-level-3" href="#section-7-5-3">7.5.3 用 Reward-to-go 完成 Temporal Credit Assignment（时间归因）</a><a class="toc-link toc-level-3" href="#section-7-5-4">7.5.4 对未来随机性取条件期望</a><a class="toc-link toc-level-2" href="#section-7-6">7.6 REINFORCE：用轨迹样本估计 Policy Gradient</a><a class="toc-link toc-level-3" href="#section-7-6-1">7.6.1 从期望梯度到样本梯度</a><a class="toc-link toc-level-3" href="#section-7-6-2">7.6.2 完整训练流程</a><a class="toc-link toc-level-3" href="#section-7-6-3">7.6.3 同一个 Loss 如何适配不同动作空间</a><a class="toc-link toc-level-3" href="#section-7-6-4">7.6.4 算法性质</a><a class="toc-link toc-level-3" href="#section-7-6-5">7.6.5 Monte Carlo 梯度估计器的方差</a><a class="toc-link toc-level-2" href="#section-7-7">7.7 Baseline：不改变期望梯度的降方差方法</a><a class="toc-link toc-level-3" href="#section-7-7-1">7.7.1 从绝对回报到相对回报</a><a class="toc-link toc-level-3" href="#section-7-7-2">7.7.2 Action-independent Baseline 不引入梯度偏差</a><a class="toc-link toc-level-3" href="#section-7-7-3">7.7.3 State Value 是自然的 Baseline</a><a class="toc-link toc-level-3" href="#section-7-7-4">7.7.4 REINFORCE with Baseline</a><a class="toc-link toc-level-3" href="#section-7-7-5">7.7.5 Baseline 的能力边界</a><a class="toc-link toc-level-2" href="#section-7-8">7.8 Advantage：将动作价值写成“状态水平 + 相对增益”</a><a class="toc-link toc-level-3" href="#section-7-8-1">7.8.1 理论分解</a><a class="toc-link toc-level-3" href="#section-7-8-2">7.8.2 理论 Advantage 与 Monte Carlo 估计</a><a class="toc-link toc-level-3" href="#section-7-8-3">7.8.3 与 Actor-Critic 的分界</a><a class="toc-link toc-level-2" href="#section-7-9">7.9 端到端例子</a><a class="toc-link toc-level-3" href="#section-7-9-1">7.9.1 离散动作：Softmax Policy 更新</a><a class="toc-link toc-level-3" href="#section-7-9-2">7.9.2 连续动作：Gaussian Policy 更新</a><a class="toc-link toc-level-3" href="#section-7-9-3">7.9.3 混合动作：技能与释放参数</a><a class="toc-link toc-level-3" href="#section-7-9-4">7.9.4 理论 Advantage 与单次估计</a><a class="toc-link toc-level-2" href="#section-7-10">7.10 章末统一视图</a><a class="toc-link toc-level-3" href="#section-7-10-1">7.10.1 数学对象的层次</a><a class="toc-link toc-level-3" href="#section-7-10-2">7.10.2 从建模到更新的完整闭环</a><a class="toc-link toc-level-2" href="#section-7-11">7.11 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-7-11-1">7.11.1 Policy Gradient 为什么使用 <span class="math-text">∇logπ</span>？</a><a class="toc-link toc-level-3" href="#section-7-11-2">7.11.2 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 是什么关系？</a><a class="toc-link toc-level-3" href="#section-7-11-3">7.11.3 Reward-to-go 在推导中的作用是什么？</a><a class="toc-link toc-level-3" href="#section-7-11-4">7.11.4 Baseline 为什么不改变期望梯度？</a><a class="toc-link toc-level-3" href="#section-7-11-5">7.11.5 为什么常用 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 作为 Baseline？</a><a class="toc-link toc-level-3" href="#section-7-11-6">7.11.6 理论 Advantage 和 <span class="math-text">G<sub><span class="math-text">t</span></sub>-b<sub><span class="math-text">φ</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 是同一个东西吗？</a><a class="toc-link toc-level-3" href="#section-7-11-7">7.11.7 REINFORCE with Baseline 与 Actor-Critic 的边界是什么？</a><a class="toc-link toc-level-2" href="#section-7-12">7.12 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./06-dqn-and-variants.html">← 上一章</a><a href="./08-actor-critic-gae.html">下一章 →</a></nav><h1 id="chapter-7">第 7 章：Policy Gradient（PG，策略梯度）I：从随机策略到 REINFORCE 与 Monte Carlo Baseline</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-7-1">7.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-7-2">7.2 本章定位与学习主线</a><a class="toc-link toc-level-3" href="#section-7-2-1">7.2.1 本章解决什么问题</a><a class="toc-link toc-level-3" href="#section-7-2-2">7.2.2 整章推理链</a><a class="toc-link toc-level-3" href="#section-7-2-3">7.2.3 本章与第 8 章的边界</a><a class="toc-link toc-level-2" href="#section-7-3">7.3 策略表示：统一看待离散、连续与混合动作</a><a class="toc-link toc-level-3" href="#section-7-3-1">7.3.1 策略是条件分布</a><a class="toc-link toc-level-3" href="#section-7-3-2">7.3.2 离散动作：Categorical Policy</a><a class="toc-link toc-level-3" href="#section-7-3-3">7.3.3 连续动作：Diagonal Gaussian Policy</a><a class="toc-link toc-level-3" href="#section-7-3-4">7.3.4 离散加连续：Hybrid Action Policy</a><a class="toc-link toc-level-3" href="#section-7-3-5">7.3.5 有界连续动作</a><a class="toc-link toc-level-2" href="#section-7-4">7.4 从策略到轨迹期望目标</a><a class="toc-link toc-level-3" href="#section-7-4-1">7.4.1 轨迹与 Reward-to-go</a><a class="toc-link toc-level-3" href="#section-7-4-2">7.4.2 期望回报目标</a><a class="toc-link toc-level-3" href="#section-7-4-3">7.4.3 梯度难点在轨迹分布</a><a class="toc-link toc-level-2" href="#section-7-5">7.5 从轨迹目标到 Policy Gradient</a><a class="toc-link toc-level-3" href="#section-7-5-1">7.5.1 对采样分布求导</a><a class="toc-link toc-level-3" href="#section-7-5-2">7.5.2 展开轨迹概率</a><a class="toc-link toc-level-3" href="#section-7-5-3">7.5.3 用 Reward-to-go 完成 Temporal Credit Assignment（时间归因）</a><a class="toc-link toc-level-3" href="#section-7-5-4">7.5.4 对未来随机性取条件期望</a><a class="toc-link toc-level-2" href="#section-7-6">7.6 REINFORCE：用轨迹样本估计 Policy Gradient</a><a class="toc-link toc-level-3" href="#section-7-6-1">7.6.1 从期望梯度到样本梯度</a><a class="toc-link toc-level-3" href="#section-7-6-2">7.6.2 从样本梯度构造 Surrogate Loss</a><a class="toc-link toc-level-3" href="#section-7-6-3">7.6.3 完整训练流程</a><a class="toc-link toc-level-3" href="#section-7-6-4">7.6.4 同一个 Loss 如何适配不同动作空间</a><a class="toc-link toc-level-3" href="#section-7-6-5">7.6.5 算法性质</a><a class="toc-link toc-level-3" href="#section-7-6-6">7.6.6 Monte Carlo 梯度估计器的方差</a><a class="toc-link toc-level-2" href="#section-7-7">7.7 Baseline：不改变期望梯度的降方差方法</a><a class="toc-link toc-level-3" href="#section-7-7-1">7.7.1 从绝对回报到相对回报</a><a class="toc-link toc-level-3" href="#section-7-7-2">7.7.2 Action-independent Baseline 不引入梯度偏差</a><a class="toc-link toc-level-3" href="#section-7-7-3">7.7.3 State Value 是自然的 Baseline</a><a class="toc-link toc-level-3" href="#section-7-7-4">7.7.4 REINFORCE with Baseline</a><a class="toc-link toc-level-3" href="#section-7-7-5">7.7.5 Baseline 的能力边界</a><a class="toc-link toc-level-2" href="#section-7-8">7.8 Advantage：将动作价值写成“状态水平 + 相对增益”</a><a class="toc-link toc-level-3" href="#section-7-8-1">7.8.1 理论分解</a><a class="toc-link toc-level-3" href="#section-7-8-2">7.8.2 理论 Advantage 与 Monte Carlo 估计</a><a class="toc-link toc-level-3" href="#section-7-8-3">7.8.3 与 Actor-Critic 的分界</a><a class="toc-link toc-level-2" href="#section-7-9">7.9 端到端例子</a><a class="toc-link toc-level-3" href="#section-7-9-1">7.9.1 离散动作：Softmax Policy 更新</a><a class="toc-link toc-level-3" href="#section-7-9-2">7.9.2 连续动作：Gaussian Policy 更新</a><a class="toc-link toc-level-3" href="#section-7-9-3">7.9.3 混合动作：技能与释放参数</a><a class="toc-link toc-level-3" href="#section-7-9-4">7.9.4 理论 Advantage 与单次估计</a><a class="toc-link toc-level-2" href="#section-7-10">7.10 章末统一视图</a><a class="toc-link toc-level-3" href="#section-7-10-1">7.10.1 数学对象的层次</a><a class="toc-link toc-level-3" href="#section-7-10-2">7.10.2 从建模到更新的完整闭环</a><a class="toc-link toc-level-2" href="#section-7-11">7.11 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-7-11-1">7.11.1 Policy Gradient 为什么使用 <span class="math-text">∇logπ</span>？</a><a class="toc-link toc-level-3" href="#section-7-11-2">7.11.2 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 和 <span class="math-text">Q<sub><span class="math-text">π</span></sub>(s,a)</span> 是什么关系？</a><a class="toc-link toc-level-3" href="#section-7-11-3">7.11.3 Reward-to-go 在推导中的作用是什么？</a><a class="toc-link toc-level-3" href="#section-7-11-4">7.11.4 Baseline 为什么不改变期望梯度？</a><a class="toc-link toc-level-3" href="#section-7-11-5">7.11.5 为什么常用 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)</span> 作为 Baseline？</a><a class="toc-link toc-level-3" href="#section-7-11-6">7.11.6 理论 Advantage 和 <span class="math-text">G<sub><span class="math-text">t</span></sub>-b<sub><span class="math-text">φ</span></sub>(s<sub><span class="math-text">t</span></sub>)</span> 是同一个东西吗？</a><a class="toc-link toc-level-3" href="#section-7-11-7">7.11.7 REINFORCE with Baseline 与 Actor-Critic 的边界是什么？</a><a class="toc-link toc-level-2" href="#section-7-12">7.12 本章练习</a></nav></details>
 <h2 id="section-7-1">7.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -546,6 +546,12 @@
 <td>Monte Carlo Policy-gradient Estimate</td>
 <td>蒙特卡洛策略梯度估计</td>
 <td>一条采样轨迹 <span class="math-text">τ</span> 构造出的样本梯度。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">surr</span></sub></span></td>
+<td>Surrogate Policy Loss</td>
+<td>代理策略损失</td>
+<td>为了使用自动微分而构造的标量函数；它的负梯度等于希望使用的样本梯度上升方向。</td>
 </tr>
 <tr>
 <td><span class="math-text">L</span></td>
@@ -832,16 +838,65 @@ G<sub><span class="math-text">t</span></sub></span></div>
 θ+α<sub><span class="math-text">π</span></sub>
 g<sub><span class="math-text">MC</span></sub>(τ)</span></div>
 
-<p>若实现框架默认最小化 loss，则使用负号：</p>
-<div class="math-block"><span class="math-text">L<sub><span class="math-text">REINFORCE</span></sub>
+<p>到这里只得到了一个希望沿着前进的向量 <span class="math-text">g<sub><span class="math-text">MC</span></sub>(τ)</span>，还没有定义实现中要最小化的 loss。</p>
+<h3 id="section-7-6-2">7.6.2 从样本梯度构造 Surrogate Loss</h3>
+<p>自动微分框架的常规接口是：先给定一个标量 loss，计算它的梯度，再用梯度下降最小化它。</p>
+<p>因此对已经采样完成的轨迹 <span class="math-text">τ</span>，构造 Surrogate Loss（代理损失）：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">surr</span></sub>(θ;τ)
 =-
 ∑<sub><span class="math-text">t=0</span></sub><sup><span class="math-text">T-1</span></sup>
 γ<sup><span class="math-text">t</span></sup>
 logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)
 G<sub><span class="math-text">t</span></sub></span></div>
 
-<p><span class="math-text">G<sub><span class="math-text">t</span></sub></span> 在 policy loss 中是一个样本权重。不需要对环境奖励或 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 反向传播；梯度只通过 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub></span> 进入策略参数。</p>
-<h3 id="section-7-6-2">7.6.2 完整训练流程</h3>
+<p>对这个标量求梯度。求导时，轨迹中已采样的 <span class="math-text">s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>,G<sub><span class="math-text">t</span></sub></span> 都当作已知数值，只对 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub></span> 中的策略参数 <span class="math-text">θ</span> 求导：</p>
+<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> L<sub><span class="math-text">surr</span></sub>(θ;τ)
+=-∑<sub><span class="math-text">t=0</span></sub><sup><span class="math-text">T-1</span></sup>
+γ<sup><span class="math-text">t</span></sup>G<sub><span class="math-text">t</span></sub>
+∇<sub><span class="math-text">θ</span></sub>
+logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">=-g<sub><span class="math-text">MC</span></sub>(τ)</span></div></div>
+
+<p>框架使用梯度下降：</p>
+<div class="math-block multi"><div><span class="math-text">θ
+←
+θ-α<sub><span class="math-text">π</span></sub>
+∇<sub><span class="math-text">θ</span></sub> L<sub><span class="math-text">surr</span></sub></span></div><div><span class="math-text">=θ-α<sub><span class="math-text">π</span></sub>[-g<sub><span class="math-text">MC</span></sub>(τ)]</span></div><div><span class="math-text">=θ+α<sub><span class="math-text">π</span></sub> g<sub><span class="math-text">MC</span></sub>(τ)</span></div></div>
+
+<p>所以三个对象必须区分：</p>
+<div class="table-scroll"><table class="three-col-table">
+<thead>
+<tr>
+<th>对象</th>
+<th>是什么</th>
+<th>关系</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="math-text">J(θ)</span></td>
+<td>真正希望最大化的期望回报</td>
+<td>原始优化目标。</td>
+</tr>
+<tr>
+<td><span class="math-text">g<sub><span class="math-text">MC</span></sub>(τ)</span></td>
+<td>一条轨迹给出的 <span class="math-text">∇<sub><span class="math-text">θ</span></sub> J</span> 样本估计</td>
+<td>希望沿着它做梯度上升。</td>
+</tr>
+<tr>
+<td><span class="math-text">L<sub><span class="math-text">surr</span></sub>(θ;τ)</span></td>
+<td>为了调用自动微分而构造的代理损失</td>
+<td><span class="math-text">∇<sub><span class="math-text">θ</span></sub> L<sub><span class="math-text">surr</span></sub>=-g<sub><span class="math-text">MC</span></sub></span>。</td>
+</tr>
+</tbody></table></div>
+<p><span class="math-text">L<sub><span class="math-text">surr</span></sub></span> 的数值本身不是 <span class="math-text">-J(θ)</span> 的 Monte Carlo 估计，也不一定适合跨 batch 比较“越小策略越好”。它是为当前 on-policy 样本构造的局部代理目标，关键是它对 <span class="math-text">θ</span> 的梯度正确。</p>
+<p>看一个单时间步就很直观：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">t</span></sub>=-G<sub><span class="math-text">t</span></sub>logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
+
+<ul>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&gt;0</span>：梯度下降会增大 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>，因而提高该动作的概率或密度。</li>
+<li><span class="math-text">G<sub><span class="math-text">t</span></sub>&lt;0</span>：梯度下降会减小 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span>，因而降低该动作的概率或密度。</li>
+</ul>
+<p><span class="math-text">G<sub><span class="math-text">t</span></sub></span> 在这个 loss 中是已采样的权重，实现中应当 <code>detach</code> 或 <code>stop_gradient</code>。对策略依赖采样分布的影响，已经由前面推导的 score-function gradient 处理；不再通过环境或 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 反向传播。</p>
+<h3 id="section-7-6-3">7.6.3 完整训练流程</h3>
 <pre><code class="language-text">initialize policy pi_theta
 repeat:
     use current pi_theta to sample complete episodes
@@ -860,7 +915,7 @@ repeat:
   -&gt; after episode ends, compute G_t
   -&gt; loss_t = -gamma^t * log_prob_t * G_t
 </code></pre>
-<h3 id="section-7-6-3">7.6.3 同一个 Loss 如何适配不同动作空间</h3>
+<h3 id="section-7-6-4">7.6.4 同一个 Loss 如何适配不同动作空间</h3>
 <p>REINFORCE 的整体 loss 形式不变，变的是 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span> 的计算方式：</p>
 <div class="table-scroll"><table class="standard-table">
 <thead>
@@ -884,14 +939,14 @@ repeat:
 </tbody></table></div>
 <p>对混合动作 <span class="math-text">(k<sub><span class="math-text">t</span></sub>,u<sub><span class="math-text">t</span></sub>)</span>：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">t</span></sub>
-=-gamma<sup><span class="math-text">t</span></sup>G<sub><span class="math-text">t</span></sub>
+=-γ<sup><span class="math-text">t</span></sup>G<sub><span class="math-text">t</span></sub>
 [
 logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(k<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)
 +logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(u<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>,k<sub><span class="math-text">t</span></sub>)
 ]</span></div>
 
 <p>同一个 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 评价的是整个联合动作，所以它同时为离散决策和已选连续参数提供学习信号。</p>
-<h3 id="section-7-6-4">7.6.4 算法性质</h3>
+<h3 id="section-7-6-5">7.6.5 算法性质</h3>
 <p>REINFORCE 属于：</p>
 <ul>
 <li><strong>Policy-based</strong>：直接更新动作分布。</li>
@@ -900,7 +955,7 @@ logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub><
 <li><strong>Model-free</strong>：不需要已知环境的转移函数。</li>
 <li><strong>No bootstrap</strong>：不用当前价值估计去构造 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</li>
 </ul>
-<h3 id="section-7-6-5">7.6.5 Monte Carlo 梯度估计器的方差</h3>
+<h3 id="section-7-6-6">7.6.6 Monte Carlo 梯度估计器的方差</h3>
 <p>固定同一 <span class="math-text">(s<sub><span class="math-text">t</span></sub>,a<sub><span class="math-text">t</span></sub>)</span>，后续环境随机性和后续动作采样仍可能产生差异很大的 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>。</p>
 <p>例如五次从同一 <span class="math-text">(s,a)</span> 开始得到：</p>
 <pre><code class="language-text">G_t = 2, 18, -4, 25, 9
