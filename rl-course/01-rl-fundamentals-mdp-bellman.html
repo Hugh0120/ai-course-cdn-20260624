@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -594,6 +600,7 @@
 <div class="math-block multi"><div><span class="math-text">P(S<sub><span class="math-text">t+1</span></sub> ∣ S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>, S<sub><span class="math-text">t-1</span></sub>, A<sub><span class="math-text">t-1</span></sub>, ...)</span></div><div><span class="math-text">= P(S<sub><span class="math-text">t+1</span></sub> ∣ S<sub><span class="math-text">t</span></sub>, A<sub><span class="math-text">t</span></sub>)</span></div></div>
 
 <p>也就是说，当前 state 已经包含了预测未来所需的全部历史信息。</p>
+<p>这里容易误解成“环境没有记忆”。Markov property 真正要求的是：<strong>一旦给定当前 state，再补充更早历史也不会提供额外的未来预测信息</strong>。环境当然可以有历史效应，只是这些必要历史必须已经被压进 state；如果 agent 只看到不完整 observation，那么 observation 本身未必满足 Markov property。</p>
 <p>面试表达：</p>
 <blockquote>
 <p>MDP 假设 state 是历史信息的 sufficient statistic。给定当前 state 和 action 后，未来状态转移与更早的历史无关。如果观测不满足这个条件，例如只能看到局部信息，则更准确的模型是 POMDP。</p>
@@ -658,6 +665,7 @@
 <p>于是得到：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=𝔼<sub><span class="math-text">π</span></sub>[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)∣ S<sub><span class="math-text">t</span></sub>=s]</span></div>
 
+<p>这不是把一个未知量随意替换成自己，也不表示某一条轨迹上必有 <span class="math-text">G<sub><span class="math-text">t+1</span></sub>=V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span>。<span class="math-text">G<sub><span class="math-text">t+1</span></sub></span> 是随机样本，<span class="math-text">V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span> 是给定下一状态后的条件平均；Bellman 方程要求整组状态价值在期望意义下彼此自洽，因此是在刻画一个 fixed point（不动点）。DP、TD 等算法做的，就是反复更新价值估计去逼近这个不动点。</p>
 <p>第四步，把期望展开成“先按策略选动作，再按环境转移到下一个状态”：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)=∑<sub><span class="math-text">a</span></sub> π(a∣ s)∑<sub><span class="math-text">s'</span></sub>P(s'∣ s,a)[R(s,a,s')+γ V<sub><span class="math-text">π</span></sub>(s')]</span></div>
 

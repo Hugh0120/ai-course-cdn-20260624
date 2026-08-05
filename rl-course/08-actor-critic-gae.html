@@ -1067,6 +1067,11 @@ V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</sp
 λ<sup><span class="math-text">n-1</span></sup>Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></div>
 
 <p>因此它不是“另一个突然出现的 advantage 定义”，而是把一步、两步、三步等估计平滑组合起来。</p>
+<p>这个等价关系来自中间 value 项的抵消。先看一段未终止的两步转移：</p>
+<div class="math-block multi"><div><span class="math-text">δ<sub><span class="math-text">t</span></sub>+γδ<sub><span class="math-text">t+1</span></sub>
+=[R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)]</span></div><div><span class="math-text">+γ[R<sub><span class="math-text">t+2</span></sub>+γ V(S<sub><span class="math-text">t+2</span></sub>)-V(S<sub><span class="math-text">t+1</span></sub>)]</span></div><div><span class="math-text">=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+γ<sup><span class="math-text">2</span></sup>V(S<sub><span class="math-text">t+2</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div></div>
+
+<p><span class="math-text">+γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 与 <span class="math-text">-γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 正好消掉，剩下的就是 two-step target 减当前 value。继续累加 residual 会依次得到三步、四步 advantage；<span class="math-text">λ</span> 再负责给这些不同长度的估计分配指数衰减权重。</p>
 <h3 id="section-8-7-3">8.7.3 <span class="math-text">λ</span> 控制 Advantage 回看多远</h3>
 <ul>
 <li><span class="math-text">λ=0</span>：<span class="math-text">Â<sub><span class="math-text">t</span></sub>=δ<sub><span class="math-text">t</span></sub></span>，退化为一步 TD。</li>

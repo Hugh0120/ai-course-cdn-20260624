@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -733,6 +739,8 @@
 <p>或者软更新：</p>
 <div class="math-block"><span class="math-text">w<sup><span class="math-text">-</span></sup> ← τ<sub><span class="math-text">soft</span></sub> w + (1 - τ<sub><span class="math-text">soft</span></sub>) w<sup><span class="math-text">-</span></sup></span></div>
 
+<p>Target network 刻意使用“稍旧”的估计，因此确实引入了滞后；它并不是更接近真值的教师。这里交换的是<strong>短期准确性与优化稳定性</strong>：online network 先追逐一段时间内相对固定的 Bellman target，再周期性或缓慢刷新 target。只要 target 持续跟随 online network，奖励和终止边界仍会逐步传播；更新过快会重新变成移动目标，更新过慢则会学习迟钝。</p>
+<p>软更新也可以改写成 <span class="math-text">w<sup><span class="math-text">-</span></sup>← w<sup><span class="math-text">-</span></sup>+τ<sub><span class="math-text">soft</span></sub>(w-w<sup><span class="math-text">-</span></sup>)</span>，即 target 参数每次只向 online 参数移动一小段。它是参数插值，不是由 target network 自己反向传播学习。</p>
 <h2 id="section-5-8">5.8 本章例子：为什么表格法不够</h2>
 <h3 id="section-5-8-1">5.8.1 例子 1：Atari 像素输入</h3>
 <p>Atari 游戏状态是一张图片。如果用表格法，每一种像素组合都对应一个状态，状态数量几乎无限。</p>

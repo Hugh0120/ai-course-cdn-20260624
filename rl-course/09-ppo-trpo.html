@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -769,6 +775,7 @@
 <li>坏动作概率不能一下子降太多。</li>
 </ul>
 <p>这就是 PPO 比普通 policy gradient 更稳的核心。</p>
+<p>但要注意：PPO clip 的是<strong>代理目标中的收益项</strong>，不是把新策略概率或 ratio 本身强行截进区间。更新若朝错误方向走，例如好动作概率反而降低，目标仍会继续给出纠正梯度；只有沿正确方向超过阈值后，额外收益才进入平台区。多个样本共享网络参数，所以一次 minibatch 更新后某些 ratio 仍可能越界，这也是 PPO clipping 不是严格 trust region、实践中还会监控 KL 的原因。</p>
 <h3 id="section-9-6-5">9.6.5 PPO Loss 组成</h3>
 <p>常见 PPO 总 loss：</p>
 <div class="math-block"><span class="math-text">L = L<sub><span class="math-text">policy</span></sub> + c<sub><span class="math-text">v</span></sub> L<sub><span class="math-text">value</span></sub> - c<sub><span class="math-text">e</span></sub> Entropy</span></div>

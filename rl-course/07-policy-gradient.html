@@ -750,6 +750,12 @@ G<sub><span class="math-text">0</span></sub>
 G<sub><span class="math-text">t</span></sub>
 ]</span></div>
 
+<p>为什么过去奖励可以删掉？把时刻 <span class="math-text">t</span> 之前已经发生的折扣奖励临时记为 <span class="math-text">C<sub><span class="math-text">t</span></sub></span>，即 Past-reward Constant（过去奖励常量）。在给定当前历史后，<span class="math-text">C<sub><span class="math-text">t</span></sub></span> 已经确定，不会再被当前动作 <span class="math-text">A<sub><span class="math-text">t</span></sub></span> 改变；而 score function 的动作期望为 0：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">A<sub><span class="math-text">t</span></sub>∼π<sub><span class="math-text">θ</span></sub></span></sub>
+[∇<sub><span class="math-text">θ</span></sub>logπ<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)]
+=∇<sub><span class="math-text">θ</span></sub>∑<sub><span class="math-text">a</span></sub>π<sub><span class="math-text">θ</span></sub>(a∣ S<sub><span class="math-text">t</span></sub>)=0</span></div>
+
+<p>因此 <span class="math-text">𝔼[C<sub><span class="math-text">t</span></sub>∇<sub><span class="math-text">θ</span></sub>logπ<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)]=0</span>。删掉过去奖励不是近似，也不是说过去奖励不重要；它们已经影响了当前到达的状态，但不能再用于区分当前动作好坏，只会给该时间步的梯度增加噪声。</p>
 <p>外层 <span class="math-text">γ<sup><span class="math-text">t</span></sup></span> 来自 <span class="math-text">G<sub><span class="math-text">0</span></sub></span> 中第 <span class="math-text">t</span> 时刻奖励的折扣位置，而 <span class="math-text">G<sub><span class="math-text">t</span></sub></span> 内部从当前时刻重新以 <span class="math-text">γ<sup><span class="math-text">0</span></sup></span> 开始计算。</p>
 <p>很多教材和实现在以下情况不显式写外层 <span class="math-text">γ<sup><span class="math-text">t</span></sup></span>：</p>
 <ul>

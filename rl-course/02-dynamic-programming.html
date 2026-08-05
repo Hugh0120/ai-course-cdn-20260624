@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -551,6 +557,12 @@ until delta &lt; threshold
 <p>那么新策略不差于旧策略：</p>
 <div class="math-block"><span class="math-text">V<sub><span class="math-text">π<sub><span class="math-text">new</span></sub></span></sub>(s) ≥ V<sub><span class="math-text">π</span></sub>(s)</span></div>
 
+<p>关键推理不是“贪心听起来应该更好”，而是把上面的不等式递归展开。第一步有：</p>
+<div class="math-block"><span class="math-text">V<sub><span class="math-text">π</span></sub>(s)
+≤ Q<sub><span class="math-text">π</span></sub>(s,π<sub><span class="math-text">new</span></sub>(s))
+=𝔼[R<sub><span class="math-text">t+1</span></sub>+γ V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)]</span></div>
+
+<p>接下来在 <span class="math-text">S<sub><span class="math-text">t+1</span></sub></span> 继续执行 <span class="math-text">π<sub><span class="math-text">new</span></sub></span>，同样可以把 <span class="math-text">V<sub><span class="math-text">π</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span> 换成一个不更小的下一步展开；反复递推直到未来，就得到 <span class="math-text">V<sub><span class="math-text">π</span></sub>(s)≤ V<sub><span class="math-text">π<sub><span class="math-text">new</span></sub></span></sub>(s)</span>。因此 Policy Improvement 的保证来自“每个状态的一步改进可以沿整条未来递推”，而不只是当前一步 reward 变大。</p>
 <h3 id="section-2-5-3">2.5.3 Policy Iteration</h3>
 <p>Policy Iteration 在两个步骤之间交替：</p>
 <ol>

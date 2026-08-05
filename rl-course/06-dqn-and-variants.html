@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -1166,6 +1172,16 @@ raw A(s,.) = [2, 1, 0]
 <li><span class="math-text">P(i)</span> 大的样本经常被抽到，因此单次更新权重应更小。</li>
 <li><span class="math-text">P(i)</span> 小的样本很少被抽到，因此抽到时权重应更大。</li>
 </ul>
+<p>这个修正可以直接从期望看出来。若原本希望对 <span class="math-text">N</span> 条 replay 样本做均匀平均，但实际按 <span class="math-text">P(i)</span> 采样，完整重要性权重应为：</p>
+<div class="math-block"><span class="math-text">1/N / P(i)=1 / NP(i)</span></div>
+
+<p>于是对任意单样本 loss <span class="math-text">ell<sub><span class="math-text">i</span></sub></span>：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">i∼ P</span></sub>
+[ell<sub><span class="math-text">i</span></sub> / NP(i)]
+=∑<sub><span class="math-text">i</span></sub> P(i)ell<sub><span class="math-text">i</span></sub> / NP(i)
+=1 / N∑<sub><span class="math-text">i</span></sub>ell<sub><span class="math-text">i</span></sub></span></div>
+
+<p><span class="math-text">P(i)</span> 在期望中被抵消，重新得到均匀 replay 的目标。PER 写成 <span class="math-text">[NP(i)]<sup><span class="math-text">-β<sub><span class="math-text">IS</span></sub></span></sup></span>，是用 <span class="math-text">β<sub><span class="math-text">IS</span></sub></span> 在“不修正”和“完整修正”之间渐进折中。</p>
 <p><span class="math-text">β<sub><span class="math-text">IS</span></sub></span> 控制修正强度：</p>
 <ul>
 <li><span class="math-text">β<sub><span class="math-text">IS</span></sub>=0</span>：不修正。</li>

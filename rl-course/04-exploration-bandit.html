@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -721,6 +727,7 @@ receive reward R_t
 <li>如果动作被选得多，不确定性下降，bonus 变小。</li>
 <li>UCB 会系统性探索不确定动作，而不是随机探索。</li>
 </ul>
+<p>平方根 bonus 不是凭经验随便拼出来的。对有界随机 reward，集中不等式会给出均值估计误差大致为 <span class="math-text">√(log t/N<sub><span class="math-text">t</span></sub>(a))</span> 这一量级：样本数 <span class="math-text">N<sub><span class="math-text">t</span></sub>(a)</span> 增大时置信区间收窄，而总轮数 <span class="math-text">t</span> 增大时，算法会以较慢速度重新检查长期没选的动作。不同 UCB 推导的常数会不同，但“经验均值 + 置信半径”的结构相同。实现时通常先把每个动作至少选一次，避免 <span class="math-text">N<sub><span class="math-text">t</span></sub>(a)=0</span> 时除零。</p>
 <h3 id="section-4-8-2">4.8.2 Thompson Sampling</h3>
 <p>Thompson Sampling 是一种 Bayesian exploration 方法。</p>
 <p>流程：</p>

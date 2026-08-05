@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -749,6 +755,7 @@ Â<sub><span class="math-text">t</span></sub>]</span></div></div>
 <blockquote>
 <p>DDPG 用 critic 对连续动作求梯度，再通过 actor 反传到策略参数，相当于用 actor 学一个可微的 argmax。</p>
 </blockquote>
+<p>这里和 PPO 的旧动作 importance ratio 不同。DDPG 更新 Actor 时，从 replay buffer 取的是<strong>状态</strong> <span class="math-text">s</span>，但送入 Critic 的动作不是数据里保存的旧动作 <span class="math-text">a</span>，而是当前 Actor 重新生成的 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>。Critic 提供这个当前动作附近的可微 Q 曲面，梯度直接穿过 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span> 回到 Actor；更新 Actor 时固定 Critic 参数 <span class="math-text">w</span>，但保留 <span class="math-text">Q</span> 对动作输入的梯度。Off-policy Deterministic Policy Gradient（异策略确定性策略梯度）定理允许在 behavior policy 的状态分布下定义并优化这一目标，因此不需要对历史动作写 score-function ratio；前提仍是 replay 数据对相关状态和动作区域有足够覆盖，否则 Critic 的梯度同样不可靠。</p>
 <p>探索：</p>
 <p>DDPG 的策略是 deterministic，因此训练时通常给动作加噪声：</p>
 <div class="math-block"><span class="math-text">a<sub><span class="math-text">t</span></sub> = μ<sub><span class="math-text">θ</span></sub>(s<sub><span class="math-text">t</span></sub>) + ε<sub><span class="math-text">t</span></sub></span></div>
@@ -791,6 +798,7 @@ Â<sub><span class="math-text">t</span></sub>]</span></div></div>
 <p>这里 <span class="math-text">ε<sub><span class="math-text">clip</span></sub></span> 通常由零均值高斯噪声截断得到，<span class="math-text">a&#39;</span> 还会再限制到环境合法动作范围；然后用 <span class="math-text">a&#39;</span> 计算 target。</p>
 <p>直觉：</p>
 <p>让 critic 不要对动作空间中的尖锐错误峰值过拟合，使 Q 函数更平滑。</p>
+<p>它不要和 DDPG/TD3 收集数据时的 exploration noise 混为一谈：exploration noise 加在当前 Actor 的环境动作上，目的是访问更多状态动作；target smoothing noise 只在训练时构造下一状态 target action，目的是让 Critic 不依赖一个孤立尖峰。两者出现位置和职责不同。</p>
 <h3 id="section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</h3>
 <p>TD3 的三个 trick 都围绕同一个问题：actor 很容易利用 critic 的错误。</p>
 <div class="table-scroll"><table class="three-col-table">
@@ -850,6 +858,12 @@ Â<sub><span class="math-text">t</span></sub>]</span></div></div>
 <p>其中：</p>
 <div class="math-block"><span class="math-text">a' ∼ π<sub><span class="math-text">θ</span></sub>(·∣ s')</span></div>
 
+<p>上面的 <span class="math-text">a&#39;</span> 用来构造 Critic target；更新 Critic 时，整个 target <span class="math-text">y</span> 都停止梯度，不会顺便更新 Actor。Actor 由下面单独的 Actor objective 更新，而其中的连续动作采样需要一条可微路径。常见 Gaussian Actor 使用 Reparameterization Trick（重参数化技巧）：</p>
+<div class="math-block"><span class="math-text">ε∼ N(0,I),
+u=μ<sub><span class="math-text">θ</span></sub>(s)+σ<sub><span class="math-text">θ</span></sub>(s)⊙ε,
+a=tanh(u)</span></div>
+
+<p><span class="math-text">N</span> 表示 Normal Distribution（正态分布），<span class="math-text">I</span> 是 Identity Matrix（单位矩阵），所以 <span class="math-text">ε</span> 是各维独立的标准正态辅助噪声。随机性被放进与 <span class="math-text">θ</span> 无关的 <span class="math-text">ε</span>，而 <span class="math-text">a</span> 成为参数的可微函数，所以 Actor loss 的梯度可以沿 <span class="math-text">Q(s,a)</span> 对动作的梯度回传到 <span class="math-text">θ</span>。这与第 7 章对离散采样使用的 score-function gradient 是两条不同的求导路径；<code>tanh</code> 后的 log density 还要包含变量变换校正。</p>
 <p>Actor objective：</p>
 <div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ) = 𝔼[α log π<sub><span class="math-text">θ</span></sub>(a∣ s) - min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
 
@@ -873,7 +887,7 @@ Â<sub><span class="math-text">t</span></sub>]</span></div></div>
 <p>因为实现里通常最小化 loss。最小化这个式子等价于：</p>
 <ul>
 <li>最大化 Q：让动作回报高。</li>
-<li>最大化 entropy：因为最小化 <span class="math-text">logπ</span> 倾向避免策略过度确定。</li>
+<li>最大化 entropy：不是逐点把某个 <span class="math-text">logπ(a∣ s)</span> 压低，而是利用 <span class="math-text">H(π(·∣ s))=-𝔼<sub><span class="math-text">a∼π</span></sub>[logπ(a∣ s)]</span>。因此在分布期望上，最小化 <span class="math-text">𝔼[αlogπ]</span> 等价于最大化熵；连续分布的 density 甚至可能大于 1，不能只靠单个 log density 的正负判断。</li>
 </ul>
 <p>面试里可以说：</p>
 <blockquote>

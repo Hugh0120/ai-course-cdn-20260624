@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -907,8 +913,9 @@ log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)
 <p>两部分作用：</p>
 <ul>
 <li><span class="math-text">log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)</span> 会惩罚所有动作中虚高的 Q。</li>
-<li>数据动作的 <span class="math-text">Q(s,a)</span> 被加回来，避免把有真实支持的动作同样压得过低。</li>
+<li>括号里减去数据动作的 <span class="math-text">Q(s,a)</span>；由于训练要最小化整个 loss，这个负号反过来推动数据动作 Q 增大，抵消第一项对它们的压低。</li>
 </ul>
+<p>更具体地说，<span class="math-text">log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)</span> 对某个动作 Q 的导数是所有动作 Q 上的 softmax 权重，而 <span class="math-text">-𝔼<sub><span class="math-text">a∼ D</span></sub>[Q(s,a)]</span> 只给数据动作一个向上的修正。没有数据支持却被估得很高的动作只受到第一项的向下压力；频繁出现的数据动作同时受到两项作用，因此相对被保留下来。</p>
 <p>结果是：</p>
 <blockquote>
 <p>对数据中出现过的动作可以较有信心；对没覆盖的动作宁可低估，也不要让 policy 利用偶然高估。</p>
@@ -928,6 +935,7 @@ log∑<sub><span class="math-text">a</span></sub>exp Q(s,a)
 ]</span></div>
 
 <p>当 <span class="math-text">τ<sub><span class="math-text">IQL</span></sub>&gt;0.5</span> 时，<span class="math-text">V(s)</span> 更靠近数据集中较高的 Q 值，但仍只看真实数据动作。</p>
+<p>为什么会偏向较高 Q？令残差 <span class="math-text">u=Q(s,a)-V(s)</span>。当 <span class="math-text">u≥0</span>，说明当前 <span class="math-text">V</span> 低于该数据动作的 Q，平方误差权重是 <span class="math-text">τ<sub><span class="math-text">IQL</span></sub></span>；当 <span class="math-text">u&lt;0</span>，说明 <span class="math-text">V</span> 高于 Q，权重是 <span class="math-text">1-τ<sub><span class="math-text">IQL</span></sub></span>。因此 <span class="math-text">τ<sub><span class="math-text">IQL</span></sub>&gt;0.5</span> 时，“V 低估高 Q 动作”的惩罚更重，最优解会向数据动作 Q 分布的上侧移动，但它不是 quantile（分位数）也不是直接取 max。</p>
 <p>第二步，用：</p>
 <div class="math-block"><span class="math-text">y=r+γ(1-d)V(s')</span></div>
 
