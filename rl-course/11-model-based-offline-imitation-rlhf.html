@@ -769,6 +769,11 @@ BCQ：在 behavior-supported candidates 内 max
 </code></pre>
 <p>它降低 OOD 风险，但若数据本身质量差或覆盖窄，Policy 也难以超出 Behavior Policy 太多。</p>
 <h3 id="section-11-5-4">11.5.4 CQL：让没有数据支持的高 Q 付出额外代价</h3>
+<p>第一次阅读先记目标，不必先记公式：</p>
+<pre><code class="language-text">Bellman Loss：让数据动作的 Q 符合真实 transition
+CQL Penalty：让所有候选动作中的虚高 Q 付出代价
+二者相加：数据动作正常拟合，数据外动作相对更保守
+</code></pre>
 <p>离散动作下，CQL 的直观目标可写成：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">CQL</span></sub>
 =L<sub><span class="math-text">Bellman</span></sub>
@@ -780,6 +785,7 @@ log∑<sub><span class="math-text">a</span></sub>exp Q<sub><span class="math-tex
 
 <p><span class="math-text">α<sub><span class="math-text">C</span></sub></span> 是 Conservative Penalty Coefficient（保守惩罚系数）。第一项中的 Log-sum-exp 会对所有高 Q 动作施加压力；第二项通过负号相对保留数据动作的 Q。</p>
 <p>若某 OOD 动作 Q 很高，它在 Log-sum-exp 的 Softmax 权重很大，却没有第二项的数据动作补偿，梯度下降会重点压低它。CQL 的核心不是“所有 Q 都变小”，而是让数据外动作相对数据动作更保守。</p>
+<p>一个三动作例子：数据集在状态 <span class="math-text">s</span> 只执行过 <span class="math-text">a<sub><span class="math-text">1</span></sub></span>，但 Critic 当前给出 <span class="math-text">Q=(3,4,9)</span>。Log-sum-exp 几乎由 <span class="math-text">a<sub><span class="math-text">3</span></sub></span> 的 9 主导，因此第一项会强烈压低 <span class="math-text">a<sub><span class="math-text">3</span></sub></span>；第二项只补偿数据动作 <span class="math-text">a<sub><span class="math-text">1</span></sub></span>。最终不是断言 <span class="math-text">a<sub><span class="math-text">3</span></sub></span> 一定差，而是在“没有证据”时拒绝相信它异常高的估值。</p>
 <h3 id="section-11-5-5">11.5.5 IQL：不生成数据外动作，也能偏向好数据</h3>
 <p>IQL 第一步只看数据动作的 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>，通过 Expectile Regression（期望分位回归）学习 <span class="math-text">V<sub><span class="math-text">v</span></sub>(s)</span>。令残差：</p>
 <div class="math-block"><span class="math-text">u=Q<sub><span class="math-text">w</span></sub>(s,a)-V<sub><span class="math-text">v</span></sub>(s)</span></div>
@@ -815,6 +821,13 @@ logπ<sub><span class="math-text">θ</span></sub>(a∣ s)
 ]</span></div>
 
 <p>数据中高优势动作被更强地模仿，低优势动作权重更小。</p>
+<p>把三步放回训练循环就不容易迷失：</p>
+<pre><code class="language-text">1. 固定当前 Q，用数据动作的 Q 拟合偏高侧的 V
+2. 固定 V，用 r + gamma V(s&#39;) 拟合 Q
+3. 固定 Q/V，用 exp(beta * (Q-V)) 加权模仿数据动作
+4. 重复 1-3
+</code></pre>
+<p>这里 Q 和 V 看起来互相定义，但训练不是要求一次联立求出精确解，而是像普通 Actor-Critic 一样交替更新。关键边界仍是：每一步只使用数据集出现过的动作。</p>
 <h3 id="section-11-5-6">11.5.6 Decision Transformer：不做 Bellman 最大化，改做条件序列预测</h3>
 <p>DT 把一条轨迹排成：</p>
 <pre><code class="language-text">(RTG_1, s_1, a_1), (RTG_2, s_2, a_2), ...
@@ -937,13 +950,35 @@ logπ<sub><span class="math-text">θ</span></sub>(y∣ x) / π<sub><span class="
 </ul>
 <p>两者参照对象不同，不能互相替代。</p>
 <h3 id="section-11-7-4">11.7.4 DPO 从哪里推出来</h3>
+<p>先看最短逻辑链，后面的公式只是把这三句话写严谨：</p>
+<pre><code class="language-text">人类偏好模型只关心两个回答的 Reward 差
+KL 正则化最优策略把 Reward 写成 policy/reference 的 log-ratio
+把 Reward 差代回偏好模型，就得到无需显式 Reward Model 的 DPO Loss
+</code></pre>
 <p>考虑 KL 正则化的单 Prompt 目标：</p>
 <div class="math-block"><span class="math-text">max<sub><span class="math-text">π</span></sub>
 𝔼<sub><span class="math-text">y∼π(·∣ x)</span></sub>[r(x,y)]
 -β<sub><span class="math-text">D</span></sub> D<sub><span class="math-text">KL</span></sub>
 (π(·∣ x)∥π<sub><span class="math-text">ref</span></sub>(·∣ x))</span></div>
 
-<p>其最优策略满足：</p>
+<p>为什么其最优策略具有下面的指数形式？先把固定 Prompt 下每个回答 <span class="math-text">y</span> 的概率记为 <span class="math-text">π<sub><span class="math-text">y</span></sub></span>，参考概率记为 <span class="math-text">q<sub><span class="math-text">y</span></sub></span>。加上概率和为 1 的约束，Lagrangian（拉格朗日函数）为：</p>
+<div class="math-block"><span class="math-text">L(π,λ)
+=∑<sub><span class="math-text">y</span></sub>π<sub><span class="math-text">y</span></sub>r<sub><span class="math-text">y</span></sub>
+-β<sub><span class="math-text">D</span></sub>∑<sub><span class="math-text">y</span></sub>π<sub><span class="math-text">y</span></sub>logπ<sub><span class="math-text">y</span></sub> / q<sub><span class="math-text">y</span></sub>
++λ(∑<sub><span class="math-text">y</span></sub>π<sub><span class="math-text">y</span></sub>-1)</span></div>
+
+<p><span class="math-text">λ</span> 是 Lagrange Multiplier（拉格朗日乘子），只用于强制所有回答概率之和等于 1。</p>
+<p>对每个 <span class="math-text">π<sub><span class="math-text">y</span></sub></span> 求偏导并令其为 0：</p>
+<div class="math-block"><span class="math-text">r<sub><span class="math-text">y</span></sub>
+-β<sub><span class="math-text">D</span></sub>(logπ<sub><span class="math-text">y</span></sub> / q<sub><span class="math-text">y</span></sub>+1)
++λ=0</span></div>
+
+<p>移项后可得：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">y</span></sub>
+=q<sub><span class="math-text">y</span></sub>exp(r<sub><span class="math-text">y</span></sub> / β<sub><span class="math-text">D</span></sub>)
+× C(x)</span></div>
+
+<p><span class="math-text">C(x)</span> 收集了对同一 Prompt 所有回答都相同的常数。再用 <span class="math-text">∑<sub><span class="math-text">y</span></sub>π<sub><span class="math-text">y</span></sub>=1</span> 归一化，<span class="math-text">C(x)=1/Z(x)</span>，因此最优策略满足：</p>
 <div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup>(y∣ x)
 =1 / Z(x)
 π<sub><span class="math-text">ref</span></sub>(y∣ x)
@@ -978,6 +1013,7 @@ logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">
 ]</span></div>
 
 <p>DPO 不是“把 Chosen 的概率提高、Rejected 的概率降低”这么简单；它比较的是两者相对 Reference Policy 的 Log-ratio 差。</p>
+<p>Loss 前为什么有负号？Bradley-Terry 给出“偏好回答胜出”的预测概率 <span class="math-text">p<sub><span class="math-text">θ</span></sub></span>，训练希望最大化 <span class="math-text">log p<sub><span class="math-text">θ</span></sub></span>；深度学习框架使用梯度下降，所以最小化 <span class="math-text">-log p<sub><span class="math-text">θ</span></sub></span>。这与二分类交叉熵完全相同。</p>
 <h3 id="section-11-7-5">11.7.5 DPO 数值例子</h3>
 <p>设当前策略相对参考策略的序列 Log-ratio 为：</p>
 <div class="math-block"><span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x) / π<sub><span class="math-text">ref</span></sub>(y<sup><span class="math-text">+</span></sup>∣ x)=0.4</span></div>
@@ -1075,7 +1111,7 @@ logπ<sub><span class="math-text">θ</span></sub>(y<sup><span class="math-text">
 <li>普通 SAC 的 Actor 会在连续动作空间寻找高 Q 动作；固定日志未覆盖处的 Q 可能只是函数外推，Soft Bellman Target 还会传播该高估。在线 SAC 尚可通过新交互纠错，Offline 场景不能，因此需动作约束、保守 Q 或 In-sample 学习。</li>
 <li><span class="math-text">τ<sub><span class="math-text">e</span></sub>=0.5</span> 时是对称平方损失，<span class="math-text">V=5</span>；<span class="math-text">τ<sub><span class="math-text">e</span></sub>=0.8</span> 时 <span class="math-text">0.2(V-2)+0.8(V-8)=0</span>，<span class="math-text">V=6.8</span>。</li>
 <li>离线测试状态仍来自专家分布；部署时 Learner 的小错误改变后续状态分布，未覆盖状态上的错误会累积。因此单步准确率高并不保证长时闭环成功。</li>
-<li>KL 正则化最优策略满足 <span class="math-text">π<sup><span class="math-text">*</span></sup>∝π<sub><span class="math-text">ref</span></sub>exp(r/β<sub><span class="math-text">D</span></sub>)</span>，所以同 Prompt 的 Reward 差等于 <span class="math-text">β<sub><span class="math-text">D</span></sub></span> 乘两回答相对 Reference 的 Log-ratio 差。Reference 给出“相对原模型改变了多少”的基准；删掉后目标变成普通偏好似然，失去原推导中的 KL 锚点。</li>
+<li>对固定 Prompt 的每个回答概率求导，可得 <span class="math-text">r<sub><span class="math-text">y</span></sub>-β<sub><span class="math-text">D</span></sub>(log(π<sub><span class="math-text">y</span></sub>/q<sub><span class="math-text">y</span></sub>)+1)+λ=0</span>，所以 <span class="math-text">π<sup><span class="math-text">*</span></sup>∝π<sub><span class="math-text">ref</span></sub>exp(r/β<sub><span class="math-text">D</span></sub>)</span>。因此同 Prompt 的 Reward 差等于 <span class="math-text">β<sub><span class="math-text">D</span></sub></span> 乘两回答相对 Reference 的 Log-ratio 差。Reference 给出“相对原模型改变了多少”的基准；删掉后便失去原推导中的 KL 锚点。</li>
 </ol>
 </details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./10-continuous-control-ddpg-td3-sac.html">← 上一章</a><a href="./12-interview-cheatsheet-projects.html">下一章 →</a></nav></main></body>

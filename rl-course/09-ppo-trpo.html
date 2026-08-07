@@ -398,7 +398,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav><h1 id="chapter-9">第 9 章：从 TRPO（Trust Region Policy Optimization，信赖域策略优化）到 PPO（Proximal Policy Optimization，近端策略优化）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-9-1">9.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-9-2">9.2 本章目标</a><a class="toc-link toc-level-2" href="#section-9-3">9.3 本章主线</a><a class="toc-link toc-level-2" href="#section-9-4">9.4 为什么旧策略数据只能局部评价新策略</a><a class="toc-link toc-level-3" href="#section-9-4-1">9.4.1 策略一变，动作分布和状态分布都会变</a><a class="toc-link toc-level-3" href="#section-9-4-2">9.4.2 Performance Difference：新旧策略差多少</a><a class="toc-link toc-level-3" href="#section-9-4-3">9.4.3 Surrogate Objective：先冻结旧状态分布</a><a class="toc-link toc-level-3" href="#section-9-4-4">9.4.4 为什么有 Ratio 仍然不够</a><a class="toc-link toc-level-2" href="#section-9-5">9.5 TRPO：在 KL Trust Region 内优化代理目标</a><a class="toc-link toc-level-3" href="#section-9-5-1">9.5.1 为什么用 KL 而不是参数欧氏距离</a><a class="toc-link toc-level-3" href="#section-9-5-2">9.5.2 TRPO 的约束优化问题</a><a class="toc-link toc-level-3" href="#section-9-5-3">9.5.3 局部近似：线性目标加二次约束</a><a class="toc-link toc-level-3" href="#section-9-5-4">9.5.4 从约束问题得到 Natural-gradient Direction</a><a class="toc-link toc-level-3" href="#section-9-5-5">9.5.5 为什么不能直接求 <span class="math-text">F<sup><span class="math-text">-1</span></sup></span></a><a class="toc-link toc-level-3" href="#section-9-5-6">9.5.6 Fisher-vector Product 怎么算</a><a class="toc-link toc-level-3" href="#section-9-5-7">9.5.7 为什么有理论步长还要 Line Search</a><a class="toc-link toc-level-3" href="#section-9-5-8">9.5.8 TRPO 一轮训练的完整流程</a><a class="toc-link toc-level-3" href="#section-9-5-9">9.5.9 TRPO 数值例子：二维参数怎样按曲率缩放</a><a class="toc-link toc-level-2" href="#section-9-6">9.6 PPO：把 Trust-region 思想改成一阶可优化目标</a><a class="toc-link toc-level-3" href="#section-9-6-1">9.6.1 为什么还需要 PPO</a><a class="toc-link toc-level-3" href="#section-9-6-2">9.6.2 PPO Clipped Objective</a><a class="toc-link toc-level-3" href="#section-9-6-3">9.6.3 <code>min</code> 为什么同时处理正负 Advantage</a><a class="toc-link toc-level-3" href="#section-9-6-4">9.6.4 PPO Clip 的不是实际 Policy</a><a class="toc-link toc-level-3" href="#section-9-6-5">9.6.5 PPO 为什么能复用同一批 Rollout 几个 Epoch</a><a class="toc-link toc-level-3" href="#section-9-6-6">9.6.6 Actor、Critic 与 Entropy 的完整 Loss</a><a class="toc-link toc-level-3" href="#section-9-6-7">9.6.7 常见稳定化与诊断指标</a><a class="toc-link toc-level-2" href="#section-9-7">9.7 两个完整数值例子</a><a class="toc-link toc-level-3" href="#section-9-7-1">9.7.1 例子一：正 Advantage 被上界截断</a><a class="toc-link toc-level-3" href="#section-9-7-2">9.7.2 例子二：负 Advantage 被下界截断</a><a class="toc-link toc-level-3" href="#section-9-7-3">9.7.3 例子三：Categorical Policy 的 KL</a><a class="toc-link toc-level-2" href="#section-9-8">9.8 PPO 一轮训练的完整闭环</a><a class="toc-link toc-level-2" href="#section-9-9">9.9 TRPO 与 PPO 的统一比较</a><a class="toc-link toc-level-2" href="#section-9-10">9.10 场景例子</a><a class="toc-link toc-level-3" href="#section-9-10-1">9.10.1 机器人连续控制</a><a class="toc-link toc-level-3" href="#section-9-10-2">9.10.2 RLHF 中的 Token Policy</a><a class="toc-link toc-level-2" href="#section-9-11">9.11 面试高频问题</a><a class="toc-link toc-level-3" href="#section-9-11-1">9.11.1 为什么普通 Policy Gradient 更新过大可能崩溃？</a><a class="toc-link toc-level-3" href="#section-9-11-2">9.11.2 TRPO 的核心优化问题是什么？</a><a class="toc-link toc-level-3" href="#section-9-11-3">9.11.3 Natural Gradient 为什么是 <span class="math-text">F<sup><span class="math-text">-1</span></sup>g</span>？</a><a class="toc-link toc-level-3" href="#section-9-11-4">9.11.4 CG、FVP 和 Line Search 分别做什么？</a><a class="toc-link toc-level-3" href="#section-9-11-5">9.11.5 PPO 为什么仍是 On-policy？</a><a class="toc-link toc-level-3" href="#section-9-11-6">9.11.6 PPO Clip 是否保证 Ratio 一定在区间内？</a><a class="toc-link toc-level-2" href="#section-9-12">9.12 原始论文与参考资料</a><a class="toc-link toc-level-2" href="#section-9-13">9.13 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./08-actor-critic-gae.html">← 上一章</a><a href="./10-continuous-control-ddpg-td3-sac.html">下一章 →</a></nav><h1 id="chapter-9">第 9 章：从 TRPO（Trust Region Policy Optimization，信赖域策略优化）到 PPO（Proximal Policy Optimization，近端策略优化）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-9-1">9.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-9-2">9.2 本章目标</a><a class="toc-link toc-level-2" href="#section-9-3">9.3 本章主线</a><a class="toc-link toc-level-2" href="#section-9-4">9.4 为什么旧策略数据只能局部评价新策略</a><a class="toc-link toc-level-3" href="#section-9-4-1">9.4.1 策略一变，动作分布和状态分布都会变</a><a class="toc-link toc-level-3" href="#section-9-4-2">9.4.2 Performance Difference：新旧策略差多少</a><a class="toc-link toc-level-3" href="#section-9-4-3">9.4.3 Surrogate Objective：先冻结旧状态分布</a><a class="toc-link toc-level-3" href="#section-9-4-4">9.4.4 为什么有 Ratio 仍然不够</a><a class="toc-link toc-level-2" href="#section-9-5">9.5 TRPO：在 KL Trust Region 内优化代理目标</a><a class="toc-link toc-level-3" href="#section-9-5-1">9.5.1 为什么用 KL 而不是参数欧氏距离</a><a class="toc-link toc-level-3" href="#section-9-5-2">9.5.2 TRPO 的约束优化问题</a><a class="toc-link toc-level-3" href="#section-9-5-3">9.5.3 局部近似：线性目标加二次约束</a><a class="toc-link toc-level-3" href="#section-9-5-4">9.5.4 从约束问题得到 Natural-gradient Direction</a><a class="toc-link toc-level-3" href="#section-9-5-5">9.5.5 为什么不能直接求 <span class="math-text">F<sup><span class="math-text">-1</span></sup></span></a><a class="toc-link toc-level-3" href="#section-9-5-6">9.5.6 Fisher-vector Product 怎么算</a><a class="toc-link toc-level-3" href="#section-9-5-7">9.5.7 为什么有理论步长还要 Line Search</a><a class="toc-link toc-level-3" href="#section-9-5-8">9.5.8 TRPO 一轮训练的完整流程</a><a class="toc-link toc-level-3" href="#section-9-5-9">9.5.9 TRPO 数值例子：从一维边界到二维曲率缩放</a><a class="toc-link toc-level-2" href="#section-9-6">9.6 PPO：把 Trust-region 思想改成一阶可优化目标</a><a class="toc-link toc-level-3" href="#section-9-6-1">9.6.1 为什么还需要 PPO</a><a class="toc-link toc-level-3" href="#section-9-6-2">9.6.2 PPO Clipped Objective</a><a class="toc-link toc-level-3" href="#section-9-6-3">9.6.3 <code>min</code> 为什么同时处理正负 Advantage</a><a class="toc-link toc-level-3" href="#section-9-6-4">9.6.4 PPO Clip 的不是实际 Policy</a><a class="toc-link toc-level-3" href="#section-9-6-5">9.6.5 PPO 为什么能复用同一批 Rollout 几个 Epoch</a><a class="toc-link toc-level-3" href="#section-9-6-6">9.6.6 Actor、Critic 与 Entropy 的完整 Loss</a><a class="toc-link toc-level-3" href="#section-9-6-7">9.6.7 常见稳定化与诊断指标</a><a class="toc-link toc-level-2" href="#section-9-7">9.7 两个完整数值例子</a><a class="toc-link toc-level-3" href="#section-9-7-1">9.7.1 例子一：正 Advantage 被上界截断</a><a class="toc-link toc-level-3" href="#section-9-7-2">9.7.2 例子二：负 Advantage 被下界截断</a><a class="toc-link toc-level-3" href="#section-9-7-3">9.7.3 例子三：Categorical Policy 的 KL</a><a class="toc-link toc-level-2" href="#section-9-8">9.8 PPO 一轮训练的完整闭环</a><a class="toc-link toc-level-2" href="#section-9-9">9.9 TRPO 与 PPO 的统一比较</a><a class="toc-link toc-level-2" href="#section-9-10">9.10 场景例子</a><a class="toc-link toc-level-3" href="#section-9-10-1">9.10.1 机器人连续控制</a><a class="toc-link toc-level-3" href="#section-9-10-2">9.10.2 RLHF 中的 Token Policy</a><a class="toc-link toc-level-2" href="#section-9-11">9.11 面试高频问题</a><a class="toc-link toc-level-3" href="#section-9-11-1">9.11.1 为什么普通 Policy Gradient 更新过大可能崩溃？</a><a class="toc-link toc-level-3" href="#section-9-11-2">9.11.2 TRPO 的核心优化问题是什么？</a><a class="toc-link toc-level-3" href="#section-9-11-3">9.11.3 Natural Gradient 为什么是 <span class="math-text">F<sup><span class="math-text">-1</span></sup>g</span>？</a><a class="toc-link toc-level-3" href="#section-9-11-4">9.11.4 CG、FVP 和 Line Search 分别做什么？</a><a class="toc-link toc-level-3" href="#section-9-11-5">9.11.5 PPO 为什么仍是 On-policy？</a><a class="toc-link toc-level-3" href="#section-9-11-6">9.11.6 PPO Clip 是否保证 Ratio 一定在区间内？</a><a class="toc-link toc-level-2" href="#section-9-12">9.12 原始论文与参考资料</a><a class="toc-link toc-level-2" href="#section-9-13">9.13 本章练习</a></nav></details>
 <h2 id="section-9-1">9.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -543,6 +543,28 @@
   -&gt; PPO 用 clipped surrogate objective 近似保守更新
 </code></pre>
 <p>TRPO 不是 PPO 前面的历史背景。它给出了“为什么要限制策略更新”的完整数学和算法答案；理解 TRPO 后，PPO 的 ratio、clipping、multiple epochs 才能连成一条主线。</p>
+<p>本章数学分三层，不需要第一次阅读就同等掌握：</p>
+<div class="table-scroll"><table class="standard-table">
+<thead>
+<tr>
+<th>层级</th>
+<th>需要掌握到什么程度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一层：必须理解</td>
+<td>旧数据只能局部评价新策略；TRPO 用 KL 限制更新幅度；PPO 用 clipping 做一阶近似。</td>
+</tr>
+<tr>
+<td>第二层：面试推导</td>
+<td>Importance Ratio 从哪来；为什么目标做一阶展开、KL 做二阶展开；为什么自然梯度方向是 <span class="math-text">F<sup><span class="math-text">-1</span></sup>g</span>。</td>
+</tr>
+<tr>
+<td>第三层：实现选读</td>
+<td>CG 如何解 <span class="math-text">Fx=g</span>、FVP 如何算 <span class="math-text">Fv</span>、Line Search 如何验收候选参数。</td>
+</tr>
+</tbody></table></div>
+<p>如果第一遍卡在 CG 或 FVP，可以先跳到 9.6。它们解释 TRPO 怎样高效实现，不影响理解“目标决定方向、KL 决定步长”这条核心主线。</p>
 <h2 id="section-9-4">9.4 为什么旧策略数据只能局部评价新策略</h2>
 <h3 id="section-9-4-1">9.4.1 策略一变，动作分布和状态分布都会变</h3>
 <p>旧策略 <span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub></span> 产生一条轨迹：</p>
@@ -580,6 +602,13 @@
 
 <p>这叫 Surrogate Objective（代理目标）：它在旧策略附近近似新策略回报，但不是对任意远的新策略都准确。</p>
 <p>rollout 中动作也是按旧策略采样的，因此再用 Importance Sampling（重要性采样）把 <span class="math-text">a∼π</span> 改写成 <span class="math-text">a∼π<sub><span class="math-text">old</span></sub></span>：</p>
+<p>先看固定状态 <span class="math-text">s</span> 下的离散动作。对任意动作函数 <span class="math-text">f(a)</span>：</p>
+<div class="math-block multi"><div><span class="math-text">𝔼<sub><span class="math-text">a∼π</span></sub>[f(a)]
+=∑<sub><span class="math-text">a</span></sub>π(a∣ s)f(a)</span></div><div><span class="math-text">=∑<sub><span class="math-text">a</span></sub>π<sub><span class="math-text">old</span></sub>(a∣ s)
+π(a∣ s) / π<sub><span class="math-text">old</span></sub>(a∣ s)f(a)</span></div><div><span class="math-text">=𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">old</span></sub></span></sub>
+[π(a∣ s) / π<sub><span class="math-text">old</span></sub>(a∣ s)f(a)]</span></div></div>
+
+<p>第二行只是“乘以再除以旧策略概率”。因此即使动作来自旧策略，也能用概率比重新加权，估计新策略下的动作期望。令 <span class="math-text">f(a)=A<sub><span class="math-text">π<sub><span class="math-text">old</span></sub></span></sub>(s,a)</span>，就得到后面的 Ratio。</p>
 <div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ)
 =π<sub><span class="math-text">θ</span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>) /
 {π<sub><span class="math-text">θ<sub><span class="math-text">old</span></sub></span></sub>(A<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)}</span></div>
@@ -658,6 +687,18 @@
 <div class="math-block"><span class="math-text">Δθ=θ-θ<sub><span class="math-text">old</span></sub></span></div>
 
 <p>代理目标做一阶展开：</p>
+<p>对任意光滑标量函数 <span class="math-text">f(θ)</span>，在旧参数附近的二阶 Taylor Expansion（泰勒展开）是：</p>
+<div class="math-block"><span class="math-text">f(θ<sub><span class="math-text">old</span></sub>+Δθ)
+≈ f(θ<sub><span class="math-text">old</span></sub>)
++∇ f<sup><span class="math-text">T</span></sup>Δθ
++1 / 2Δθ<sup><span class="math-text">T</span></sup>HΔθ</span></div>
+
+<p><span class="math-text">H</span> 是 Hessian Matrix（Hessian 矩阵），描述局部曲率。TRPO 对两个函数采用不同截断：</p>
+<ul>
+<li>对代理目标，只需要“朝哪个方向能变大”，保留一阶项。</li>
+<li>对 KL，需要描述“走这么远会让分布变化多少”，保留到二阶项。</li>
+</ul>
+<p>因此代理目标近似为：</p>
 <div class="math-block"><span class="math-text">L<sup><span class="math-text">sur</span></sup>(θ)
 ≈
 L<sup><span class="math-text">sur</span></sup>(θ<sub><span class="math-text">old</span></sub>)
@@ -667,11 +708,17 @@ L<sup><span class="math-text">sur</span></sup>(θ<sub><span class="math-text">ol
 <div class="math-block"><span class="math-text">g=∇<sub><span class="math-text">θ</span></sub> L<sup><span class="math-text">sur</span></sup>(θ)
 ∣<sub><span class="math-text">θ=θ<sub><span class="math-text">old</span></sub></span></sub></span></div>
 
-<p>平均 KL 在旧参数处的一阶导数为 0，因此保留二阶项：</p>
+<p>为什么平均 KL 的一阶项为 0？当 <span class="math-text">θ=θ<sub><span class="math-text">old</span></sub></span> 时，新旧分布完全相同，KL 等于 0，并且 KL 不可能小于 0；这里是 KL 的局部最小点，所以梯度为 0。它的 Taylor 展开只剩二阶主项：</p>
 <div class="math-block"><span class="math-text">overline D<sub><span class="math-text">KL</span></sub>
 ≈1 / 2Δθ<sup><span class="math-text">T</span></sup>FΔθ</span></div>
 
 <p><span class="math-text">F</span> 是 Fisher Information Matrix（Fisher 信息矩阵），在这里等价于平均 KL 对参数的局部二阶曲率。</p>
+<p>这里可以把 <span class="math-text">g</span> 与 <span class="math-text">F</span> 先理解成：</p>
+<ul>
+<li><span class="math-text">g</span> 是一个与参数同维的向量，告诉我们代理目标希望往哪里走。</li>
+<li><span class="math-text">F</span> 是一个曲率矩阵，告诉我们同样大小的参数变化会让策略分布改变多少。</li>
+<li><span class="math-text">g<sup><span class="math-text">T</span></sup>Δθ</span> 是预计收益；<span class="math-text">1 / 2Δθ<sup><span class="math-text">T</span></sup>FΔθ</span> 是预计 KL 成本。</li>
+</ul>
 <p>于是原问题近似为：</p>
 <div class="math-block multi"><div><span class="math-text">max<sub><span class="math-text">Δθ</span></sub>  g<sup><span class="math-text">T</span></sup>Δθ</span></div><div><span class="math-text">subject to
 1 / 2Δθ<sup><span class="math-text">T</span></sup>FΔθ
@@ -689,16 +736,37 @@ L<sup><span class="math-text">sur</span></sup>(θ<sub><span class="math-text">ol
 )</span></div>
 
 <p>对 <span class="math-text">Δθ</span> 求导并令其为 0：</p>
+<p>因为 <span class="math-text">F</span> 是对称矩阵：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">Δθ</span></sub>
+(1 / 2Δθ<sup><span class="math-text">T</span></sup>FΔθ)
+=FΔθ</span></div>
+
+<p>所以一阶最优条件为：</p>
 <div class="math-block"><span class="math-text">g-λ<sub><span class="math-text">TR</span></sub>FΔθ=0</span></div>
 
-<p>因此方向满足：</p>
+<p>移项得到：</p>
+<div class="math-block"><span class="math-text">Δθ
+=1 / λ<sub><span class="math-text">TR</span></sub>F<sup><span class="math-text">-1</span></sup>g</span></div>
+
+<p><span class="math-text">1/λ<sub><span class="math-text">TR</span></sub></span> 只是正的缩放系数，因此先忽略步长，方向满足：</p>
 <div class="math-block"><span class="math-text">Δθ∝ F<sup><span class="math-text">-1</span></sup>g</span></div>
 
 <p>定义：</p>
 <div class="math-block"><span class="math-text">x=F<sup><span class="math-text">-1</span></sup>g</span></div>
 
 <p><span class="math-text">x</span> 就是 Natural-gradient Direction（自然梯度方向）。它会缩小那些“参数稍变就让策略分布剧烈变化”的方向，放大对策略分布较不敏感的方向。</p>
-<p>再把步长缩放到 KL 边界：</p>
+<p>为什么最优点通常落在 KL 边界？在线性近似下，只要沿 <span class="math-text">x</span> 再走一点，目标 <span class="math-text">g<sup><span class="math-text">T</span></sup>Δθ</span> 还会继续增加；因此在不违反约束的前提下，会一直走到：</p>
+<div class="math-block"><span class="math-text">1 / 2Δθ<sup><span class="math-text">T</span></sup>FΔθ
+=δ<sub><span class="math-text">KL</span></sub></span></div>
+
+<p>令 <span class="math-text">Δθ=cx</span>，代入约束：</p>
+<div class="math-block"><span class="math-text">1 / 2c<sup><span class="math-text">2</span></sup>x<sup><span class="math-text">T</span></sup>Fx
+=δ<sub><span class="math-text">KL</span></sub></span></div>
+
+<p>解出正的缩放系数：</p>
+<div class="math-block"><span class="math-text">c=√(2δ<sub><span class="math-text">KL</span></sub> / x<sup><span class="math-text">T</span></sup>Fx)</span></div>
+
+<p>于是最终候选步为：</p>
 <div class="math-block"><span class="math-text">Δθ<sub><span class="math-text">TRPO</span></sub>
 =√(
 2δ<sub><span class="math-text">KL</span></sub> /
@@ -714,6 +782,9 @@ F
 =δ<sub><span class="math-text">KL</span></sub></span></div>
 
 <h3 id="section-9-5-5">9.5.5 为什么不能直接求 <span class="math-text">F<sup><span class="math-text">-1</span></sup></span></h3>
+<blockquote>
+<p>下面 9.5.5-9.5.7 属于实现层。第一遍只需知道：代码不会真的构造并求逆巨大矩阵，而是近似求自然梯度方向，并用真实 KL 再验收。</p>
+</blockquote>
 <p>如果策略网络有百万参数，<span class="math-text">F</span> 是百万乘百万矩阵：</p>
 <ul>
 <li>无法显式存储。</li>
@@ -775,8 +846,12 @@ otherwise:
 9. 单独回归 Critic
 </code></pre>
 <p>Actor 的约束更新和 Critic 的 value regression 是两条优化线。TRPO 的 KL constraint 约束的是 Actor policy，不是 Critic value network。</p>
-<h3 id="section-9-5-9">9.5.9 TRPO 数值例子：二维参数怎样按曲率缩放</h3>
-<p>假设旧参数处：</p>
+<h3 id="section-9-5-9">9.5.9 TRPO 数值例子：从一维边界到二维曲率缩放</h3>
+<p>先用一个一维版本检查直觉。若目标梯度 <span class="math-text">g=2</span>、KL 曲率 <span class="math-text">F=8</span>、允许的 KL 为 <span class="math-text">δ<sub><span class="math-text">KL</span></sub>=0.01</span>，约束直接变成：</p>
+<div class="math-block"><span class="math-text">1 / 2×8×(Δθ)<sup><span class="math-text">2</span></sup>≤0.01</span></div>
+
+<p>所以 <span class="math-text">∣Δθ∣≤0.05</span>。因为 <span class="math-text">g&gt;0</span>，目标希望参数增大，最终候选步就是 <span class="math-text">Δθ=+0.05</span>。这已经包含 TRPO 的全部必要直觉：梯度符号选方向，KL 曲率和阈值定最大步长。</p>
+<p>再看二维情形。假设旧参数处：</p>
 <div class="math-block"><span class="math-text">g=(1,0.5)<sup><span class="math-text">T</span></sup>,
 
 <p>F=diag(2,1),</p>

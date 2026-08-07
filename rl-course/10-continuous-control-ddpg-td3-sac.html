@@ -631,6 +631,15 @@
 
 <p><span class="math-text">sg</span> 是 Stop Gradient（停止梯度）：更新在线 Critic 时，<span class="math-text">y</span> 被当作固定标签，不沿 Target 网络反传。</p>
 <p>这里输入 Critic 的 <span class="math-text">a</span> 是 Replay Buffer 中真实执行过的动作，因为它对应真实观测到的 <span class="math-text">r,s&#39;</span>。</p>
+<p>这个平方损失怎样把 Q 推向 Target？先看单样本，令误差 <span class="math-text">e=Q<sub><span class="math-text">w</span></sub>(s,a)-y</span>：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">w</span></sub>L<sub><span class="math-text">Q</span></sub>=2e∇<sub><span class="math-text">w</span></sub>Q<sub><span class="math-text">w</span></sub>(s,a)</span></div>
+
+<p>优化器做梯度下降 <span class="math-text">w← w-η<sub><span class="math-text">Q</span></sub>∇<sub><span class="math-text">w</span></sub>L<sub><span class="math-text">Q</span></sub></span>：</p>
+<ul>
+<li>若 <span class="math-text">Q<sub><span class="math-text">w</span></sub>&gt;y</span>，则 <span class="math-text">e&gt;0</span>，更新会让当前 Q 倾向减小。</li>
+<li>若 <span class="math-text">Q<sub><span class="math-text">w</span></sub>&lt;y</span>，则 <span class="math-text">e&lt;0</span>，减去负方向会让当前 Q 倾向增大。</li>
+</ul>
+<p>所以不需要另外写“把 Q 拉向 y”的规则，平方损失的梯度已经自动完成这件事。</p>
 <h3 id="section-10-5-3">10.5.3 Actor：把 Critic 当作可微评分器</h3>
 <p>Actor 要最大化当前 Actor 动作的 Q 值：</p>
 <div class="math-block"><span class="math-text">J<sub><span class="math-text">μ</span></sub>(θ)=𝔼<sub><span class="math-text">s∼D</span></sub>
@@ -650,6 +659,11 @@
 <li><span class="math-text">∇<sub><span class="math-text">θ</span></sub>μ<sub><span class="math-text">θ</span></sub></span>：参数怎样变化才能让动作向那个方向移动？</li>
 </ul>
 <p>更新 Actor 时，Critic 参数 <span class="math-text">w</span> 固定，但保留 Q 对动作输入 <span class="math-text">a</span> 的梯度。此处不能使用 Replay Buffer 里的旧动作 <span class="math-text">a</span>，因为旧动作不依赖当前 <span class="math-text">θ</span>，无法把梯度传回当前 Actor。</p>
+<p>这里要区分“固定 Critic 参数”和“切断整个 Critic”：</p>
+<pre><code class="language-text">theta -&gt; Actor(s) -&gt; action -&gt; Critic(s, action) -&gt; Q
+ 需要梯度       需要梯度          w 不更新，但对 action 的梯度保留
+</code></pre>
+<p>若把 Critic 输出整体 <code>detach</code>，<span class="math-text">∇<sub><span class="math-text">a</span></sub>Q</span> 也会消失，Actor 就没有学习方向。</p>
 <h3 id="section-10-5-4">10.5.4 一个一维 Actor 梯度例子</h3>
 <p>假设某状态下 Critic 学到：</p>
 <div class="math-block"><span class="math-text">Q(s,a)=5-(a-0.7)<sup><span class="math-text">2</span></sup></span></div>
@@ -800,7 +814,22 @@ min<sub><span class="math-text">i∈{1,2}</span></sub>Q<sub><span class="math-te
 
 <p>这里 <span class="math-text">-αlogπ</span> 为正，不是“每个低概率动作都应被奖励”。它是熵的 Monte Carlo 样本，只有放在当前策略的动作分布期望下才等价于熵。</p>
 <h3 id="section-10-7-4">10.7.4 SAC Actor：从 Soft-greedy 分布得到 Actor Loss</h3>
-<p>给定一个 Soft Q，理想策略不是只选唯一最大动作，而是：</p>
+<p>第一次学习 SAC，不需要先从 KL 投影入手。直接从“Actor 想最大化什么”推即可。固定一个状态，最大熵目标希望最大化：</p>
+<div class="math-block"><span class="math-text">𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">θ</span></sub></span></sub>
+[Q(s,a)+α H(π(·∣ s))]</span></div>
+
+<p>把熵写成 <span class="math-text">H=-𝔼[logπ]</span>：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">θ</span></sub>
+𝔼<sub><span class="math-text">a∼π<sub><span class="math-text">θ</span></sub></span></sub>
+[Q(s,a)-αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)]</span></div>
+
+<p>深度学习框架通常最小化 Loss，因此整体取负号：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">π</span></sub>(θ)
+=𝔼
+[αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)-Q(s,a)]</span></div>
+
+<p>这就是 SAC Actor Loss 的必要推导。符号检查也很直接：最小化 <span class="math-text">-Q</span> 会提高 Q；最小化 <span class="math-text">αlogπ</span> 的分布期望会提高熵。</p>
+<p>下面的 KL 视角用于进一步解释目标分布，属于第二遍理解。给定一个 Soft Q，理想策略不是只选唯一最大动作，而是：</p>
 <div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup>(a∣ s)
 ∝exp(Q(s,a) / α)</span></div>
 
@@ -824,6 +853,7 @@ exp(Q(s,·)/α) / Z(s)
 <li>让 <span class="math-text">Q(s,a)</span> 变大；</li>
 <li>让 <span class="math-text">𝔼[logπ]</span> 变小，也就是让熵变大。</li>
 </ul>
+<p>上面的两个推导得到同一个 Loss：前者从“最大化 Q 加熵”出发，更适合第一次理解；后者说明 SAC 在把策略投影到一个按 <span class="math-text">exp(Q/α)</span> 加权的 Soft-greedy 分布。</p>
 <h3 id="section-10-7-5">10.7.5 连续采样怎样把梯度传回 Actor</h3>
 <p>常见 SAC Actor 输出高斯分布的均值和标准差，再重参数化：</p>
 <div class="math-block"><span class="math-text">ε∼𝒩(0,I)</span></div>
@@ -834,6 +864,9 @@ exp(Q(s,·)/α) / Z(s)
 <p>随机性被放进与 <span class="math-text">θ</span> 无关的 <span class="math-text">ε</span>，所以 <span class="math-text">a</span> 是 <span class="math-text">θ</span> 的可微函数。Actor 梯度既经过 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，也经过 <span class="math-text">Q(s,a)</span> 对动作的梯度。</p>
 <p>由于 <span class="math-text">tanh</span> 改变了概率密度，计算 <span class="math-text">logπ(a∣ s)</span> 时必须加入 Change-of-variables Correction（变量变换校正）。面试中知道这一工程边界即可，不必现场展开 Jacobian 公式。</p>
 <h3 id="section-10-7-6">10.7.6 温度 <span class="math-text">α</span> 如何自动调节</h3>
+<blockquote>
+<p>自动温度属于实现增强。第一次学习只需把 <span class="math-text">α</span> 当作固定超参数，并记住“熵不足时应增大 <span class="math-text">α</span>，熵过高时应减小 <span class="math-text">α</span>”。</p>
+</blockquote>
 <p><span class="math-text">α</span> 大时更重视熵，策略更随机；<span class="math-text">α</span> 小时更重视 Q，策略更确定。设 <span class="math-text">H<sub><span class="math-text">target</span></sub></span> 为 Target Entropy（目标熵），可用样本 <span class="math-text">-logπ(a∣ s)</span> 估计当前熵，并优化：</p>
 <div class="math-block"><span class="math-text">L<sub><span class="math-text">α</span></sub>
 =𝔼[
@@ -1003,6 +1036,7 @@ logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub><
 <li>解释 TD3 的 Target Noise 与 Environment Exploration Noise 为什么不能共用一句“都是为了探索”。</li>
 <li>给定 SAC 中 <span class="math-text">min Q=3</span>、<span class="math-text">logπ=-1.2</span>、<span class="math-text">α=0.1</span>、<span class="math-text">r=0.5</span>、<span class="math-text">γ=0.99</span>、<span class="math-text">d=0</span>，计算 Soft Target。</li>
 <li>设计一个“离散动作类型 + 连续参数”的任务，写出联合策略分解，并说明为什么标准 DDPG 不可直接使用。</li>
+<li>不使用 KL 投影视角，只从“最大化 Q 加熵”推出 SAC Actor Loss 的符号。</li>
 </ol>
 <details class="exercise-answers">
 <summary>参考答案（点击展开）</summary>
@@ -1013,6 +1047,7 @@ logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub><
 <li>Target Noise 加在下一状态的 Target Action 上，让 Critic 不依赖孤立尖峰；Exploration Noise 加在真实执行动作上，改变采样分布以获得新数据。</li>
 <li>Soft 下一状态价值为 <span class="math-text">3-0.1×(-1.2)=3.12</span>，所以 <span class="math-text">y=0.5+0.99×3.12=3.5888</span>。</li>
 <li>例如交易动作 <span class="math-text">K∈{等待,买入,卖出}</span>，连续参数 <span class="math-text">U=(价格,数量)</span>，联合策略为 <span class="math-text">π(k,u∣ s)=π<sub><span class="math-text">d</span></sub>(k∣ s)π<sub><span class="math-text">c</span></sub>(u∣ s,k)</span>。离散采样或 Argmax 不具备标准 DDPG 所依赖的连续动作梯度，应使用联合 Score-function 方法、Hybrid SAC 或 Parameterized-action 方法。</li>
+<li>最大化 <span class="math-text">𝔼[Q+α H]</span>，代入 <span class="math-text">H=-𝔼[logπ]</span>，得到最大化 <span class="math-text">𝔼[Q-αlogπ]</span>。框架使用梯度下降，因此最小化其负数 <span class="math-text">L<sub><span class="math-text">π</span></sub>=𝔼[αlogπ-Q]</span>。</li>
 </ol>
 </details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav></main></body>
