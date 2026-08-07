@@ -322,6 +322,12 @@
       padding-left: 0.65em;
       text-align: left;
     }
+    .math-block {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
     .exercise-answers .math-text {
       white-space: normal;
       overflow-wrap: anywhere;
@@ -392,7 +398,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1 id="chapter-12">第 12 章：强化学习面试速查与项目准备</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-12-1">12.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-12-2">12.2 本章目标</a><a class="toc-link toc-level-2" href="#section-12-3">12.3 本章主线</a><a class="toc-link toc-level-2" href="#section-12-4">12.4 本章使用方式</a><a class="toc-link toc-level-2" href="#section-12-5">12.5 速查和高频问答</a><a class="toc-link toc-level-3" href="#section-12-5-1">12.5.1 核心概念速查</a><a class="toc-link toc-level-3" href="#section-12-5-2">12.5.2 算法横向对比</a><a class="toc-link toc-level-3" href="#section-12-5-3">12.5.3 高频概念问答</a><a class="toc-link toc-level-4" href="#section-12-5-3-1">12.5.3.1 RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</a><a class="toc-link toc-level-4" href="#section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</a><a class="toc-link toc-level-4" href="#section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</a><a class="toc-link toc-level-4" href="#section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</a><a class="toc-link toc-level-4" href="#section-12-5-3-10">12.5.3.10 为什么理论公式用 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span>，REINFORCE 实现用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>？</a><a class="toc-link toc-level-4" href="#section-12-5-3-11">12.5.3.11 离散加连续的混合动作怎样建模？</a><a class="toc-link toc-level-4" href="#section-12-5-3-12">12.5.3.12 PPO 为什么常用？</a><a class="toc-link toc-level-4" href="#section-12-5-3-13">12.5.3.13 SAC 为什么适合连续控制？</a><a class="toc-link toc-level-4" href="#section-12-5-3-14">12.5.3.14 Offline RL 为什么难？</a><a class="toc-link toc-level-2" href="#section-12-6">12.6 面试表达模板和项目准备</a><a class="toc-link toc-level-3" href="#section-12-6-1">12.6.1 面试中算法讲解模板</a><a class="toc-link toc-level-3" href="#section-12-6-2">12.6.2 项目准备建议</a><a class="toc-link toc-level-3" href="#section-12-6-3">12.6.3 面试例子索引</a><a class="toc-link toc-level-3" href="#section-12-6-4">12.6.4 项目表达模板</a><a class="toc-link toc-level-2" href="#section-12-7">12.7 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-1">12.7.1 CartPole DQN 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-2">12.7.2 LunarLander PPO 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</a><a class="toc-link toc-level-2" href="#section-12-8">12.8 最终复习</a><a class="toc-link toc-level-3" href="#section-12-8-1">12.8.1 面试前最终检查清单</a><a class="toc-link toc-level-3" href="#section-12-8-2">12.8.2 30 分钟口述复习路线</a><a class="toc-link toc-level-2" href="#section-12-9">12.9 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./11-model-based-offline-imitation-rlhf.html">← 上一章</a><span>下一章 →</span></nav><h1 id="chapter-12">第 12 章：强化学习面试速查与项目准备</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-12-1">12.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-12-2">12.2 本章目标</a><a class="toc-link toc-level-2" href="#section-12-3">12.3 本章主线</a><a class="toc-link toc-level-2" href="#section-12-4">12.4 本章使用方式</a><a class="toc-link toc-level-2" href="#section-12-5">12.5 速查和高频问答</a><a class="toc-link toc-level-3" href="#section-12-5-1">12.5.1 核心概念速查</a><a class="toc-link toc-level-3" href="#section-12-5-2">12.5.2 算法横向对比</a><a class="toc-link toc-level-3" href="#section-12-5-3">12.5.3 高频概念问答</a><a class="toc-link toc-level-4" href="#section-12-5-3-1">12.5.3.1 RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-2">12.5.3.2 Bellman 方程为什么重要？</a><a class="toc-link toc-level-4" href="#section-12-5-3-3">12.5.3.3 On-policy 和 off-policy 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-4">12.5.3.4 MC 和 TD 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-5">12.5.3.5 SARSA 和 Q-learning 区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-6">12.5.3.6 DQN 的两个核心稳定技巧？</a><a class="toc-link toc-level-4" href="#section-12-5-3-7">12.5.3.7 Double DQN 解决什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-8">12.5.3.8 Policy Gradient 怎么理解？</a><a class="toc-link toc-level-4" href="#section-12-5-3-9">12.5.3.9 Baseline 为什么不引入 bias？</a><a class="toc-link toc-level-4" href="#section-12-5-3-10">12.5.3.10 为什么理论公式用 <span class="math-text">Q<sub><span class="math-text">π</span></sub></span>，REINFORCE 实现用 <span class="math-text">G<sub><span class="math-text">t</span></sub></span>？</a><a class="toc-link toc-level-4" href="#section-12-5-3-11">12.5.3.11 离散加连续的混合动作怎样建模？</a><a class="toc-link toc-level-4" href="#section-12-5-3-12">12.5.3.12 PPO 为什么常用？</a><a class="toc-link toc-level-4" href="#section-12-5-3-13">12.5.3.13 SAC 为什么适合连续控制？</a><a class="toc-link toc-level-4" href="#section-12-5-3-14">12.5.3.14 Offline RL 为什么难？</a><a class="toc-link toc-level-4" href="#section-12-5-3-15">12.5.3.15 TRPO 的 CG、FVP 和 Line Search 各做什么？</a><a class="toc-link toc-level-4" href="#section-12-5-3-16">12.5.3.16 TD3 的三个改进为什么是一条主线？</a><a class="toc-link toc-level-4" href="#section-12-5-3-17">12.5.3.17 Offline RL 与 Off-policy 有什么区别？</a><a class="toc-link toc-level-4" href="#section-12-5-3-18">12.5.3.18 PPO-RLHF 与 DPO 的核心区别？</a><a class="toc-link toc-level-2" href="#section-12-6">12.6 面试表达模板和项目准备</a><a class="toc-link toc-level-3" href="#section-12-6-1">12.6.1 面试中算法讲解模板</a><a class="toc-link toc-level-3" href="#section-12-6-2">12.6.2 项目准备建议</a><a class="toc-link toc-level-3" href="#section-12-6-3">12.6.3 面试例子索引</a><a class="toc-link toc-level-3" href="#section-12-6-4">12.6.4 项目表达模板</a><a class="toc-link toc-level-2" href="#section-12-7">12.7 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-1">12.7.1 CartPole DQN 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-2">12.7.2 LunarLander PPO 项目讲法</a><a class="toc-link toc-level-3" href="#section-12-7-3">12.7.3 推荐系统 Bandit 项目讲法</a><a class="toc-link toc-level-2" href="#section-12-8">12.8 最终复习</a><a class="toc-link toc-level-3" href="#section-12-8-1">12.8.1 面试前最终检查清单</a><a class="toc-link toc-level-3" href="#section-12-8-2">12.8.2 30 分钟口述复习路线</a><a class="toc-link toc-level-2" href="#section-12-9">12.9 本章练习</a></nav></details>
 <h2 id="section-12-1">12.1 本章符号说明</h2>
 <p>本章是速查表，会集中复现前面章节的核心符号：</p>
 <div class="table-scroll"><table class="symbol-table">
@@ -487,6 +493,18 @@
 <td>PPO Clipping Range</td>
 <td>PPO 截断范围</td>
 <td>限制 PPO probability ratio 的变化幅度；不是 epsilon-greedy 的探索率。</td>
+</tr>
+<tr>
+<td>TRPO</td>
+<td>Trust Region Policy Optimization</td>
+<td>信赖域策略优化</td>
+<td>用平均 KL 约束策略更新，并通过自然梯度近似求解。</td>
+</tr>
+<tr>
+<td><span class="math-text">F</span> / CG / FVP</td>
+<td>Fisher Information Matrix / Conjugate Gradient / Fisher-vector Product</td>
+<td>Fisher 信息矩阵 / 共轭梯度 / Fisher 向量积</td>
+<td>TRPO 中描述策略分布局部曲率、求解自然梯度方向及其无矩阵实现。</td>
 </tr>
 <tr>
 <td><span class="math-text">y</span></td>
@@ -603,6 +621,18 @@
 <td>连续动作控制算法。</td>
 </tr>
 <tr>
+<td>BCQ / CQL / IQL / DT</td>
+<td>Batch-Constrained Q-learning / Conservative Q-Learning / Implicit Q-Learning / Decision Transformer</td>
+<td>批约束 Q 学习 / 保守 Q 学习 / 隐式 Q 学习 / 决策 Transformer</td>
+<td>四条代表性 Offline RL 路线。</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>Direct Preference Optimization</td>
+<td>直接偏好优化</td>
+<td>使用成对偏好和参考策略直接训练语言模型策略。</td>
+</tr>
+<tr>
 <td>UCB</td>
 <td>Upper Confidence Bound</td>
 <td>置信上界</td>
@@ -678,7 +708,7 @@
 <td>第 10 章</td>
 </tr>
 <tr>
-<td>Offline RL、Imitation、RLHF、DPO</td>
+<td>Model-based、Offline RL、Imitation、RLHF、DPO</td>
 <td>第 11 章</td>
 </tr>
 </tbody></table></div>
@@ -715,11 +745,29 @@
 <p>Policy Gradient：</p>
 <div class="math-block"><span class="math-text">∇ J(θ) = 𝔼[∇ log π<sub><span class="math-text">θ</span></sub>(a∣ s) A<sub><span class="math-text">π</span></sub>(s,a)]</span></div>
 
+<p>TRPO 的局部约束问题与自然梯度方向：</p>
+<div class="math-block"><span class="math-text">max<sub><span class="math-text">x</span></sub> g<sup><span class="math-text">T</span></sup>x
+ subject to
+1 / 2x<sup><span class="math-text">T</span></sup>Fx≤δ<sub><span class="math-text">KL</span></sub></span></div>
+
+<div class="math-block"><span class="math-text">x∝ F<sup><span class="math-text">-1</span></sup>g</span></div>
+
 <p>PPO ratio。这里用 <span class="math-text">ρ<sub><span class="math-text">t</span></sub></span> 表示 probability ratio，避免和即时 reward <span class="math-text">r<sub><span class="math-text">t</span></sub></span> 使用同一个字母：</p>
 <div class="math-block"><span class="math-text">ρ<sub><span class="math-text">t</span></sub>(θ) = π<sub><span class="math-text">θ</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>) / π<sub><span class="math-text">old</span></sub>(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>PPO clipped objective：</p>
 <div class="math-block"><span class="math-text">𝔼[min(ρ<sub><span class="math-text">t</span></sub> A<sub><span class="math-text">t</span></sub>, clip(ρ<sub><span class="math-text">t</span></sub>, 1 - ε<sub><span class="math-text">clip</span></sub>, 1 + ε<sub><span class="math-text">clip</span></sub>) A<sub><span class="math-text">t</span></sub>)]</span></div>
+
+<p>DDPG Actor Gradient：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J
+=𝔼
+[
+.∇<sub><span class="math-text">a</span></sub>Q<sub><span class="math-text">w</span></sub>(s,a)∣<sub><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></sub>
+∇<sub><span class="math-text">θ</span></sub>μ<sub><span class="math-text">θ</span></sub>(s)
+]</span></div>
+
+<p>TD3 Target：</p>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)min<sub><span class="math-text">i∈{1,2}</span></sub>Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a')</span></div>
 
 <p>SAC soft target：</p>
 <div class="math-block"><span class="math-text">y = r + γ(1-d) [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a') - α<sub><span class="math-text">SAC</span></sub> log π(a'∣ s')]</span></div>
@@ -799,6 +847,13 @@
 <td>离散/连续</td>
 </tr>
 <tr>
+<td>TRPO</td>
+<td>actor-critic</td>
+<td>on-policy</td>
+<td>KL 约束 + natural gradient</td>
+<td>稳健策略更新、推导基础</td>
+</tr>
+<tr>
 <td>PPO</td>
 <td>actor-critic</td>
 <td>on-policy</td>
@@ -825,6 +880,27 @@
 <td>off-policy</td>
 <td>maximum entropy</td>
 <td>连续动作</td>
+</tr>
+<tr>
+<td>BCQ/CQL/IQL</td>
+<td>offline RL</td>
+<td>fixed dataset</td>
+<td>动作约束 / 保守 Q / in-sample learning</td>
+<td>固定日志</td>
+</tr>
+<tr>
+<td>DT</td>
+<td>sequence modeling</td>
+<td>fixed dataset</td>
+<td>RTG 条件动作预测</td>
+<td>离线轨迹</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>preference optimization</td>
+<td>fixed dataset</td>
+<td>reference-relative pairwise loss</td>
+<td>语言模型偏好对齐</td>
 </tr>
 </tbody></table></div>
 <h3 id="section-12-5-3">12.5.3 高频概念问答</h3>
@@ -863,11 +939,19 @@
 
 <p>先用 categorical head 选择类型 <span class="math-text">k</span>，再由条件连续分支输出该类型所需的参数 <span class="math-text">u</span>。联合 log probability 是两部分之和，并且只训练实际选中类型对应的连续分支。</p>
 <h4 id="section-12-5-3-12">12.5.3.12 PPO 为什么常用？</h4>
-<p>PPO 用 clipped objective 限制新旧策略差异，稳定性好、实现简单、适用面广，是 on-policy actor-critic 中非常常用的工程基线。</p>
+<p>PPO 把 TRPO 的显式 KL 约束近似为易于一阶优化的 clipped objective，稳定性好、实现简单、适用面广。Clip 限制的是 Surrogate Objective 的收益，不保证更新后的实际 Ratio 永远处于区间内，因此仍要监控 Approximate KL 和 Clip Fraction。</p>
 <h4 id="section-12-5-3-13">12.5.3.13 SAC 为什么适合连续控制？</h4>
 <p>SAC 是 off-policy，样本效率较高；最大熵目标鼓励探索并提升稳定性；双 Q 网络缓解过估计，因此在连续控制任务中表现稳定。</p>
 <h4 id="section-12-5-3-14">12.5.3.14 Offline RL 为什么难？</h4>
 <p>因为不能继续探索收集数据。学习策略可能选择数据集中没覆盖的动作，critic 对这些动作估计不可靠，容易出现 extrapolation error。</p>
+<h4 id="section-12-5-3-15">12.5.3.15 TRPO 的 CG、FVP 和 Line Search 各做什么？</h4>
+<p>FVP 在不显式构造 Fisher 矩阵时计算 <span class="math-text">Fv</span>；CG 反复调用 FVP，近似求解 <span class="math-text">Fx=g</span>；Line Search 再检查实际 Surrogate 是否改善、实际 KL 是否满足约束，必要时缩小步长。</p>
+<h4 id="section-12-5-3-16">12.5.3.16 TD3 的三个改进为什么是一条主线？</h4>
+<p>确定性 Actor 会寻找 Critic 最高点，也会放大估值误差。双 Q 取较小值减少过估计进入 Target，Target Policy Smoothing 抑制尖锐假峰，Delayed Update 减少 Actor 追逐尚未稳定的 Critic。</p>
+<h4 id="section-12-5-3-17">12.5.3.17 Offline RL 与 Off-policy 有什么区别？</h4>
+<p>Off-policy 表示可以使用其他策略的数据，但通常仍可继续交互纠错；Offline RL 的数据集固定，策略进入 OOD 区域后不能获得新反馈。因此普通 DQN/SAC 使用 Replay Buffer，并不自动意味着适合 Offline RL。</p>
+<h4 id="section-12-5-3-18">12.5.3.18 PPO-RLHF 与 DPO 的核心区别？</h4>
+<p>PPO-RLHF 用当前策略生成回答、显式 RM 打分、Critic 估值并做在线策略优化；DPO 通常在固定偏好对上，比较 Chosen/Rejected 相对 Reference Policy 的 Log-ratio，直接优化 Pairwise Loss，不需要 Critic。</p>
 <h2 id="section-12-6">12.6 面试表达模板和项目准备</h2>
 <h3 id="section-12-6-1">12.6.1 面试中算法讲解模板</h3>
 <p>回答某个算法时，按这个顺序讲：</p>
@@ -957,14 +1041,24 @@
 <td>策略更新稳定，工程常用。</td>
 </tr>
 <tr>
+<td>TRPO</td>
+<td>连续控制的小批策略更新</td>
+<td>可说明 KL 几何、自然梯度、CG 和 Line Search。</td>
+</tr>
+<tr>
 <td>DDPG / TD3 / SAC</td>
 <td>机械臂、MuJoCo</td>
 <td>连续动作控制。</td>
 </tr>
 <tr>
+<td>Model-based RL</td>
+<td>机械臂 MPC</td>
+<td>真实交互贵，用模型内规划复用数据。</td>
+</tr>
+<tr>
 <td>Offline RL</td>
 <td>历史推荐日志</td>
-<td>只能用离线数据，不能随便探索。</td>
+<td>只能用离线数据，重点处理 OOD 动作。</td>
 </tr>
 <tr>
 <td>Imitation Learning</td>
@@ -972,9 +1066,9 @@
 <td>从专家轨迹学习行为。</td>
 </tr>
 <tr>
-<td>RLHF</td>
+<td>RLHF / DPO</td>
 <td>聊天模型对齐</td>
-<td>用人类偏好构造 reward。</td>
+<td>对比显式 RM 在线 Rollout 与固定偏好对优化。</td>
 </tr>
 </tbody></table></div>
 <p>回答时不要只说“我用 DQN 做 CartPole”。更好的结构是：</p>
@@ -1070,9 +1164,11 @@
 <li>能证明 baseline 不引入 bias。</li>
 <li>能写出离散加连续混合动作的联合策略与 joint log probability。</li>
 <li>能解释 Actor-Critic 和 GAE。</li>
+<li>能写出 TRPO 的 KL 约束，并解释 Natural Gradient、CG、FVP 和 Line Search。</li>
 <li>能手写 PPO clipped objective。</li>
-<li>能解释 SAC 的最大熵目标。</li>
-<li>能说明 offline RL 的 extrapolation error。</li>
+<li>能从 DDPG 讲到 TD3 三项修复，再解释 SAC 的最大熵目标。</li>
+<li>能说明 Offline RL 的 extrapolation error，并对比 BCQ、CQL、IQL、DT。</li>
+<li>能区分 Model-based RL、Offline RL、Imitation Learning、PPO-RLHF 与 DPO。</li>
 <li>能讲一个完整 RL 项目。</li>
 </ul>
 <h3 id="section-12-8-2">12.8.2 30 分钟口述复习路线</h3>
@@ -1081,13 +1177,13 @@
 <li>5 分钟：DP、MC、TD、SARSA、Q-learning。</li>
 <li>5 分钟：DQN、Double DQN、Dueling、Replay。</li>
 <li>5 分钟：Policy Gradient、baseline、Actor-Critic、GAE。</li>
-<li>5 分钟：PPO、DDPG、TD3、SAC。</li>
-<li>5 分钟：offline RL、RLHF、项目总结。</li>
+<li>5 分钟：TRPO/PPO、DDPG、TD3、SAC。</li>
+<li>5 分钟：Model-based、Offline RL、Imitation、RLHF/DPO、项目总结。</li>
 </ol>
 <h2 id="section-12-9">12.9 本章练习</h2>
 <ol>
 <li>不看笔记，用两分钟讲清从 MDP 到 PPO/SAC 的全课程主线。</li>
-<li>面对“离散动作在线交互”“连续动作在线交互”“固定离线数据”三个场景，分别给出算法候选并说明选择依据。</li>
+<li>面对“离散动作在线交互”“连续动作在线交互”“固定 Transition 日志”“只有专家动作”“固定偏好对”五个场景，分别给出算法候选并说明依据。</li>
 <li>用统一的 target、data、policy update 三个维度，对比 DQN、PPO 和 SAC。</li>
 <li>按项目表达模板，口述一个 CartPole DQN 项目，并至少说出两个可能失败的原因。</li>
 </ol>
@@ -1096,7 +1192,7 @@
 
 <ol>
 <li><strong>两分钟主线</strong>：MDP 定义 state、action、transition、reward 和 discount；return 的期望得到 <span class="math-text">V/Q</span>，Bellman 方程给出递归关系。模型已知时用 DP 做精确 backup；模型未知时 MC 用完整 return、TD 用 bootstrap target。SARSA/Q-learning 把 prediction 推到 control；状态太大时用函数逼近，DQN 通过 replay 和 target network 稳定 Q-learning。Policy Gradient 直接优化 policy，Actor-Critic 用 critic 降方差，GAE 平衡 bias/variance，PPO 限制 on-policy 更新幅度；连续动作下 DDPG/TD3/SAC 用 actor 输出 action，其中 SAC 用随机策略和最大熵目标增强探索。</li>
-<li><strong>场景选型</strong>：离散动作且可在线交互，可从 DQN 或 PPO 开始；DQN off-policy、样本复用高，PPO 更通用但采样成本高。连续动作且可在线交互，可优先 SAC，若需要确定性执行可比较 TD3；PPO 也能处理连续动作但为 on-policy。固定离线数据不能直接套普通 online SAC/DQN，应选择 Offline RL 方法或先做 Behavior Cloning，并重点处理 distribution shift。</li>
+<li><strong>场景选型</strong>：离散动作且可在线交互，可从 DQN 或 PPO 开始；连续动作且可在线交互，可优先 SAC，若需要确定性执行可比较 TD3。固定 Transition 日志应使用 BCQ、CQL、IQL、DT 等 Offline RL 路线并检查数据覆盖；只有专家动作时先做 BC，有在线专家可考虑 DAgger；固定 Chosen/Rejected 偏好对可用 DPO，而当前 Policy 持续采样并由 RM 打分时才是 PPO-RLHF 的闭环。</li>
 <li><strong>统一对比</strong>：DQN 的 data 来自 epsilon-greedy behavior policy 和 replay buffer，target 是 <span class="math-text">r+γmax Q<sup><span class="math-text">-</span></sup></span>，通过最小化 TD loss 更新 Q，再由 argmax 导出 policy；PPO 的 data 来自旧 policy 的短期 rollout，target/学习信号是 return 或 GAE advantage，通过 clipped ratio 直接更新 stochastic policy；SAC 的 data 来自 replay buffer，soft Q target 含 entropy 项，同时更新双 critic 和随机 actor，属于 off-policy actor-critic。</li>
 <li><strong>CartPole DQN 示例</strong>：state 是位置、速度、杆角度和角速度；action 是向左或向右；每存活一步 reward 为 1。Q 网络输出两个 action value，使用 epsilon-greedy 收集 transition，replay buffer 随机采样，target network 构造稳定 target。指标可看 episode return、成功率和样本量。失败原因包括 epsilon 衰减过快导致探索不足、target 更新过频导致 target 不稳、没有正确处理 terminal mask、学习率过大或 replay warm-up 不足。</li>
 </ol>

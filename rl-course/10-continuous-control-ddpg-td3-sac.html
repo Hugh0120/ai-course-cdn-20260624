@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>强化学习面试课程 · 第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</title>
+  <title>强化学习面试课程 · 第 10 章：从 DDPG 到 TD3 与 SAC：连续动作的 Off-policy Actor-Critic</title>
   <style>
   @page {
     size: A4;
@@ -398,7 +398,7 @@
   }
 </style>
 </head>
-<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav><h1 id="chapter-10">第 10 章：连续控制、DDPG（Deep Deterministic Policy Gradient，深度确定性策略梯度）、TD3（Twin Delayed DDPG，双延迟 DDPG）与 SAC（Soft Actor-Critic，软 Actor-Critic）</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-10-1">10.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-10-2">10.2 本章目标</a><a class="toc-link toc-level-2" href="#section-10-3">10.3 本章主线</a><a class="toc-link toc-level-2" href="#section-10-4">10.4 本章新增概念说明</a><a class="toc-link toc-level-2" href="#section-10-5">10.5 连续动作问题和 Actor 思路</a><a class="toc-link toc-level-3" href="#section-10-5-1">10.5.1 连续动作空间的挑战</a><a class="toc-link toc-level-3" href="#section-10-5-2">10.5.2 从 DQN 到 Actor 的推理过程</a><a class="toc-link toc-level-3" href="#section-10-5-3">10.5.3 混合动作为什么不能直接套纯 DDPG、TD3 或 SAC</a><a class="toc-link toc-level-2" href="#section-10-6">10.6 DDPG：确定性 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-6-1">10.6.1 DDPG</a><a class="toc-link toc-level-3" href="#section-10-6-2">10.6.2 DDPG 的问题</a><a class="toc-link toc-level-2" href="#section-10-7">10.7 TD3：修正 DDPG 的过估计和不稳定</a><a class="toc-link toc-level-3" href="#section-10-7-1">10.7.1 TD3</a><a class="toc-link toc-level-4" href="#section-10-7-1-1">10.7.1.1 Clipped Double Q-learning</a><a class="toc-link toc-level-4" href="#section-10-7-1-2">10.7.1.2 Delayed Policy Update</a><a class="toc-link toc-level-4" href="#section-10-7-1-3">10.7.1.3 Target Policy Smoothing</a><a class="toc-link toc-level-3" href="#section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</a><a class="toc-link toc-level-2" href="#section-10-8">10.8 SAC：最大熵 Actor-Critic</a><a class="toc-link toc-level-3" href="#section-10-8-1">10.8.1 SAC</a><a class="toc-link toc-level-3" href="#section-10-8-2">10.8.2 SAC 的组件</a><a class="toc-link toc-level-3" href="#section-10-8-3">10.8.3 SAC Soft Target 的推理过程</a><a class="toc-link toc-level-3" href="#section-10-8-4">10.8.4 Entropy Regularization 的意义</a><a class="toc-link toc-level-2" href="#section-10-9">10.9 连续控制算法对比和选型</a><a class="toc-link toc-level-3" href="#section-10-9-1">10.9.1 DDPG vs TD3 vs SAC</a><a class="toc-link toc-level-3" href="#section-10-9-2">10.9.2 本章例子：连续控制怎么选算法</a><a class="toc-link toc-level-4" href="#section-10-9-2-1">10.9.2.1 例子 1：机械臂控制</a><a class="toc-link toc-level-4" href="#section-10-9-2-2">10.9.2.2 例子 2：DDPG 的问题</a><a class="toc-link toc-level-4" href="#section-10-9-2-3">10.9.2.3 例子 3：TD3 怎么修</a><a class="toc-link toc-level-4" href="#section-10-9-2-4">10.9.2.4 例子 4：SAC 为什么适合探索</a><a class="toc-link toc-level-2" href="#section-10-10">10.10 本章面试高频问题</a><a class="toc-link toc-level-3" href="#section-10-10-1">10.10.1 为什么 DQN 不适合连续动作？</a><a class="toc-link toc-level-3" href="#section-10-10-2">10.10.2 DDPG 的核心是什么？</a><a class="toc-link toc-level-3" href="#section-10-10-3">10.10.3 TD3 相比 DDPG 做了哪些改进？</a><a class="toc-link toc-level-3" href="#section-10-10-4">10.10.4 SAC 为什么稳定？</a><a class="toc-link toc-level-3" href="#section-10-10-5">10.10.5 SAC 中 <span class="math-text">α</span> 是什么？</a><a class="toc-link toc-level-2" href="#section-10-11">10.11 本章练习</a></nav></details>
+<body><main class="doc-shell"><nav class="chapter-nav"><a href="./index.html">章节索引</a><a href="../pdf/rl-course.pdf">整本 PDF</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav><h1 id="chapter-10">第 10 章：从 DDPG 到 TD3 与 SAC：连续动作的 Off-policy Actor-Critic</h1><details class="chapter-toc"><summary>本章目录（点击展开）</summary><nav class="toc-links" aria-label="本章目录"><a class="toc-link toc-level-2" href="#section-10-1">10.1 本章符号说明</a><a class="toc-link toc-level-2" href="#section-10-2">10.2 本章目标</a><a class="toc-link toc-level-2" href="#section-10-3">10.3 本章主线</a><a class="toc-link toc-level-2" href="#section-10-4">10.4 从离散 Argmax 到连续 Actor</a><a class="toc-link toc-level-3" href="#section-10-4-1">10.4.1 DQN 卡在哪里</a><a class="toc-link toc-level-3" href="#section-10-4-2">10.4.2 Actor 和 Critic 的职责必须分开</a><a class="toc-link toc-level-2" href="#section-10-5">10.5 DDPG：最基本的连续 Off-policy 闭环</a><a class="toc-link toc-level-3" href="#section-10-5-1">10.5.1 为什么要有四个网络</a><a class="toc-link toc-level-3" href="#section-10-5-2">10.5.2 Critic：先学会评价数据动作</a><a class="toc-link toc-level-3" href="#section-10-5-3">10.5.3 Actor：把 Critic 当作可微评分器</a><a class="toc-link toc-level-3" href="#section-10-5-4">10.5.4 一个一维 Actor 梯度例子</a><a class="toc-link toc-level-3" href="#section-10-5-5">10.5.5 Critic Target 数值例子</a><a class="toc-link toc-level-3" href="#section-10-5-6">10.5.6 探索噪声和目标网络解决不同问题</a><a class="toc-link toc-level-3" href="#section-10-5-7">10.5.7 DDPG 一轮训练的完整流程</a><a class="toc-link toc-level-3" href="#section-10-5-8">10.5.8 DDPG 为什么容易失败</a><a class="toc-link toc-level-2" href="#section-10-6">10.6 TD3：围绕“Actor 会利用 Critic 误差”做三项修复</a><a class="toc-link toc-level-3" href="#section-10-6-1">10.6.1 Clipped Double Q：Target 取两个 Critic 的较小值</a><a class="toc-link toc-level-3" href="#section-10-6-2">10.6.2 Target Policy Smoothing：不要相信孤立尖峰</a><a class="toc-link toc-level-3" href="#section-10-6-3">10.6.3 Delayed Policy Update：Critic 多走几步，Actor 再跟</a><a class="toc-link toc-level-3" href="#section-10-6-4">10.6.4 三项改进怎样组成一个闭环</a><a class="toc-link toc-level-3" href="#section-10-6-5">10.6.5 TD3 数值例子</a><a class="toc-link toc-level-3" href="#section-10-6-6">10.6.6 TD3 一轮更新</a><a class="toc-link toc-level-2" href="#section-10-7">10.7 SAC：把探索写进最大熵目标</a><a class="toc-link toc-level-3" href="#section-10-7-1">10.7.1 为什么 TD3 之后还需要 SAC</a><a class="toc-link toc-level-3" href="#section-10-7-2">10.7.2 SAC Critic：Soft Bellman Target</a><a class="toc-link toc-level-3" href="#section-10-7-3">10.7.3 Soft Target 数值例子</a><a class="toc-link toc-level-3" href="#section-10-7-4">10.7.4 SAC Actor：从 Soft-greedy 分布得到 Actor Loss</a><a class="toc-link toc-level-3" href="#section-10-7-5">10.7.5 连续采样怎样把梯度传回 Actor</a><a class="toc-link toc-level-3" href="#section-10-7-6">10.7.6 温度 <span class="math-text">α</span> 如何自动调节</a><a class="toc-link toc-level-3" href="#section-10-7-7">10.7.7 SAC 一轮训练的完整流程</a><a class="toc-link toc-level-2" href="#section-10-8">10.8 DDPG、TD3、SAC 的统一比较</a><a class="toc-link toc-level-2" href="#section-10-9">10.9 离散与连续混合动作不能直接套标准公式</a><a class="toc-link toc-level-2" href="#section-10-10">10.10 实操检查：训练不稳定时看什么</a><a class="toc-link toc-level-2" href="#section-10-11">10.11 面试高频问题</a><a class="toc-link toc-level-3" href="#section-10-11-1">10.11.1 为什么 DQN 不适合连续动作？</a><a class="toc-link toc-level-3" href="#section-10-11-2">10.11.2 DDPG 的 Actor 为什么不用 Replay 中保存的动作？</a><a class="toc-link toc-level-3" href="#section-10-11-3">10.11.3 TD3 的三个改进共同解决什么？</a><a class="toc-link toc-level-3" href="#section-10-11-4">10.11.4 SAC Actor Loss 为什么是 <span class="math-text">αlogπ-Q</span>？</a><a class="toc-link toc-level-3" href="#section-10-11-5">10.11.5 SAC 为什么既是随机策略又是 Off-policy？</a><a class="toc-link toc-level-3" href="#section-10-11-6">10.11.6 Target Policy Smoothing 和探索噪声有什么区别？</a><a class="toc-link toc-level-2" href="#section-10-12">10.12 原始论文与参考资料</a><a class="toc-link toc-level-2" href="#section-10-13">10.13 本章练习</a></nav></details>
 <h2 id="section-10-1">10.1 本章符号说明</h2>
 <div class="table-scroll"><table class="symbol-table">
 <thead>
@@ -406,510 +406,460 @@
 <th>符号/缩写</th>
 <th>English</th>
 <th>中文</th>
-<th>含义</th>
+<th>本章中的具体含义</th>
 </tr>
 </thead>
 <tbody><tr>
+<td>DPG</td>
+<td>Deterministic Policy Gradient</td>
+<td>确定性策略梯度</td>
+<td>对确定性策略的期望 Q 值直接求梯度。</td>
+</tr>
+<tr>
 <td>DDPG</td>
 <td>Deep Deterministic Policy Gradient</td>
 <td>深度确定性策略梯度</td>
-<td>连续动作空间的 off-policy actor-critic 算法。</td>
+<td>用神经网络、Replay Buffer 和 Target Network 实现 DPG。</td>
 </tr>
 <tr>
 <td>TD3</td>
 <td>Twin Delayed DDPG</td>
 <td>双延迟 DDPG</td>
-<td>用双 Q、延迟 actor 更新和 target smoothing 改进 DDPG。</td>
+<td>用双 Critic、延迟 Actor 更新和 Target Policy Smoothing 修正 DDPG。</td>
 </tr>
 <tr>
 <td>SAC</td>
 <td>Soft Actor-Critic</td>
 <td>软 Actor-Critic</td>
-<td>最大熵 off-policy actor-critic 算法。</td>
-</tr>
-<tr>
-<td><span class="math-text">S<sub><span class="math-text">t</span></sub></span> / <span class="math-text">A<sub><span class="math-text">t</span></sub></span> / <span class="math-text">R<sub><span class="math-text">t+1</span></sub></span></td>
-<td>State / Action / Reward Random Variable</td>
-<td>状态 / 动作 / 奖励随机变量</td>
-<td>时刻 <span class="math-text">t</span> 的状态、动作和执行动作后收到的奖励。</td>
-</tr>
-<tr>
-<td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
-<td>Critic Action-value Function</td>
-<td>Critic 动作价值函数</td>
-<td>参数 <span class="math-text">w</span> 下的 Q 估计。</td>
-</tr>
-<tr>
-<td><span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span></td>
-<td>Deterministic Actor</td>
-<td>确定性 actor</td>
-<td>DDPG/TD3 中 actor 输出的连续动作。</td>
-</tr>
-<tr>
-<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a ∣ s)</span></td>
-<td>Stochastic Actor</td>
-<td>随机 actor</td>
-<td>SAC 中 actor 输出的动作分布。</td>
-</tr>
-<tr>
-<td><span class="math-text">K<sub><span class="math-text">t</span></sub></span> / <span class="math-text">U<sub><span class="math-text">t</span></sub></span></td>
-<td>Discrete Type / Continuous Parameter</td>
-<td>离散类型 / 连续参数</td>
-<td>混合动作中时刻 <span class="math-text">t</span> 的离散选择和连续参数随机变量。</td>
-</tr>
-<tr>
-<td><span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub></span> / <span class="math-text">π<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub></span></td>
-<td>Discrete / Continuous Policy Head</td>
-<td>离散 / 连续策略分支</td>
-<td>混合 Actor 中分别输出 categorical choice 和 conditional continuous distribution 的分支。</td>
-</tr>
-<tr>
-<td><span class="math-text">Â<sub><span class="math-text">t</span></sub></span></td>
-<td>Advantage Estimate</td>
-<td>优势估计</td>
-<td>On-policy 混合 Actor-Critic 更新整个联合动作时使用的相对价值信号。</td>
-</tr>
-<tr>
-<td><span class="math-text">w<sup><span class="math-text">-</span></sup></span> / <span class="math-text">θ<sup><span class="math-text">-</span></sup></span></td>
-<td>Target Critic / Actor Parameters</td>
-<td>目标 critic / actor 参数</td>
-<td>从在线参数滞后更新得到、用于构造稳定 target 的参数；上标 <span class="math-text">-</span> 表示 target network。</td>
-</tr>
-<tr>
-<td><span class="math-text">Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup></span> / <span class="math-text">μ<sup><span class="math-text">-</span></sup></span></td>
-<td>Target Critic / Target Actor</td>
-<td>目标 Q 网络 / 目标 actor</td>
-<td>TD3/SAC 中的 target 网络简写；<span class="math-text">i</span> 是 twin critic 的编号。</td>
-</tr>
-<tr>
-<td><span class="math-text">(s,a,r,s&#39;,d)</span></td>
-<td>Transition Tuple</td>
-<td>转移样本五元组</td>
-<td>replay buffer 中的当前状态、动作、奖励、下一状态和终止指示量。</td>
-</tr>
-<tr>
-<td><span class="math-text">d</span> / <code>done</code></td>
-<td>Terminal Indicator</td>
-<td>终止指示量</td>
-<td><span class="math-text">d=1</span> 时没有后续价值，<span class="math-text">d=0</span> 时可以从 <span class="math-text">s&#39;</span> bootstrap。</td>
-</tr>
-<tr>
-<td><span class="math-text">D</span></td>
-<td>Replay-buffer Distribution</td>
-<td>回放数据分布</td>
-<td>公式 <span class="math-text">s∼ D</span> 表示从 replay buffer 的样本状态中取期望。</td>
-</tr>
-<tr>
-<td><span class="math-text">γ</span></td>
-<td>Discount Factor</td>
-<td>折扣因子</td>
-<td>控制下一状态 soft value 或 Q value 的权重。</td>
-</tr>
-<tr>
-<td><span class="math-text">y</span></td>
-<td>Bellman Target</td>
-<td>Bellman 目标</td>
-<td>critic 训练时的目标值。</td>
-</tr>
-<tr>
-<td><span class="math-text">J(θ)</span></td>
-<td>Actor Objective</td>
-<td>Actor 目标函数</td>
-<td>actor 要最大化或等价最小化的目标。</td>
-</tr>
-<tr>
-<td><span class="math-text">Q<sub><span class="math-text">1</span></sub></span> / <span class="math-text">Q<sub><span class="math-text">2</span></sub></span></td>
-<td>Twin Q Networks</td>
-<td>双 Q 网络</td>
-<td>TD3/SAC 中用于缓解过估计的两个 critic。</td>
-</tr>
-<tr>
-<td><span class="math-text">H(π)</span></td>
-<td>Entropy</td>
-<td>熵</td>
-<td>SAC 目标中鼓励策略随机性的项。</td>
-</tr>
-<tr>
-<td><span class="math-text">α</span></td>
-<td>Temperature</td>
-<td>温度系数</td>
-<td>SAC 中 reward 和 entropy 的权衡参数。</td>
-</tr>
-<tr>
-<td><span class="math-text">ε<sub><span class="math-text">t</span></sub></span></td>
-<td>Exploration Noise</td>
-<td>探索噪声</td>
-<td>DDPG/TD3 与环境交互时加到确定性动作上的噪声。</td>
-</tr>
-<tr>
-<td><span class="math-text">ε<sub><span class="math-text">clip</span></sub></span></td>
-<td>Clipped Target Noise</td>
-<td>截断目标噪声</td>
-<td>TD3 构造 target action 时加入并限制幅度的平滑噪声；不是 PPO 的 clipping range。</td>
-</tr>
-<tr>
-<td>off-policy</td>
-<td>Off-policy Learning</td>
-<td>异策略学习</td>
-<td>可以用 replay buffer 中旧策略产生的数据更新当前策略。</td>
-</tr>
-<tr>
-<td>target policy smoothing</td>
-<td>Target Policy Smoothing</td>
-<td>目标策略平滑</td>
-<td>TD3 中给 target action 加噪声，避免 critic 学到尖锐错误峰值。</td>
+<td>最大化 Reward 与 Entropy 的 Off-policy 随机 Actor-Critic。</td>
 </tr>
 <tr>
 <td>DQN</td>
 <td>Deep Q-Network</td>
 <td>深度 Q 网络</td>
-<td>离散动作空间的 value-based 算法，本章用它引出连续动作困难。</td>
+<td>依赖离散动作枚举的价值算法，本章用作连续动作问题的对照。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>Proximal Policy Optimization</td>
+<td>近端策略优化</td>
+<td>可通过联合 Log Probability 处理混合动作的 On-policy 方法。</td>
+</tr>
+<tr>
+<td><span class="math-text">S<sub><span class="math-text">t</span></sub>,A<sub><span class="math-text">t</span></sub>,R<sub><span class="math-text">t+1</span></sub></span></td>
+<td>State, Action, Reward Random Variable</td>
+<td>状态、动作、奖励随机变量</td>
+<td>时刻 <span class="math-text">t</span> 的随机状态、动作，以及执行后得到的奖励。</td>
+</tr>
+<tr>
+<td><span class="math-text">s,a,r,s&#39;</span></td>
+<td>State, Action, Reward Realization</td>
+<td>状态、动作、奖励的样本值</td>
+<td>Replay Buffer 某条 Transition 中的具体数值。</td>
+</tr>
+<tr>
+<td><span class="math-text">d</span> / <code>done</code></td>
+<td>Terminal Indicator</td>
+<td>真终止指示量</td>
+<td><span class="math-text">d=1</span> 表示轨迹真正终止，Target 不再 Bootstrap；时间上限截断通常不能直接当作真终止。</td>
+</tr>
+<tr>
+<td><span class="math-text">D</span></td>
+<td>Replay Buffer</td>
+<td>经验回放池</td>
+<td>存储旧策略产生的 <span class="math-text">(s,a,r,s&#39;,d)</span>，供 Off-policy 更新复用。</td>
+</tr>
+<tr>
+<td><span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span></td>
+<td>Deterministic Actor</td>
+<td>确定性 Actor</td>
+<td>参数 <span class="math-text">θ</span> 的网络，在状态 <span class="math-text">s</span> 直接输出一个连续动作。</td>
+</tr>
+<tr>
+<td><span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span></td>
+<td>Stochastic Actor</td>
+<td>随机 Actor</td>
+<td>参数 <span class="math-text">θ</span> 的策略分布；SAC 从中采样动作。</td>
+</tr>
+<tr>
+<td><span class="math-text">Q<sub><span class="math-text">w<sub><span class="math-text">i</span></sub></span></sub>(s,a)</span></td>
+<td>Action-value Critic</td>
+<td>动作价值 Critic</td>
+<td>参数 <span class="math-text">w<sub><span class="math-text">i</span></sub></span> 的第 <span class="math-text">i</span> 个 Q 网络，估计动作的长期价值。</td>
+</tr>
+<tr>
+<td><span class="math-text">barθ,bar w<sub><span class="math-text">i</span></sub></span></td>
+<td>Target-network Parameters</td>
+<td>目标网络参数</td>
+<td>在线参数的慢速副本，只用于构造较稳定的 Bellman Target。</td>
+</tr>
+<tr>
+<td><span class="math-text">y</span></td>
+<td>Bellman Target</td>
+<td>Bellman 训练目标</td>
+<td>Critic 回归时希望 <span class="math-text">Q(s,a)</span> 接近的标量。</td>
+</tr>
+<tr>
+<td><span class="math-text">γ</span></td>
+<td>Discount Factor</td>
+<td>折扣因子</td>
+<td>下一状态价值在 Target 中的权重。</td>
+</tr>
+<tr>
+<td><span class="math-text">η<sub><span class="math-text">Q</span></sub>,η<sub><span class="math-text">π</span></sub></span></td>
+<td>Critic / Actor Learning Rate</td>
+<td>Critic / Actor 学习率</td>
+<td>两类网络各自的优化步长。</td>
+</tr>
+<tr>
+<td><span class="math-text">τ</span></td>
+<td>Polyak Update Rate</td>
+<td>Polyak 软更新系数</td>
+<td>目标参数每次向在线参数移动的比例，通常远小于 1。</td>
+</tr>
+<tr>
+<td><span class="math-text">ξ<sub><span class="math-text">t</span></sub></span></td>
+<td>Exploration Noise</td>
+<td>交互探索噪声</td>
+<td>DDPG/TD3 收集真实数据时加到 Actor 动作上的噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε</span></td>
+<td>Target Smoothing Noise</td>
+<td>Target 平滑噪声</td>
+<td>TD3 构造下一状态 Target Action 时加入的截断噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">α</span></td>
+<td>Entropy Temperature</td>
+<td>熵温度系数</td>
+<td>SAC 中平衡 Reward 与 Entropy 的正数。</td>
+</tr>
+<tr>
+<td><span class="math-text">H(π)</span></td>
+<td>Policy Entropy</td>
+<td>策略熵</td>
+<td>策略分布的随机程度。</td>
+</tr>
+<tr>
+<td><span class="math-text">ε</span></td>
+<td>Reparameterization Noise</td>
+<td>重参数化辅助噪声</td>
+<td>SAC 中与网络参数无关的标准正态噪声。</td>
+</tr>
+<tr>
+<td><span class="math-text">I</span></td>
+<td>Identity Matrix</td>
+<td>单位矩阵</td>
+<td><span class="math-text">ε∼𝒩(0,I)</span> 的协方差矩阵。</td>
+</tr>
+<tr>
+<td><span class="math-text">⊙</span></td>
+<td>Element-wise Product</td>
+<td>逐元素乘法</td>
+<td>均值、标准差与噪声按动作维度相乘。</td>
 </tr>
 </tbody></table></div>
+<p>后文统一假设动作空间是有界连续向量。混合离散与连续动作放在 10.9 单独讨论。</p>
 <h2 id="section-10-2">10.2 本章目标</h2>
-<p>本章学习连续动作空间中的经典 off-policy actor-critic 算法。你需要掌握：</p>
-<ul>
-<li>连续动作为什么不适合普通 DQN。</li>
-<li>DDPG。</li>
-<li>TD3。</li>
-<li>SAC。</li>
-<li>entropy regularization。</li>
-<li>deterministic policy vs stochastic policy。</li>
-</ul>
+<p>学完本章，你应该能回答四个连续问题：</p>
+<ol>
+<li>连续动作为什么不能直接照搬 DQN（Deep Q-Network，深度 Q 网络）的 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>？</li>
+<li>DDPG 怎样让 Actor 学成一个可微的近似 <span class="math-text">arg max</span>？</li>
+<li>TD3 的三个改进为什么都在防止 Actor 利用 Critic 的误差？</li>
+<li>SAC 怎样从最大熵目标得到 Soft Bellman Target 和 Actor Loss？</li>
+</ol>
 <h2 id="section-10-3">10.3 本章主线</h2>
-<p>第 6 章的 DQN 依赖离散动作枚举，第 9 章的 PPO 是 on-policy，样本效率相对低。连续控制通常既需要 actor 直接输出连续动作，又希望 off-policy 复用 replay buffer。本章围绕这个目标讲 DDPG、TD3、SAC：它们都是连续动作下的 off-policy actor-critic，只是稳定性和探索处理不同。</p>
-<h2 id="section-10-4">10.4 本章新增概念说明</h2>
-<p>连续控制章节的核心是“动作不能枚举”，相关名词先放这里：</p>
-<div class="table-scroll"><table class="three-col-table">
+<pre><code class="language-text">连续动作不能枚举
+  -&gt; 训练 Actor 直接输出高 Q 动作
+  -&gt; DDPG：确定性 Actor + 单 Critic + Replay
+  -&gt; Actor 会追逐 Critic 的虚假尖峰
+  -&gt; TD3：双 Critic + 延迟更新 + Target 平滑
+  -&gt; 外加动作噪声仍然是人为探索机制
+  -&gt; SAC：随机 Actor + 最大熵目标 + 双 Critic
+</code></pre>
+<p>三种算法不是互不相关的公式集合。DDPG 给出最基本的连续 Off-policy Actor-Critic；TD3修复它的价值估计问题；SAC进一步把探索写进优化目标。</p>
+<h2 id="section-10-4">10.4 从离散 Argmax 到连续 Actor</h2>
+<h3 id="section-10-4-1">10.4.1 DQN 卡在哪里</h3>
+<p>离散动作 DQN 可以逐个计算 Q 值：</p>
+<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>(s)=arg max<sub><span class="math-text">a∈A</span></sub>Q(s,a)</span></div>
+
+<p>若动作是机械臂的 7 维关节力矩，每一维都连续，动作组合不可枚举。每个环境步都重新对 <span class="math-text">a</span> 做数值优化也昂贵且不稳定。</p>
+<p>连续控制因此增加一个 Actor：</p>
+<div class="math-block"><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
+
+<p>Critic 仍然回答“动作有多好”，Actor 学习“怎样一次前向就给出高价值动作”。可以把 Actor 理解为被训练出来的、摊销后的 <span class="math-text">arg max</span> 求解器。</p>
+<h3 id="section-10-4-2">10.4.2 Actor 和 Critic 的职责必须分开</h3>
+<div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
-<th>名词</th>
-<th>中文</th>
-<th>先记住什么</th>
+<th>模块</th>
+<th>输入</th>
+<th>输出</th>
+<th>学习信号</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>continuous action</td>
-<td>连续动作</td>
-<td>动作是连续数值，例如力矩、速度、角度，不能像 DQN 那样枚举。</td>
+<td>Critic</td>
+<td><span class="math-text">(s,a)</span></td>
+<td><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span></td>
+<td>Bellman Target <span class="math-text">y</span></td>
 </tr>
 <tr>
-<td>deterministic actor</td>
-<td>确定性 actor</td>
-<td>输入状态后直接输出一个连续动作。</td>
-</tr>
-<tr>
-<td>stochastic actor</td>
-<td>随机 actor</td>
-<td>输出动作分布，再从分布中采样动作。</td>
-</tr>
-<tr>
-<td>critic</td>
-<td>评价网络</td>
-<td>估计 <span class="math-text">Q(s,a)</span>，告诉 actor 哪些动作价值高。</td>
-</tr>
-<tr>
-<td>DDPG</td>
-<td>深度确定性策略梯度</td>
-<td>用 deterministic actor 处理连续动作的 off-policy actor-critic。</td>
-</tr>
-<tr>
-<td>TD3</td>
-<td>双延迟 DDPG</td>
-<td>通过双 Q、延迟 actor 更新、target policy smoothing 稳定 DDPG。</td>
-</tr>
-<tr>
-<td>SAC</td>
-<td>软 Actor-Critic</td>
-<td>用最大熵目标训练 stochastic actor，探索更稳定。</td>
-</tr>
-<tr>
-<td>exploration noise</td>
-<td>探索噪声</td>
-<td>DDPG/TD3 中加到动作上的噪声，用来探索连续动作空间。</td>
-</tr>
-<tr>
-<td>target actor / target critic</td>
-<td>目标 actor / 目标 critic</td>
-<td>滞后更新的 actor/critic，用来构造更稳定的 target。</td>
-</tr>
-<tr>
-<td>clipped double Q</td>
-<td>截断双 Q</td>
-<td>两个 critic 取较小值，缓解过估计。</td>
-</tr>
-<tr>
-<td>delayed policy update</td>
-<td>延迟策略更新</td>
-<td>critic 多更新几次后再更新 actor，让评价更可靠。</td>
-</tr>
-<tr>
-<td>target policy smoothing</td>
-<td>目标策略平滑</td>
-<td>给 target action 加小噪声，让 critic 不过拟合尖锐 Q 峰值。</td>
-</tr>
-<tr>
-<td>maximum entropy objective</td>
-<td>最大熵目标</td>
-<td>同时最大化 reward 和策略熵，让策略保持探索。</td>
+<td>Actor</td>
+<td><span class="math-text">s</span></td>
+<td>动作 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span> 或分布 <span class="math-text">π<sub><span class="math-text">θ</span></sub>(·∣ s)</span></td>
+<td>Critic 对当前动作的评价</td>
 </tr>
 </tbody></table></div>
-<h2 id="section-10-5">10.5 连续动作问题和 Actor 思路</h2>
-<h3 id="section-10-5-1">10.5.1 连续动作空间的挑战</h3>
-<p>DQN 需要计算：</p>
-<div class="math-block"><span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s', a)</span></div>
+<p>Critic 不是最终决策器；Actor 也不能凭空知道动作好坏。两者相互依赖，因此 Critic 的估值误差会直接影响 Actor。</p>
+<h2 id="section-10-5">10.5 DDPG：最基本的连续 Off-policy 闭环</h2>
+<h3 id="section-10-5-1">10.5.1 为什么要有四个网络</h3>
+<p>DDPG 包含在线 Actor <span class="math-text">μ<sub><span class="math-text">θ</span></sub></span>、在线 Critic <span class="math-text">Q<sub><span class="math-text">w</span></sub></span>，以及它们的慢速副本 <span class="math-text">μ<sub><span class="math-text">barθ</span></sub></span>、<span class="math-text">Q<sub><span class="math-text">bar w</span></sub></span>。</p>
+<ul>
+<li>在线网络负责学习。</li>
+<li>目标网络只负责构造 Target。</li>
+<li>Replay Buffer 复用历史 Transition，因此算法是 Off-policy（异策略）：采样数据的旧行为策略可以不同于正在更新的当前 Actor。</li>
+</ul>
+<h3 id="section-10-5-2">10.5.2 Critic：先学会评价数据动作</h3>
+<p>从 <span class="math-text">D</span> 采样 <span class="math-text">(s,a,r,s&#39;,d)</span>。下一状态先由目标 Actor 给动作，再由目标 Critic 估值：</p>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)Q<sub><span class="math-text">bar w</span></sub>l(s',μ<sub><span class="math-text">barθ</span></sub>(s')r)</span></div>
 
-<p>如果动作空间是离散且规模不大，可以枚举所有动作。<br>但连续动作空间无法枚举，例如机器人控制中的力矩、速度、角度。</p>
-<p>因此需要直接学习一个 actor 输出动作：</p>
-<div class="math-block"><span class="math-text">a = μ<sub><span class="math-text">θ</span></sub>(s)</span></div>
+<p>Critic Loss（Critic 损失）为：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">Q</span></sub>(w)=𝔼<sub><span class="math-text">(s,a,r,s',d)∼D</span></sub>
+[(Q<sub><span class="math-text">w</span></sub>(s,a)-sg(y))<sup><span class="math-text">2</span></sup>]</span></div>
 
-<p>或者输出动作分布：</p>
-<div class="math-block"><span class="math-text">a ∼ π<sub><span class="math-text">θ</span></sub>(· ∣ s)</span></div>
+<p><span class="math-text">sg</span> 是 Stop Gradient（停止梯度）：更新在线 Critic 时，<span class="math-text">y</span> 被当作固定标签，不沿 Target 网络反传。</p>
+<p>这里输入 Critic 的 <span class="math-text">a</span> 是 Replay Buffer 中真实执行过的动作，因为它对应真实观测到的 <span class="math-text">r,s&#39;</span>。</p>
+<h3 id="section-10-5-3">10.5.3 Actor：把 Critic 当作可微评分器</h3>
+<p>Actor 要最大化当前 Actor 动作的 Q 值：</p>
+<div class="math-block"><span class="math-text">J<sub><span class="math-text">μ</span></sub>(θ)=𝔼<sub><span class="math-text">s∼D</span></sub>
+[Q<sub><span class="math-text">w</span></sub>l(s,μ<sub><span class="math-text">θ</span></sub>(s)r)]</span></div>
 
-<h3 id="section-10-5-2">10.5.2 从 DQN 到 Actor 的推理过程</h3>
-<p>DQN 在离散动作中可以做：</p>
-<div class="math-block"><span class="math-text">a<sup><span class="math-text">*</span></sup>=arg max<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+<p>对参数 <span class="math-text">θ</span> 使用链式法则：</p>
+<div class="math-block"><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J<sub><span class="math-text">μ</span></sub>
+=𝔼<sub><span class="math-text">s∼D</span></sub>
+[
+.∇<sub><span class="math-text">a</span></sub> Q<sub><span class="math-text">w</span></sub>(s,a)∣<sub><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></sub>
+∇<sub><span class="math-text">θ</span></sub>μ<sub><span class="math-text">θ</span></sub>(s)
+]</span></div>
 
-<p>连续动作下，这个 maximization 本身就是一个困难优化问题。如果每次决策都在动作空间里搜索最大 Q，代价很高，也不稳定。</p>
-<p>DDPG/TD3/SAC 的思路是额外训练一个 actor，让 actor 学会直接输出“critic 认为高价值”的动作：</p>
-<pre><code class="language-text">critic:  评价 Q(s, a)
-actor:   产生让 Q(s, a) 尽量大的动作
+<p>这两个因子分别回答：</p>
+<ul>
+<li><span class="math-text">∇<sub><span class="math-text">a</span></sub>Q<sub><span class="math-text">w</span></sub></span>：动作往哪个方向移动会提高 Q？</li>
+<li><span class="math-text">∇<sub><span class="math-text">θ</span></sub>μ<sub><span class="math-text">θ</span></sub></span>：参数怎样变化才能让动作向那个方向移动？</li>
+</ul>
+<p>更新 Actor 时，Critic 参数 <span class="math-text">w</span> 固定，但保留 Q 对动作输入 <span class="math-text">a</span> 的梯度。此处不能使用 Replay Buffer 里的旧动作 <span class="math-text">a</span>，因为旧动作不依赖当前 <span class="math-text">θ</span>，无法把梯度传回当前 Actor。</p>
+<h3 id="section-10-5-4">10.5.4 一个一维 Actor 梯度例子</h3>
+<p>假设某状态下 Critic 学到：</p>
+<div class="math-block"><span class="math-text">Q(s,a)=5-(a-0.7)<sup><span class="math-text">2</span></sup></span></div>
+
+<p>当前 Actor 输出 <span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)=0.2</span>，且在这个样本上 <span class="math-text">∂μ<sub><span class="math-text">θ</span></sub>(s)/∂θ=0.5</span>。则：</p>
+<div class="math-block"><span class="math-text">.∂ Q / ∂ a∣<sub><span class="math-text">a=0.2</span></sub>
+=-2(0.2-0.7)=1</span></div>
+
+<div class="math-block"><span class="math-text">∂ J<sub><span class="math-text">μ</span></sub> / ∂θ
+=1×0.5=0.5</span></div>
+
+<p>梯度上升会增大 <span class="math-text">θ</span>，从而让动作从 <span class="math-text">0.2</span> 朝最优点 <span class="math-text">0.7</span> 移动。若当前动作在 <span class="math-text">0.7</span> 右侧，<span class="math-text">∂ Q/∂ a</span> 会变成负数，参数就向相反方向更新。</p>
+<h3 id="section-10-5-5">10.5.5 Critic Target 数值例子</h3>
+<p>设 <span class="math-text">r=1</span>、<span class="math-text">γ=0.99</span>、<span class="math-text">d=0</span>，目标 Actor 给出 <span class="math-text">a&#39;=0.4</span>，目标 Critic 估计 <span class="math-text">Q<sub><span class="math-text">bar w</span></sub>(s&#39;,a&#39;)=4</span>：</p>
+<div class="math-block"><span class="math-text">y=1+0.99×4=4.96</span></div>
+
+<p>若在线 Critic 当前输出 <span class="math-text">3.5</span>，单样本平方误差是：</p>
+<div class="math-block"><span class="math-text">(3.5-4.96)<sup><span class="math-text">2</span></sup>=2.1316</span></div>
+
+<p>若 <span class="math-text">d=1</span>，则 <span class="math-text">y=r=1</span>，不能再加入下一状态价值。</p>
+<h3 id="section-10-5-6">10.5.6 探索噪声和目标网络解决不同问题</h3>
+<p>DDPG 的 Actor 是确定性的。收集数据时通常执行：</p>
+<div class="math-block"><span class="math-text">a<sub><span class="math-text">t</span></sub>=clip<sub><span class="math-text">A</span></sub>
+(μ<sub><span class="math-text">θ</span></sub>(s<sub><span class="math-text">t</span></sub>)+ξ<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p><span class="math-text">ξ<sub><span class="math-text">t</span></sub></span> 负责探索；目标网络负责降低 Bootstrap Target 的快速漂移。两者不能互相替代。</p>
+<p>目标网络使用 Polyak Soft Update（Polyak 软更新）：</p>
+<div class="math-block"><span class="math-text">bar w←(1-τ)bar w+τ w</span></div>
+
+<div class="math-block"><span class="math-text">barθ←(1-τ)barθ+τθ</span></div>
+
+<h3 id="section-10-5-7">10.5.7 DDPG 一轮训练的完整流程</h3>
+<pre><code class="language-text">初始化在线 Actor/Critic 和对应 Target 网络
+初始化 Replay Buffer
+
+重复：
+    用 a = Actor(s) + exploration noise 与环境交互
+    存储 (s, a, r, s&#39;, done)
+    从 Replay Buffer 随机采样 batch
+    用 Target Actor 和 Target Critic 构造 y
+    最小化 (Q(s,a)-y)^2 更新在线 Critic
+    最大化 Q(s, Actor(s)) 更新在线 Actor
+    对两个 Target 网络做 Polyak 软更新
 </code></pre>
-<p>所以连续控制里的 actor 不是装饰，它是在替代 DQN 中对动作的显式枚举或 argmax。</p>
-<h3 id="section-10-5-3">10.5.3 混合动作为什么不能直接套纯 DDPG、TD3 或 SAC</h3>
-<p>第 7 章定义过混合动作：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub>=(K<sub><span class="math-text">t</span></sub>,U<sub><span class="math-text">t</span></sub>)</span></div>
-
-<p>其中 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 是离散类型，<span class="math-text">U<sub><span class="math-text">t</span></sub></span> 是该类型下的连续参数。例如：</p>
-<pre><code class="language-text">K_t = {等待, 买入, 卖出}
-U_t = [价格, 数量]
+<h3 id="section-10-5-8">10.5.8 DDPG 为什么容易失败</h3>
+<p>Actor 会主动寻找 Critic 预测最高的动作。只要 Critic 某个未充分覆盖的区域出现虚假高峰，Actor 就会向那里移动，随后 Target 也可能使用这些不可靠动作 Bootstrap，形成正反馈：</p>
+<pre><code class="language-text">Critic 偶然高估
+  -&gt; Actor 追逐高估区域
+  -&gt; Target 使用这个动作
+  -&gt; 高估继续传播
 </code></pre>
-<p>纯 DDPG/TD3 的 Actor 假设整个动作都是可微连续向量：</p>
-<div class="math-block"><span class="math-text">A<sub><span class="math-text">t</span></sub>=μ<sub><span class="math-text">θ</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+<p>这正是 TD3 的出发点。</p>
+<h2 id="section-10-6">10.6 TD3：围绕“Actor 会利用 Critic 误差”做三项修复</h2>
+<h3 id="section-10-6-1">10.6.1 Clipped Double Q：Target 取两个 Critic 的较小值</h3>
+<p>TD3 学两个独立 Critic <span class="math-text">Q<sub><span class="math-text">w<sub><span class="math-text">1</span></sub></span></sub>,Q<sub><span class="math-text">w<sub><span class="math-text">2</span></sub></span></sub></span>。Target 为：</p>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)
+min<sub><span class="math-text">i∈{1,2}</span></sub>Q<sub><span class="math-text">bar w<sub><span class="math-text">i</span></sub></span></sub>(s',a')</span></div>
 
-<p>它依赖 Critic 对动作的梯度：</p>
-<div class="math-block"><span class="math-text">∇<sub><span class="math-text">a</span></sub> Q(s,a)</span></div>
+<p>如果一个 Critic 偶然高估，另一个没有同步高估，取较小值可减少过估计进入 Bootstrap Target。代价是可能略偏保守，但对确定性 Actor 而言通常比追逐虚假峰值更安全。</p>
+<h3 id="section-10-6-2">10.6.2 Target Policy Smoothing：不要相信孤立尖峰</h3>
+<p>TD3 不直接令 <span class="math-text">a&#39;=μ<sub><span class="math-text">barθ</span></sub>(s&#39;)</span>，而是：</p>
+<div class="math-block"><span class="math-text">ε∼clip
+(𝒩(0,σ<sub><span class="math-text">targ</span></sub><sup><span class="math-text">2</span></sup>I),-c,c)</span></div>
 
-<p>但 categorical sample 或离散 <span class="math-text">arg max</span> 对离散类型 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 不可按同样方式直接求导。因此不能让 DDPG 输出一个连续数再四舍五入成动作类型：环境执行的是离散结果，而 Actor/Critic 反传所假设的动作还是原连续数，两者优化语义不一致。</p>
-<p>纯连续 SAC 也通常假设可从连续分布重参数化采样。混合动作需要显式拆成：</p>
-<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(k,u∣ s)
-=π<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(k∣ s)
-π<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(u∣ s,k)</span></div>
+<div class="math-block"><span class="math-text">a'=clip<sub><span class="math-text">A</span></sub>
+(μ<sub><span class="math-text">barθ</span></sub>(s')+ε)</span></div>
 
-<p>相应 Critic 可以写成：</p>
-<div class="math-block"><span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,k,u)</span></div>
-
-<p>常见处理路线：</p>
-<ol>
-<li><strong>On-policy 联合策略</strong>：使用 A2C/PPO 一类 score-function gradient，Actor loss 同时包含 categorical 和 conditional continuous log probability。</li>
-<li><strong>混合 SAC 变体</strong>：离散类型较少时，对 <span class="math-text">k</span> 枚举或取期望；每个 <span class="math-text">k</span> 再对条件连续参数 <span class="math-text">u</span> 采样并计算 soft Q。</li>
-<li><strong>参数化动作方法</strong>：离散分支选择动作类型，连续分支只输出被选类型需要的参数，Critic 对 <span class="math-text">(s,k,u)</span> 联合估值。</li>
-</ol>
-<p>以 joint Actor-Critic 为例：</p>
-<div class="math-block multi"><div><span class="math-text">L<sub><span class="math-text">actor</span></sub>
-=-𝔼[
-(logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(K<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)</span></div><div><span class="math-text">+logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>))
-Â<sub><span class="math-text">t</span></sub>]</span></div></div>
-
-<p>这里有三个实现边界：</p>
-<ul>
-<li>只训练实际被选中的 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 所对应的连续参数分支。</li>
-<li>不同离散类型的连续参数维度和合法范围要分别 mask。</li>
-<li>categorical entropy 与 continuous entropy 尺度不同，需要分别监控或加权。</li>
-</ul>
-<p>所以本章后续 DDPG、TD3、SAC 的标准公式都默认 <strong>纯连续动作空间</strong>。遇到离散加连续的混合空间时，应先写清联合动作分解，再选择或改造算法，不能只说“Actor 可以输出连续动作”就结束。</p>
-<h2 id="section-10-6">10.6 DDPG：确定性 Actor-Critic</h2>
-<h3 id="section-10-6-1">10.6.1 DDPG</h3>
-<p>DDPG 是 Deep Deterministic Policy Gradient。</p>
-<p>它适用于连续动作空间，是 off-policy actor-critic。</p>
-<p>组件：</p>
-<ul>
-<li>Actor：确定性策略 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>。</li>
-<li>Critic：动作价值函数 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>。</li>
-<li>Replay buffer。</li>
-<li>Target actor。</li>
-<li>Target critic。</li>
-</ul>
-<p>Critic target：</p>
-<div class="math-block"><span class="math-text">y = r + γ(1-d) Q<sub><span class="math-text">w<sup><span class="math-text">-</span></sup></span></sub>(s', μ<sub><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></sub>(s'))</span></div>
-
-<p>这里 <span class="math-text">d</span> 是 replay transition 的终止指示量：<span class="math-text">d=1</span> 时 target 只剩即时奖励 <span class="math-text">r</span>；<span class="math-text">d=0</span> 时才加入下一状态的 bootstrap value。</p>
-<p>Critic loss：</p>
-<div class="math-block"><span class="math-text">L(w) = 𝔼[(Q<sub><span class="math-text">w</span></sub>(s,a) - y)<sup><span class="math-text">2</span></sup>]</span></div>
-
-<p>Actor objective：</p>
-<div class="math-block"><span class="math-text">J(θ) = 𝔼[Q<sub><span class="math-text">w</span></sub>(s, μ<sub><span class="math-text">θ</span></sub>(s))]</span></div>
-
-<p>Actor 更新：</p>
-<div class="math-block multi"><div><span class="math-text">∇<sub><span class="math-text">θ</span></sub> J</span></div><div><span class="math-text">= 𝔼[∇<sub><span class="math-text">a</span></sub> Q<sub><span class="math-text">w</span></sub>(s,a)∣<sub><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></sub> ∇<sub><span class="math-text">θ</span></sub> μ<sub><span class="math-text">θ</span></sub>(s)]</span></div></div>
-
-<p>这个梯度来自 chain rule。目标是让：</p>
-<div class="math-block"><span class="math-text">J(θ)=Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span></div>
-
-<p>变大。参数 <span class="math-text">θ</span> 先影响 actor 输出的动作 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>，动作再影响 critic 给出的 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,a)</span>。所以更新方向分两段：</p>
-<ul>
-<li><span class="math-text">∇<sub><span class="math-text">a</span></sub> Q<sub><span class="math-text">w</span></sub>(s,a)</span>：critic 告诉 actor，动作往哪个方向改能提高 Q。</li>
-<li><span class="math-text">∇<sub><span class="math-text">θ</span></sub> μ<sub><span class="math-text">θ</span></sub>(s)</span>：actor 告诉参数，怎么改参数能让动作往那个方向移动。</li>
-</ul>
-<p>面试表达：</p>
-<blockquote>
-<p>DDPG 用 critic 对连续动作求梯度，再通过 actor 反传到策略参数，相当于用 actor 学一个可微的 argmax。</p>
-</blockquote>
-<p>这里和 PPO 的旧动作 importance ratio 不同。DDPG 更新 Actor 时，从 replay buffer 取的是<strong>状态</strong> <span class="math-text">s</span>，但送入 Critic 的动作不是数据里保存的旧动作 <span class="math-text">a</span>，而是当前 Actor 重新生成的 <span class="math-text">μ<sub><span class="math-text">θ</span></sub>(s)</span>。Critic 提供这个当前动作附近的可微 Q 曲面，梯度直接穿过 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span> 回到 Actor；更新 Actor 时固定 Critic 参数 <span class="math-text">w</span>，但保留 <span class="math-text">Q</span> 对动作输入的梯度。Off-policy Deterministic Policy Gradient（异策略确定性策略梯度）定理允许在 behavior policy 的状态分布下定义并优化这一目标，因此不需要对历史动作写 score-function ratio；前提仍是 replay 数据对相关状态和动作区域有足够覆盖，否则 Critic 的梯度同样不可靠。</p>
-<p>探索：</p>
-<p>DDPG 的策略是 deterministic，因此训练时通常给动作加噪声：</p>
-<div class="math-block"><span class="math-text">a<sub><span class="math-text">t</span></sub> = μ<sub><span class="math-text">θ</span></sub>(s<sub><span class="math-text">t</span></sub>) + ε<sub><span class="math-text">t</span></sub></span></div>
-
-<h3 id="section-10-6-2">10.6.2 DDPG 的问题</h3>
-<p>DDPG 比较脆弱，常见问题：</p>
-<ul>
-<li>Q 值过估计。</li>
-<li>对超参数敏感。</li>
-<li>exploration noise 难调。</li>
-<li>actor 可能利用 critic 的错误高估。</li>
-<li>训练容易不稳定。</li>
-</ul>
-<p>TD3 就是针对 DDPG 的几个问题做改进。</p>
-<h2 id="section-10-7">10.7 TD3：修正 DDPG 的过估计和不稳定</h2>
-<h3 id="section-10-7-1">10.7.1 TD3</h3>
-<p>TD3 是 Twin Delayed DDPG。</p>
-<p>核心改进：</p>
-<ol>
-<li>Clipped Double Q-learning。</li>
-<li>Delayed policy update。</li>
-<li>Target policy smoothing。</li>
-</ol>
-<h4 id="section-10-7-1-1">10.7.1.1 Clipped Double Q-learning</h4>
-<p>TD3 学两个 critic：</p>
-<div class="math-block"><span class="math-text">Q<sub><span class="math-text">1</span></sub>(s,a), Q<sub><span class="math-text">2</span></sub>(s,a)</span></div>
-
-<p>target 使用两者较小值：</p>
-<div class="math-block"><span class="math-text">y = r + γ(1-d) min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a')</span></div>
-
-<p>这样可以缓解 overestimation bias。</p>
-<h4 id="section-10-7-1-2">10.7.1.2 Delayed Policy Update</h4>
-<p>Critic 更新多次后，actor 再更新一次。</p>
-<p>直觉：</p>
-<p>critic 估计更可靠后，再用它指导 actor，减少 actor 被错误 Q 值带偏。</p>
-<h4 id="section-10-7-1-3">10.7.1.3 Target Policy Smoothing</h4>
-<p>target action 加入 clipped noise：</p>
-<div class="math-block"><span class="math-text">a' = μ<sup><span class="math-text">-</span></sup>(s') + ε<sub><span class="math-text">clip</span></sub></span></div>
-
-<p>这里 <span class="math-text">ε<sub><span class="math-text">clip</span></sub></span> 通常由零均值高斯噪声截断得到，<span class="math-text">a&#39;</span> 还会再限制到环境合法动作范围；然后用 <span class="math-text">a&#39;</span> 计算 target。</p>
-<p>直觉：</p>
-<p>让 critic 不要对动作空间中的尖锐错误峰值过拟合，使 Q 函数更平滑。</p>
-<p>它不要和 DDPG/TD3 收集数据时的 exploration noise 混为一谈：exploration noise 加在当前 Actor 的环境动作上，目的是访问更多状态动作；target smoothing noise 只在训练时构造下一状态 target action，目的是让 Critic 不依赖一个孤立尖峰。两者出现位置和职责不同。</p>
-<h3 id="section-10-7-2">10.7.2 TD3 三个改进的共同逻辑</h3>
-<p>TD3 的三个 trick 都围绕同一个问题：actor 很容易利用 critic 的错误。</p>
+<p><span class="math-text">σ<sub><span class="math-text">targ</span></sub></span> 是 Target Noise Standard Deviation（目标噪声标准差），<span class="math-text">c</span> 是噪声截断幅度。Critic 被迫学习动作邻域的平均质量，而不是依赖一个极窄的高值点。</p>
+<p>注意两类噪声：</p>
 <div class="table-scroll"><table class="three-col-table">
 <thead>
 <tr>
-<th>改进</th>
-<th>解决的问题</th>
-<th>推理</th>
+<th>噪声</th>
+<th>出现位置</th>
+<th>目的</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>双 Q 取最小</td>
-<td>Q 过估计</td>
-<td>如果一个 critic 偶然高估，取 min 可以更保守。</td>
+<td><span class="math-text">ξ<sub><span class="math-text">t</span></sub></span></td>
+<td>当前状态与真实环境交互</td>
+<td>收集更多样的数据</td>
 </tr>
 <tr>
-<td>延迟 actor 更新</td>
-<td>actor 跟着错误 critic 跑</td>
-<td>先多训几步 critic，让评价器更靠谱，再更新 actor。</td>
-</tr>
-<tr>
-<td>target smoothing</td>
-<td>critic 对尖锐动作峰值过拟合</td>
-<td>target 动作附近加噪声，让 Q 在局部更平滑。</td>
+<td><span class="math-text">ε</span></td>
+<td>下一状态构造训练 Target</td>
+<td>平滑 Q Target，抑制尖峰</td>
 </tr>
 </tbody></table></div>
-<p>一句话：</p>
-<blockquote>
-<p>TD3 不是三个孤立技巧，而是在防止 deterministic actor 钻 critic 估计误差的空子。</p>
-</blockquote>
-<h2 id="section-10-8">10.8 SAC：最大熵 Actor-Critic</h2>
-<h3 id="section-10-8-1">10.8.1 SAC</h3>
-<p>SAC 是 Soft Actor-Critic，是现代连续控制中非常常用的算法。</p>
-<p>核心思想：</p>
-<blockquote>
-<p>最大化 reward 的同时最大化策略 entropy。</p>
-</blockquote>
-<p>目标：</p>
-<div class="math-block"><span class="math-text">𝔼[∑<sub><span class="math-text">t</span></sub> γ<sup><span class="math-text">t</span></sup> (r<sub><span class="math-text">t</span></sub> + α H(π(.∣ s<sub><span class="math-text">t</span></sub>)))]</span></div>
+<h3 id="section-10-6-3">10.6.3 Delayed Policy Update：Critic 多走几步，Actor 再跟</h3>
+<p>若每次 Critic 刚更新一步就让 Actor 追随，Actor 会放大 Critic 的短期噪声。TD3 通常每更新 Critic 多次，才更新一次 Actor 和 Target 网络。</p>
+<p>“Delayed” 指 Actor/Target 的更新频率低于 Critic，不是把环境 Reward 延迟处理。</p>
+<h3 id="section-10-6-4">10.6.4 三项改进怎样组成一个闭环</h3>
+<pre><code class="language-text">双 Critic取 min：减少高估进入 Target
+Target 平滑：减少 Critic 形成尖锐高估
+延迟 Actor：减少 Actor 追逐尚未稳定的 Critic
+</code></pre>
+<h3 id="section-10-6-5">10.6.5 TD3 数值例子</h3>
+<p>设 <span class="math-text">r=1</span>、<span class="math-text">γ=0.99</span>、<span class="math-text">d=0</span>。目标 Actor 输出 <span class="math-text">0.60</span>，采到 Target Noise <span class="math-text">-0.05</span>，因此 <span class="math-text">a&#39;=0.55</span>。两个目标 Critic 分别输出：</p>
+<div class="math-block"><span class="math-text">Q<sub><span class="math-text">bar w<sub><span class="math-text">1</span></sub></span></sub>(s',0.55)=8,
+  Q<sub><span class="math-text">bar w<sub><span class="math-text">2</span></sub></span></sub>(s',0.55)=5.5</span></div>
 
-<p>或者写成：</p>
-<div class="math-block"><span class="math-text">𝔼[∑<sub><span class="math-text">t</span></sub> γ<sup><span class="math-text">t</span></sup> (r<sub><span class="math-text">t</span></sub> - α log π(a<sub><span class="math-text">t</span></sub>∣ s<sub><span class="math-text">t</span></sub>))]</span></div>
+<p>则：</p>
+<div class="math-block"><span class="math-text">y=1+0.99×min(8,5.5)=6.445</span></div>
 
-<p>其中 <span class="math-text">α</span> 是 temperature，控制 entropy 权重。</p>
-<h3 id="section-10-8-2">10.8.2 SAC 的组件</h3>
-<p>SAC 通常包含：</p>
+<p>若沿用单 Critic 的 8，Target 会是 8.92。TD3 不证明 5.5 一定正确，只是避免把某一个网络的乐观误差直接交给 Actor。</p>
+<h3 id="section-10-6-6">10.6.6 TD3 一轮更新</h3>
+<pre><code class="language-text">每个训练 step：
+    1. 采样 replay batch
+    2. 用 Target Actor + clipped noise 得到 a&#39;
+    3. 用两个 Target Critic 的 min 构造 y
+    4. 更新两个在线 Critic
+    5. 每隔 policy_delay 个 step：
+         更新 Actor，使 Q1(s, Actor(s)) 增大
+         软更新 Actor 和两个 Critic 的 Target 网络
+</code></pre>
+<p>Actor 通常只通过 <span class="math-text">Q<sub><span class="math-text">w<sub><span class="math-text">1</span></sub></span></sub></span> 更新；双 Critic 的核心用途是构造保守 Target。</p>
+<h2 id="section-10-7">10.7 SAC：把探索写进最大熵目标</h2>
+<h3 id="section-10-7-1">10.7.1 为什么 TD3 之后还需要 SAC</h3>
+<p>TD3 的探索依赖外加噪声及其调度。SAC 改用随机 Actor，并把策略熵放进目标，让“保持随机性”本身成为优化的一部分。</p>
+<p>Maximum-entropy Objective（最大熵目标）为：</p>
+<div class="math-block"><span class="math-text">J(π)=𝔼<sub><span class="math-text">π</span></sub>
+[∑<sub><span class="math-text">t=0</span></sub><sup><span class="math-text">∞</span></sup>γ<sup><span class="math-text">t</span></sup>
+(R<sub><span class="math-text">t+1</span></sub>+αH(π(·∣ S<sub><span class="math-text">t</span></sub>)))]</span></div>
+
+<p>因为：</p>
+<div class="math-block"><span class="math-text">H(π(·∣ s))
+=-𝔼<sub><span class="math-text">a∼π</span></sub>[logπ(a∣ s)]</span></div>
+
+<p>单个采样动作对应的 Soft Value 项是 <span class="math-text">Q(s,a)-αlogπ(a∣ s)</span>。</p>
+<h3 id="section-10-7-2">10.7.2 SAC Critic：Soft Bellman Target</h3>
+<p>SAC 通常也使用两个 Critic。对下一状态重采样 <span class="math-text">a&#39;∼π<sub><span class="math-text">θ</span></sub>(·∣ s&#39;)</span>：</p>
+<div class="math-block"><span class="math-text">y=r+γ(1-d)
+[
+min<sub><span class="math-text">i∈{1,2}</span></sub>Q<sub><span class="math-text">bar w<sub><span class="math-text">i</span></sub></span></sub>(s',a')
+-αlogπ<sub><span class="math-text">θ</span></sub>(a'∣ s')
+]</span></div>
+
+<p>两个 Critic 分别最小化：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">Q<sub><span class="math-text">i</span></sub></span></sub>(w<sub><span class="math-text">i</span></sub>)=𝔼<sub><span class="math-text">D</span></sub>
+[(Q<sub><span class="math-text">w<sub><span class="math-text">i</span></sub></span></sub>(s,a)-sg(y))<sup><span class="math-text">2</span></sup>]</span></div>
+
+<p>Soft Target 同时计入下一动作的长期 Reward 价值和策略随机性价值。</p>
+<h3 id="section-10-7-3">10.7.3 Soft Target 数值例子</h3>
+<p>设 <span class="math-text">r=1</span>、<span class="math-text">γ=0.99</span>、<span class="math-text">d=0</span>、双 Q 较小值为 <span class="math-text">5</span>、<span class="math-text">logπ(a&#39;∣ s&#39;)=-0.7</span>、<span class="math-text">α=0.2</span>：</p>
+<div class="math-block"><span class="math-text">5-0.2×(-0.7)=5.14</span></div>
+
+<div class="math-block"><span class="math-text">y=1+0.99×5.14=6.0886</span></div>
+
+<p>这里 <span class="math-text">-αlogπ</span> 为正，不是“每个低概率动作都应被奖励”。它是熵的 Monte Carlo 样本，只有放在当前策略的动作分布期望下才等价于熵。</p>
+<h3 id="section-10-7-4">10.7.4 SAC Actor：从 Soft-greedy 分布得到 Actor Loss</h3>
+<p>给定一个 Soft Q，理想策略不是只选唯一最大动作，而是：</p>
+<div class="math-block"><span class="math-text">π<sup><span class="math-text">*</span></sup>(a∣ s)
+∝exp(Q(s,a) / α)</span></div>
+
+<p>当前 Actor 可通过最小化下面的 Kullback-Leibler Divergence（KL 散度）逼近它：</p>
+<div class="math-block"><span class="math-text">D<sub><span class="math-text">KL</span></sub>
+(
+π<sub><span class="math-text">θ</span></sub>(·∣ s)
+∣dle∥
+exp(Q(s,·)/α) / Z(s)
+)</span></div>
+
+<p><span class="math-text">Z(s)</span> 是 Partition Function（配分函数），只依赖状态。展开并去掉与 <span class="math-text">θ</span> 无关的常数，得到常用 Actor Loss：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">π</span></sub>(θ)=𝔼<sub><span class="math-text">s∼D,a∼π<sub><span class="math-text">θ</span></sub></span></sub>
+[
+αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)
+-min<sub><span class="math-text">i</span></sub>Q<sub><span class="math-text">w<sub><span class="math-text">i</span></sub></span></sub>(s,a)
+]</span></div>
+
+<p>最小化它同时做到：</p>
 <ul>
-<li>Stochastic actor：<span class="math-text">π<sub><span class="math-text">θ</span></sub>(a∣ s)</span>。</li>
-<li>两个 Q network：<span class="math-text">Q<sub><span class="math-text">1</span></sub></span>, <span class="math-text">Q<sub><span class="math-text">2</span></sub></span>。</li>
-<li>target Q networks。</li>
-<li>replay buffer。</li>
-<li>temperature parameter <span class="math-text">α</span>。</li>
+<li>让 <span class="math-text">Q(s,a)</span> 变大；</li>
+<li>让 <span class="math-text">𝔼[logπ]</span> 变小，也就是让熵变大。</li>
 </ul>
-<p>Soft Q target：</p>
-<div class="math-block"><span class="math-text">y = r + γ(1-d) [min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s', a') - α log π(a'∣ s')]</span></div>
+<h3 id="section-10-7-5">10.7.5 连续采样怎样把梯度传回 Actor</h3>
+<p>常见 SAC Actor 输出高斯分布的均值和标准差，再重参数化：</p>
+<div class="math-block"><span class="math-text">ε∼𝒩(0,I)</span></div>
 
-<p>其中：</p>
-<div class="math-block"><span class="math-text">a' ∼ π<sub><span class="math-text">θ</span></sub>(·∣ s')</span></div>
+<div class="math-block"><span class="math-text">u=μ<sub><span class="math-text">θ</span></sub>(s)+σ<sub><span class="math-text">θ</span></sub>(s)⊙ε,
+  a=tanh(u)</span></div>
 
-<p>上面的 <span class="math-text">a&#39;</span> 用来构造 Critic target；更新 Critic 时，整个 target <span class="math-text">y</span> 都停止梯度，不会顺便更新 Actor。Actor 由下面单独的 Actor objective 更新，而其中的连续动作采样需要一条可微路径。常见 Gaussian Actor 使用 Reparameterization Trick（重参数化技巧）：</p>
-<div class="math-block"><span class="math-text">ε∼ N(0,I),
-u=μ<sub><span class="math-text">θ</span></sub>(s)+σ<sub><span class="math-text">θ</span></sub>(s)⊙ε,
-a=tanh(u)</span></div>
+<p>随机性被放进与 <span class="math-text">θ</span> 无关的 <span class="math-text">ε</span>，所以 <span class="math-text">a</span> 是 <span class="math-text">θ</span> 的可微函数。Actor 梯度既经过 <span class="math-text">logπ<sub><span class="math-text">θ</span></sub>(a∣ s)</span>，也经过 <span class="math-text">Q(s,a)</span> 对动作的梯度。</p>
+<p>由于 <span class="math-text">tanh</span> 改变了概率密度，计算 <span class="math-text">logπ(a∣ s)</span> 时必须加入 Change-of-variables Correction（变量变换校正）。面试中知道这一工程边界即可，不必现场展开 Jacobian 公式。</p>
+<h3 id="section-10-7-6">10.7.6 温度 <span class="math-text">α</span> 如何自动调节</h3>
+<p><span class="math-text">α</span> 大时更重视熵，策略更随机；<span class="math-text">α</span> 小时更重视 Q，策略更确定。设 <span class="math-text">H<sub><span class="math-text">target</span></sub></span> 为 Target Entropy（目标熵），可用样本 <span class="math-text">-logπ(a∣ s)</span> 估计当前熵，并优化：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">α</span></sub>
+=𝔼[
+α(-logπ<sub><span class="math-text">θ</span></sub>(a∣ s)-H<sub><span class="math-text">target</span></sub>)
+]</span></div>
 
-<p><span class="math-text">N</span> 表示 Normal Distribution（正态分布），<span class="math-text">I</span> 是 Identity Matrix（单位矩阵），所以 <span class="math-text">ε</span> 是各维独立的标准正态辅助噪声。随机性被放进与 <span class="math-text">θ</span> 无关的 <span class="math-text">ε</span>，而 <span class="math-text">a</span> 成为参数的可微函数，所以 Actor loss 的梯度可以沿 <span class="math-text">Q(s,a)</span> 对动作的梯度回传到 <span class="math-text">θ</span>。这与第 7 章对离散采样使用的 score-function gradient 是两条不同的求导路径；<code>tanh</code> 后的 log density 还要包含变量变换校正。</p>
-<p>Actor objective：</p>
-<div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ) = 𝔼[α log π<sub><span class="math-text">θ</span></sub>(a∣ s) - min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
-
-<p>最小化这个 loss 等价于选择高 Q 且高 entropy 的动作分布。</p>
-<h3 id="section-10-8-3">10.8.3 SAC Soft Target 的推理过程</h3>
-<p>普通 Bellman target 是：</p>
-<div class="math-block"><span class="math-text">y=r+γ Q(s',a')</span></div>
-
-<p>SAC 的目标不是只最大化 reward，而是最大化 reward 加 entropy。对某个动作来说，entropy 项可以写成：</p>
-<div class="math-block"><span class="math-text">-αlogπ(a'∣ s')</span></div>
-
-<p>所以 soft value 可以理解为：</p>
-<div class="math-block"><span class="math-text">Q(s',a')-αlogπ(a'∣ s')</span></div>
-
-<p>代回 Bellman target，就得到：</p>
-<div class="math-block"><span class="math-text">y=r+γ(1-d)[min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s',a')-αlogπ(a'∣ s')]</span></div>
-
-<p>为什么 actor loss 是：</p>
-<div class="math-block"><span class="math-text">J<sub><span class="math-text">π</span></sub>(θ)=𝔼[αlogπ<sub><span class="math-text">θ</span></sub>(a∣ s)-min<sub><span class="math-text">i</span></sub> Q<sub><span class="math-text">i</span></sub>(s,a)]</span></div>
-
-<p>因为实现里通常最小化 loss。最小化这个式子等价于：</p>
+<p>采用梯度下降时：</p>
 <ul>
-<li>最大化 Q：让动作回报高。</li>
-<li>最大化 entropy：不是逐点把某个 <span class="math-text">logπ(a∣ s)</span> 压低，而是利用 <span class="math-text">H(π(·∣ s))=-𝔼<sub><span class="math-text">a∼π</span></sub>[logπ(a∣ s)]</span>。因此在分布期望上，最小化 <span class="math-text">𝔼[αlogπ]</span> 等价于最大化熵；连续分布的 density 甚至可能大于 1，不能只靠单个 log density 的正负判断。</li>
+<li>当前熵低于目标，括号期望为负，<span class="math-text">α</span> 会增大；</li>
+<li>当前熵高于目标，括号期望为正，<span class="math-text">α</span> 会减小。</li>
 </ul>
-<p>面试里可以说：</p>
-<blockquote>
-<p>SAC 把探索写进目标函数，而不是只靠外加噪声。Soft target 中的 <span class="math-text">-αlogπ</span> 会奖励更高熵的动作分布，因此策略既追求高 Q，也保持足够随机性。</p>
-</blockquote>
-<h3 id="section-10-8-4">10.8.4 Entropy Regularization 的意义</h3>
-<p>SAC 不只是把 entropy 当作训练 trick，而是把它放进目标函数。</p>
-<p>好处：</p>
-<ul>
-<li>鼓励探索。</li>
-<li>避免策略过早确定。</li>
-<li>对多模态最优策略更友好。</li>
-<li>训练通常比 DDPG/TD3 更稳定。</li>
-</ul>
-<p><span class="math-text">α</span> 控制探索程度：</p>
-<ul>
-<li><span class="math-text">α</span> 大：更重视 entropy，策略更随机。</li>
-<li><span class="math-text">α</span> 小：更重视 reward，策略更确定。</li>
-</ul>
-<p>现代 SAC 常自动调节 <span class="math-text">α</span>，让策略 entropy 接近 target entropy。</p>
-<h2 id="section-10-9">10.9 连续控制算法对比和选型</h2>
-<h3 id="section-10-9-1">10.9.1 DDPG vs TD3 vs SAC</h3>
+<p>实现中通常优化 <span class="math-text">logα</span> 来保证 <span class="math-text">α&gt;0</span>。不同代码对 Target Entropy 的正负号约定不同，判断时应回到“熵不足就增大 <span class="math-text">α</span>”这一语义。</p>
+<h3 id="section-10-7-7">10.7.7 SAC 一轮训练的完整流程</h3>
+<pre><code class="language-text">用随机 Actor 与环境交互并写入 Replay Buffer
+重复若干梯度步：
+    采样 replay batch
+    从当前 Actor 在 s&#39; 重参数化采样 a&#39;
+    用双 Target Critic 的 min 和 -alpha log pi 构造 y
+    更新两个在线 Critic
+    从当前 Actor 在 s 重参数化采样新动作 a
+    最小化 alpha log pi(a|s) - min Q(s,a) 更新 Actor
+    可选：更新温度 alpha
+    软更新两个 Target Critic
+</code></pre>
+<p>SAC 不需要 Target Actor，因为 Soft Target 的下一动作直接从当前随机 Actor 采样；目标双 Critic仍用于稳定 Bootstrap。</p>
+<h2 id="section-10-8">10.8 DDPG、TD3、SAC 的统一比较</h2>
 <div class="table-scroll"><table class="standard-table">
 <thead>
 <tr>
@@ -920,92 +870,149 @@ a=tanh(u)</span></div>
 </tr>
 </thead>
 <tbody><tr>
-<td>策略</td>
-<td>deterministic</td>
-<td>deterministic</td>
-<td>stochastic</td>
+<td>Actor</td>
+<td>确定性</td>
+<td>确定性</td>
+<td>随机</td>
 </tr>
 <tr>
-<td>数据</td>
-<td>off-policy</td>
-<td>off-policy</td>
-<td>off-policy</td>
+<td>数据使用</td>
+<td>Off-policy Replay</td>
+<td>Off-policy Replay</td>
+<td>Off-policy Replay</td>
 </tr>
 <tr>
-<td>critic</td>
+<td>Critic</td>
 <td>单 Q</td>
 <td>双 Q</td>
 <td>双 Q</td>
 </tr>
 <tr>
 <td>探索</td>
-<td>外加噪声</td>
-<td>外加噪声</td>
-<td>entropy 驱动</td>
+<td>外加交互噪声</td>
+<td>外加交互噪声</td>
+<td>最大熵策略</td>
 </tr>
 <tr>
-<td>稳定性</td>
-<td>较弱</td>
-<td>比 DDPG 强</td>
-<td>通常更强</td>
+<td>Target Action</td>
+<td>Target Actor</td>
+<td>Target Actor + 平滑噪声</td>
+<td>当前 Actor 采样</td>
 </tr>
 <tr>
-<td>适用</td>
-<td>连续控制</td>
-<td>连续控制</td>
-<td>连续控制、鲁棒训练</td>
+<td>Actor 更新</td>
+<td>每步可更新</td>
+<td>延迟更新</td>
+<td>通常每个训练步更新</td>
+</tr>
+<tr>
+<td>主要问题</td>
+<td>容易利用 Q 高估</td>
+<td>仍需手工探索噪声</td>
+<td>实现更复杂，熵与温度需正确处理</td>
 </tr>
 </tbody></table></div>
-<h3 id="section-10-9-2">10.9.2 本章例子：连续控制怎么选算法</h3>
-<h4 id="section-10-9-2-1">10.9.2.1 例子 1：机械臂控制</h4>
-<p>机械臂每个关节输出连续力矩：</p>
-<pre><code class="language-text">a = [torque_shoulder, torque_elbow, torque_wrist]
-</code></pre>
-<p>DQN 不适合，因为动作不是离散的。DDPG、TD3、SAC 可以直接输出连续动作。</p>
-<h4 id="section-10-9-2-2">10.9.2.2 例子 2：DDPG 的问题</h4>
-<p>如果 critic 对某个连续动作附近估值过高，actor 会被 critic 引导到这个错误高值区域。</p>
-<p>这就是 DDPG 容易不稳定的原因：</p>
-<pre><code class="language-text">critic 估错 -&gt; actor 追错 -&gt; 数据分布变差 -&gt; critic 更难学准
-</code></pre>
-<h4 id="section-10-9-2-3">10.9.2.3 例子 3：TD3 怎么修</h4>
-<p>TD3 用两个 critic：</p>
-<div class="math-block"><span class="math-text">min(Q<sub><span class="math-text">1</span></sub>,Q<sub><span class="math-text">2</span></sub>)</span></div>
+<p>选型直觉：</p>
+<ul>
+<li>学习主线和面试推导：先掌握 DDPG。</li>
+<li>确定性连续控制基线：优先 TD3，而不是原始 DDPG。</li>
+<li>希望较稳健探索和高样本复用：通常先尝试 SAC。</li>
+</ul>
+<h2 id="section-10-9">10.9 离散与连续混合动作不能直接套标准公式</h2>
+<p>若动作由离散类型 <span class="math-text">K<sub><span class="math-text">t</span></sub></span> 和条件连续参数 <span class="math-text">U<sub><span class="math-text">t</span></sub></span> 构成，例如“等待 / 买入 / 卖出”加“价格与数量”，应写成：</p>
+<div class="math-block"><span class="math-text">π<sub><span class="math-text">θ</span></sub>(k,u∣ s)
+=π<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(k∣ s)
+π<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(u∣ s,k)</span></div>
 
-<p>如果一个 critic 过高估计，另一个没那么高，取 min 可以降低过估计传播。</p>
-<h4 id="section-10-9-2-4">10.9.2.4 例子 4：SAC 为什么适合探索</h4>
-<p>如果机器人需要学会走路，早期策略不能太确定，否则很容易卡在局部动作模式。SAC 的 entropy 项鼓励策略保持随机性：</p>
-<pre><code class="language-text">既要拿高 reward，也要保持足够探索
-</code></pre>
-<p>面试表达：</p>
-<blockquote>
-<p>DDPG、TD3、SAC 都处理连续动作。DDPG 是基础 actor-critic，TD3 主要修过估计和不稳定，SAC 用最大熵目标把探索写进优化目标。</p>
-</blockquote>
-<h2 id="section-10-10">10.10 本章面试高频问题</h2>
-<h3 id="section-10-10-1">10.10.1 为什么 DQN 不适合连续动作？</h3>
-<p>DQN 需要对动作枚举并取 <span class="math-text">max<sub><span class="math-text">a</span></sub> Q(s,a)</span>。连续动作空间无法枚举，直接求 argmax 也通常很难，因此需要 actor 直接输出连续动作。</p>
-<h3 id="section-10-10-2">10.10.2 DDPG 的核心是什么？</h3>
-<p>DDPG 是连续动作空间下的 off-policy actor-critic。Actor 输出确定性动作，critic 评估 <span class="math-text">Q(s,a)</span>，actor 通过最大化 critic 给出的 Q 值来更新。</p>
-<h3 id="section-10-10-3">10.10.3 TD3 相比 DDPG 做了哪些改进？</h3>
-<p>TD3 使用双 critic 取最小值缓解过估计，延迟 actor 更新提高稳定性，并使用 target policy smoothing 平滑 Q 函数。</p>
-<h3 id="section-10-10-4">10.10.4 SAC 为什么稳定？</h3>
-<p>SAC 使用最大熵目标，鼓励高 reward 和高 entropy 的策略；同时使用双 Q 网络、target network 和 replay buffer。Entropy regularization 带来更好的探索和鲁棒性。</p>
-<h3 id="section-10-10-5">10.10.5 SAC 中 <span class="math-text">α</span> 是什么？</h3>
-<p><span class="math-text">α</span> 是 entropy temperature，控制 reward 和 entropy 的权衡。<span class="math-text">α</span> 越大，策略越随机、探索越强；<span class="math-text">α</span> 越小，策略越偏向最大化 reward。</p>
-<h2 id="section-10-11">10.11 本章练习</h2>
+<p><span class="math-text">θ<sub><span class="math-text">d</span></sub></span> 和 <span class="math-text">θ<sub><span class="math-text">c</span></sub></span> 分别是 Discrete-head / Continuous-head Parameters（离散 / 连续分支参数）。标准 DDPG/TD3 假设动作整体可微，不能把离散 <span class="math-text">arg max</span> 当作普通连续输出反传。</p>
+<p>常见路线：</p>
 <ol>
-<li>写出 DDPG critic target 和 actor objective。</li>
-<li>解释 TD3 的三个 trick。</li>
-<li>写出 SAC soft Q target。</li>
-<li>对比 deterministic policy 和 stochastic policy。</li>
+<li>使用 PPO 等 Score-function 方法，联合两部分 Log Probability。</li>
+<li>使用 Hybrid SAC 变体；离散类型较少时对 <span class="math-text">k</span> 枚举，对条件连续动作采样。</li>
+<li>使用 Parameterized-action 方法，让 Critic 显式评价 <span class="math-text">Q(s,k,u)</span>。</li>
+</ol>
+<p>以 On-policy 联合 Actor 为例：</p>
+<div class="math-block"><span class="math-text">L<sub><span class="math-text">actor</span></sub>
+=-𝔼
+[
+(
+logπ<sub><span class="math-text">θ<sub><span class="math-text">d</span></sub></span></sub>(K<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>)
++logπ<sub><span class="math-text">θ<sub><span class="math-text">c</span></sub></span></sub>(U<sub><span class="math-text">t</span></sub>∣ S<sub><span class="math-text">t</span></sub>,K<sub><span class="math-text">t</span></sub>)
+)Â<sub><span class="math-text">t</span></sub>
+]</span></div>
+
+<p><span class="math-text">Â<sub><span class="math-text">t</span></sub></span> 是 Advantage Estimate（优势估计）。只训练实际选中类型对应的连续参数分支，并对无效维度和合法范围做 Mask（掩码）。</p>
+<h2 id="section-10-10">10.10 实操检查：训练不稳定时看什么</h2>
+<div class="table-scroll"><table class="standard-table">
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Q 值快速发散</td>
+<td>Terminal Mask、Reward 尺度、Target 更新、学习率</td>
+</tr>
+<tr>
+<td>Actor 动作迅速顶到边界</td>
+<td>动作缩放、Critic 虚假梯度、探索噪声、SAC 的 <code>tanh</code> 校正</td>
+</tr>
+<tr>
+<td>Return 高度波动</td>
+<td>随机种子、评估时是否关闭 DDPG/TD3 探索噪声、Replay Warm-up</td>
+</tr>
+<tr>
+<td>TD3 没比 DDPG 稳</td>
+<td>是否真的使用双 Target Q 的 <code>min</code>、延迟 Actor、Target Noise</td>
+</tr>
+<tr>
+<td>SAC 熵持续坍缩</td>
+<td><span class="math-text">α</span> 更新符号、Target Entropy、Log Probability 计算</td>
+</tr>
+<tr>
+<td>Critic Loss 降但策略变差</td>
+<td>Critic 只在数据动作上拟合好，Actor 动作处可能仍然外推错误</td>
+</tr>
+</tbody></table></div>
+<p>评估确定性性能时，DDPG/TD3 应去掉探索噪声；SAC 常用分布均值或确定性模式执行。训练 Return 与无噪声 Evaluation Return 应分开记录。</p>
+<h2 id="section-10-11">10.11 面试高频问题</h2>
+<h3 id="section-10-11-1">10.11.1 为什么 DQN 不适合连续动作？</h3>
+<p>因为 DQN 的决策和 Target 都依赖对动作枚举取 <span class="math-text">max</span>。连续高维动作不可枚举，而每步额外做数值 Argmax 成本高且不稳，因此用 Actor 直接输出动作。</p>
+<h3 id="section-10-11-2">10.11.2 DDPG 的 Actor 为什么不用 Replay 中保存的动作？</h3>
+<p>Actor 要优化当前 <span class="math-text">Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span>。历史动作不依赖当前参数 <span class="math-text">θ</span>，无法通过链式法则把 Critic 对动作的梯度传回 Actor。</p>
+<h3 id="section-10-11-3">10.11.3 TD3 的三个改进共同解决什么？</h3>
+<p>都在限制确定性 Actor 利用 Critic 的估值误差：双 Q 降低高估传播，Target 平滑抑制尖峰，延迟更新让 Actor 少追逐尚未稳定的 Critic。</p>
+<h3 id="section-10-11-4">10.11.4 SAC Actor Loss 为什么是 <span class="math-text">αlogπ-Q</span>？</h3>
+<p>实现要最小化 Loss。最小化 <span class="math-text">-Q</span> 会选择高 Q 动作；最小化策略期望下的 <span class="math-text">αlogπ</span> 等价于最大化熵。它也可由当前策略逼近 <span class="math-text">exp(Q/α)</span> 的 KL 投影推导出来。</p>
+<h3 id="section-10-11-5">10.11.5 SAC 为什么既是随机策略又是 Off-policy？</h3>
+<p>随机指 Actor 输出分布；Off-policy 指训练可以复用 Replay Buffer 中旧策略的数据。两者描述不同维度，并不矛盾。</p>
+<h3 id="section-10-11-6">10.11.6 Target Policy Smoothing 和探索噪声有什么区别？</h3>
+<p>前者只在训练 Critic Target 时出现，用于平滑价值估计；后者在真实环境交互时出现，用于扩大数据覆盖。</p>
+<h2 id="section-10-12">10.12 原始论文与参考资料</h2>
+<ul>
+<li>Lillicrap et al., <a href="https://arxiv.org/abs/1509.02971">Continuous Control with Deep Reinforcement Learning</a>, DDPG.</li>
+<li>Fujimoto et al., <a href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a>, TD3.</li>
+<li>Haarnoja et al., <a href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>, SAC.</li>
+<li>Haarnoja et al., <a href="https://arxiv.org/abs/1812.05905">Soft Actor-Critic Algorithms and Applications</a>, 自动温度版本与实践扩展。</li>
+</ul>
+<h2 id="section-10-13">10.13 本章练习</h2>
+<ol>
+<li>从 <span class="math-text">J<sub><span class="math-text">μ</span></sub>(θ)=Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))</span> 推导单样本 Actor 梯度，并解释两个梯度因子。</li>
+<li>给定 <span class="math-text">r=2</span>、<span class="math-text">γ=0.95</span>、<span class="math-text">d=0</span>，两个 TD3 Target Critic 输出 7 和 5，求 Target；若 <span class="math-text">d=1</span> 又是多少？</li>
+<li>解释 TD3 的 Target Noise 与 Environment Exploration Noise 为什么不能共用一句“都是为了探索”。</li>
+<li>给定 SAC 中 <span class="math-text">min Q=3</span>、<span class="math-text">logπ=-1.2</span>、<span class="math-text">α=0.1</span>、<span class="math-text">r=0.5</span>、<span class="math-text">γ=0.99</span>、<span class="math-text">d=0</span>，计算 Soft Target。</li>
+<li>设计一个“离散动作类型 + 连续参数”的任务，写出联合策略分解，并说明为什么标准 DDPG 不可直接使用。</li>
 </ol>
 <details class="exercise-answers">
 <summary>参考答案（点击展开）</summary>
 
 <ol>
-<li><strong>DDPG 目标</strong>：critic target 为 <span class="math-text">y=r+γ(1-d)Q<sub><span class="math-text">w<sup><span class="math-text">-</span></sup></span></sub>(s&#39;,μ<sub><span class="math-text">θ<sup><span class="math-text">-</span></sup></span></sub>(s&#39;))</span>，critic 最小化 <span class="math-text">𝔼[(Q<sub><span class="math-text">w</span></sub>(s,a)-y)<sup><span class="math-text">2</span></sup>]</span>；actor 最大化 <span class="math-text">J(θ)=𝔼<sub><span class="math-text">s∼ D</span></sub>[Q<sub><span class="math-text">w</span></sub>(s,μ<sub><span class="math-text">θ</span></sub>(s))]</span>，等价地最小化其负值。<span class="math-text">w<sup><span class="math-text">-</span></sup>,θ<sup><span class="math-text">-</span></sup></span> 是 target network 参数，<span class="math-text">d</span> 是 terminal indicator。</li>
-<li><strong>TD3 三个 trick</strong>：Clipped Double Q-learning 取两个 target critic 的较小值，缓解过估计；Delayed Policy Update 降低 actor 和 target network 的更新频率，让 critic 先学稳；Target Policy Smoothing 在 target action 上加截断噪声，抑制 policy 利用狭窄的 Q 函数错误峰值。</li>
-<li><strong>SAC soft Q target</strong>：<span class="math-text">y=r+γ(1-d)[min<sub><span class="math-text">i=1,2</span></sub>Q<sub><span class="math-text">i</span></sub><sup><span class="math-text">-</span></sup>(s&#39;,a&#39;)-αlogπ<sub><span class="math-text">θ</span></sub>(a&#39;∣ s&#39;)]</span>，其中 <span class="math-text">a&#39;∼π<sub><span class="math-text">θ</span></sub>(·∣ s&#39;)</span>。减去 <span class="math-text">αlogπ</span> 等价于加入 entropy reward。</li>
-<li><strong>确定性 vs 随机策略</strong>：deterministic policy 对每个 state 输出单一 action，执行高效，DDPG/TD3 通常另外加 exploration noise；stochastic policy 输出 action distribution，自带探索并能表示多峰或不确定行为，SAC/PPO 属于这一类，但需要处理采样和 log-probability。确定性策略适合动作输出稳定的控制，随机策略在探索和鲁棒性上通常更自然。</li>
+<li>链式法则得到 <span class="math-text">∇<sub><span class="math-text">θ</span></sub> J<sub><span class="math-text">μ</span></sub>=∇<sub><span class="math-text">a</span></sub>Q<sub><span class="math-text">w</span></sub>(s,a)∣<sub><span class="math-text">a=μ<sub><span class="math-text">θ</span></sub>(s)</span></sub>∇<sub><span class="math-text">θ</span></sub>μ<sub><span class="math-text">θ</span></sub>(s)</span>。第一项给动作空间中的上升方向，第二项把动作变化映射回参数变化。</li>
+<li><span class="math-text">y=2+0.95×min(7,5)=6.75</span>。若 <span class="math-text">d=1</span>，Bootstrap 被屏蔽，<span class="math-text">y=2</span>。</li>
+<li>Target Noise 加在下一状态的 Target Action 上，让 Critic 不依赖孤立尖峰；Exploration Noise 加在真实执行动作上，改变采样分布以获得新数据。</li>
+<li>Soft 下一状态价值为 <span class="math-text">3-0.1×(-1.2)=3.12</span>，所以 <span class="math-text">y=0.5+0.99×3.12=3.5888</span>。</li>
+<li>例如交易动作 <span class="math-text">K∈{等待,买入,卖出}</span>，连续参数 <span class="math-text">U=(价格,数量)</span>，联合策略为 <span class="math-text">π(k,u∣ s)=π<sub><span class="math-text">d</span></sub>(k∣ s)π<sub><span class="math-text">c</span></sub>(u∣ s,k)</span>。离散采样或 Argmax 不具备标准 DDPG 所依赖的连续动作梯度，应使用联合 Score-function 方法、Hybrid SAC 或 Parameterized-action 方法。</li>
 </ol>
 </details>
 <nav class="chapter-nav"><a href="./index.html">章节索引</a><span class="spacer"></span><a href="./09-ppo-trpo.html">← 上一章</a><a href="./11-model-based-offline-imitation-rlhf.html">下一章 →</a></nav></main></body>
