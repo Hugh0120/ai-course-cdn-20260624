@@ -236,14 +236,16 @@
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
   .chapter-toc,
-  .exercise-answers {
+  .exercise-answers,
+  .derivation {
     margin: 1em 0 1.35em;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background: var(--soft-bg);
   }
   .chapter-toc > summary,
-  .exercise-answers > summary {
+  .exercise-answers > summary,
+  .derivation > summary {
     padding: 0.7em 0.9em;
     color: var(--heading-color);
     font-weight: 700;
@@ -251,11 +253,13 @@
     user-select: none;
   }
   .chapter-toc > summary:hover,
-  .exercise-answers > summary:hover {
+  .exercise-answers > summary:hover,
+  .derivation > summary:hover {
     color: var(--link-color);
   }
   .chapter-toc[open] > summary,
-  .exercise-answers[open] > summary {
+  .exercise-answers[open] > summary,
+  .derivation[open] > summary {
     border-bottom: 1px solid var(--border-color);
   }
   .toc-links {
@@ -279,6 +283,13 @@
   }
   .exercise-answers > ol > li {
     margin: 0.6em 0;
+  }
+  .derivation[open] {
+    padding-bottom: 0.35em;
+  }
+  .derivation > :not(summary) {
+    margin-left: 0.9em;
+    margin-right: 0.9em;
   }
   h1[id],
   h2[id],
@@ -383,13 +394,15 @@
     }
     li { margin: 0.14em 0; }
     .chapter-toc { display: none; }
-    .exercise-answers {
+    .exercise-answers,
+    .derivation {
       background: #ffffff;
       break-inside: auto;
       font-size: 9pt;
       line-height: 1.42;
     }
-    .exercise-answers > summary {
+    .exercise-answers > summary,
+    .derivation > summary {
       border-bottom: 1px solid var(--border-color);
     }
     .exercise-answers > ol > li {

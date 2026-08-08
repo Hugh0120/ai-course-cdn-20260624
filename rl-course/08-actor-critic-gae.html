@@ -236,14 +236,16 @@
   .chapter-nav a { font-weight: 600; }
   .chapter-nav .spacer { flex: 1 1 auto; }
   .chapter-toc,
-  .exercise-answers {
+  .exercise-answers,
+  .derivation {
     margin: 1em 0 1.35em;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background: var(--soft-bg);
   }
   .chapter-toc > summary,
-  .exercise-answers > summary {
+  .exercise-answers > summary,
+  .derivation > summary {
     padding: 0.7em 0.9em;
     color: var(--heading-color);
     font-weight: 700;
@@ -251,11 +253,13 @@
     user-select: none;
   }
   .chapter-toc > summary:hover,
-  .exercise-answers > summary:hover {
+  .exercise-answers > summary:hover,
+  .derivation > summary:hover {
     color: var(--link-color);
   }
   .chapter-toc[open] > summary,
-  .exercise-answers[open] > summary {
+  .exercise-answers[open] > summary,
+  .derivation[open] > summary {
     border-bottom: 1px solid var(--border-color);
   }
   .toc-links {
@@ -279,6 +283,13 @@
   }
   .exercise-answers > ol > li {
     margin: 0.6em 0;
+  }
+  .derivation[open] {
+    padding-bottom: 0.35em;
+  }
+  .derivation > :not(summary) {
+    margin-left: 0.9em;
+    margin-right: 0.9em;
   }
   h1[id],
   h2[id],
@@ -383,13 +394,15 @@
     }
     li { margin: 0.14em 0; }
     .chapter-toc { display: none; }
-    .exercise-answers {
+    .exercise-answers,
+    .derivation {
       background: #ffffff;
       break-inside: auto;
       font-size: 9pt;
       line-height: 1.42;
     }
-    .exercise-answers > summary {
+    .exercise-answers > summary,
+    .derivation > summary {
       border-bottom: 1px solid var(--border-color);
     }
     .exercise-answers > ol > li {
@@ -1067,11 +1080,73 @@ V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</sp
 λ<sup><span class="math-text">n-1</span></sup>Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></div>
 
 <p>因此它不是“另一个突然出现的 advantage 定义”，而是把一步、两步、三步等估计平滑组合起来。</p>
-<p>这个等价关系来自中间 value 项的抵消。先看一段未终止的两步转移：</p>
+<details class="derivation">
+<summary>推导过程：为什么两种 GAE 写法等价（点击展开）</summary>
+
+<p>先暂时忽略 terminal mask，考虑一段尚未终止的轨迹。TD residual 为：</p>
+<div class="math-block"><span class="math-text">δ<sub><span class="math-text">t</span></sub>
+=R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div>
+
+<p><strong>第一步：连续 TD residual 为什么会得到 n-step advantage？</strong></p>
+<p>一步时直接有：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(1)</span></sup>=δ<sub><span class="math-text">t</span></sub></span></div>
+
+<p>两步时，把下一时刻 residual 折扣后加回来：</p>
 <div class="math-block multi"><div><span class="math-text">δ<sub><span class="math-text">t</span></sub>+γδ<sub><span class="math-text">t+1</span></sub>
 =[R<sub><span class="math-text">t+1</span></sub>+γ V(S<sub><span class="math-text">t+1</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)]</span></div><div><span class="math-text">+γ[R<sub><span class="math-text">t+2</span></sub>+γ V(S<sub><span class="math-text">t+2</span></sub>)-V(S<sub><span class="math-text">t+1</span></sub>)]</span></div><div><span class="math-text">=R<sub><span class="math-text">t+1</span></sub>+γ R<sub><span class="math-text">t+2</span></sub>+γ<sup><span class="math-text">2</span></sup>V(S<sub><span class="math-text">t+2</span></sub>)-V(S<sub><span class="math-text">t</span></sub>)</span></div></div>
 
-<p><span class="math-text">+γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 与 <span class="math-text">-γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 正好消掉，剩下的就是 two-step target 减当前 value。继续累加 residual 会依次得到三步、四步 advantage；<span class="math-text">λ</span> 再负责给这些不同长度的估计分配指数衰减权重。</p>
+<p><span class="math-text">+γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 与 <span class="math-text">-γ V(S<sub><span class="math-text">t+1</span></sub>)</span> 正好抵消，剩下的正是 two-step value target 减去当前 value。因此：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(2)</span></sup>
+=δ<sub><span class="math-text">t</span></sub>+γδ<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>同理，中间 value 会逐项抵消，一般的 n-step advantage 可以写成：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup>
+=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">n-1</span></sup>γ<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div>
+
+<p>这里解释了为什么未来的 <span class="math-text">δ<sub><span class="math-text">t+1</span></sub></span> 与当前动作有关：当前动作不仅影响眼前 reward，也影响之后到达的状态和奖励；把后续 residual 折扣传回，正是在估计当前动作造成的多步后果。</p>
+<p><strong>第二步：加权多个 n-step advantage 为什么变成 GAE residual 和？</strong></p>
+<p>把上式代入 n-step 加权定义：</p>
+<div class="math-block multi"><div><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
+=(1-λ)
+∑<sub><span class="math-text">n=1</span></sub><sup><span class="math-text">∞</span></sup>
+λ<sup><span class="math-text">n-1</span></sup>
+Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</span></sup></span></div><div><span class="math-text">=(1-λ)
+∑<sub><span class="math-text">n=1</span></sub><sup><span class="math-text">∞</span></sup>
+λ<sup><span class="math-text">n-1</span></sup>
+∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">n-1</span></sup>
+γ<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div></div>
+
+<p>固定某个 <span class="math-text">δ<sub><span class="math-text">t+l</span></sub></span> 看它的总权重。只有长度 <span class="math-text">n≥ l+1</span> 的 n-step advantage 会包含它，所以其系数为：</p>
+<div class="math-block multi"><div><span class="math-text">(1-λ)γ<sup><span class="math-text">l</span></sup>
+∑<sub><span class="math-text">n=l+1</span></sub><sup><span class="math-text">∞</span></sup>λ<sup><span class="math-text">n-1</span></sup>
+=(1-λ)γ<sup><span class="math-text">l</span></sup>
+λ<sup><span class="math-text">l</span></sup> / 1-λ</span></div><div><span class="math-text">=(γλ)<sup><span class="math-text">l</span></sup></span></div></div>
+
+<p>因此：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
+=∑<sub><span class="math-text">l=0</span></sub><sup><span class="math-text">∞</span></sup>
+(γλ)<sup><span class="math-text">l</span></sup>δ<sub><span class="math-text">t+l</span></sub></span></div>
+
+<p><strong>第三步：为什么实现中可以从后往前递推？</strong></p>
+<p>把无穷和的第一项拆出来：</p>
+<div class="math-block multi"><div><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+=δ<sub><span class="math-text">t</span></sub>
++γλδ<sub><span class="math-text">t+1</span></sub>
++(γλ)<sup><span class="math-text">2</span></sup>δ<sub><span class="math-text">t+2</span></sub>+·s</span></div><div><span class="math-text">=δ<sub><span class="math-text">t</span></sub>
++γλ
+[
+δ<sub><span class="math-text">t+1</span></sub>
++γλδ<sub><span class="math-text">t+2</span></sub>+·s
+]</span></div><div><span class="math-text">=δ<sub><span class="math-text">t</span></sub>+γλÂ<sub><span class="math-text">t+1</span></sub></span></div></div>
+
+<p>真正终止时不能继续读取未来项，因此加入 <span class="math-text">1-d<sub><span class="math-text">t</span></sub></span>，得到有限 rollout 中使用的递推：</p>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+=δ<sub><span class="math-text">t</span></sub>
++γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub></span></div>
+
+<p>这不是第三种 GAE 定义，只是第一种 residual 求和的动态规划写法，计算量从反复求和降为一次反向扫描。</p>
+</details>
+
 <h3 id="section-8-7-3">8.7.3 <span class="math-text">λ</span> 控制 Advantage 回看多远</h3>
 <ul>
 <li><span class="math-text">λ=0</span>：<span class="math-text">Â<sub><span class="math-text">t</span></sub>=δ<sub><span class="math-text">t</span></sub></span>，退化为一步 TD。</li>
