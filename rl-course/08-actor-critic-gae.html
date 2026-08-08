@@ -1067,11 +1067,11 @@ V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</sp
 
 <p>这里 <span class="math-text">l</span> 是从当前时刻向后偏移的步数：<span class="math-text">l=0</span> 对应 <span class="math-text">δ<sub><span class="math-text">t</span></sub></span>，<span class="math-text">l=1</span> 对应 <span class="math-text">δ<sub><span class="math-text">t+1</span></sub></span>。上式写成无穷和是理论表达，有限 episode 或 rollout 会在边界处停止。</p>
 <p>有限 rollout 中可从后往前递推：</p>
-<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
 =δ<sub><span class="math-text">t</span></sub>
-+γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub></span></div>
++γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub><sup><span class="math-text">GAE</span></sup></span></div>
 
-<p>这条递推只在 <span class="math-text">t+1</span> 仍位于当前 rollout 时继续。对 rollout 最后一个已保存时间步，把“下一项 advantage”初始化为 0；如果此处只是采样截断而非真正终止，<span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 中仍保留 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span> 的 bootstrap。也就是说：<strong>价值可以跨截断边界 bootstrap，但 GAE 递推不能读取 buffer 之外不存在的 residual。</strong></p>
+<p>这里的 <span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup></span> 与上面的 GAE 无穷和是同一个量，递推式只是更高效的计算方式，不是换回了普通 <span class="math-text">Â<sub><span class="math-text">t</span></sub></span>。这条递推只在 <span class="math-text">t+1</span> 仍位于当前 rollout 时继续。对 rollout 最后一个已保存时间步，把“下一时刻 GAE estimate”初始化为 0；如果此处只是采样截断而非真正终止，<span class="math-text">δ<sub><span class="math-text">t</span></sub></span> 中仍保留 <span class="math-text">V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t+1</span></sub>)</span> 的 bootstrap。也就是说：<strong>价值可以跨截断边界 bootstrap，但 GAE 递推不能读取 buffer 之外不存在的 residual。</strong></p>
 <h3 id="section-8-7-2">8.7.2 GAE 等价于加权多个 n-step Advantage</h3>
 <p>GAE 也可理解为对不同 n-step advantage estimate 做指数加权：</p>
 <div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
@@ -1129,7 +1129,7 @@ Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</
 
 <p><strong>第三步：为什么实现中可以从后往前递推？</strong></p>
 <p>把无穷和的第一项拆出来：</p>
-<div class="math-block multi"><div><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+<div class="math-block multi"><div><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
 =δ<sub><span class="math-text">t</span></sub>
 +γλδ<sub><span class="math-text">t+1</span></sub>
 +(γλ)<sup><span class="math-text">2</span></sup>δ<sub><span class="math-text">t+2</span></sub>+·s</span></div><div><span class="math-text">=δ<sub><span class="math-text">t</span></sub>
@@ -1137,19 +1137,19 @@ Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</
 [
 δ<sub><span class="math-text">t+1</span></sub>
 +γλδ<sub><span class="math-text">t+2</span></sub>+·s
-]</span></div><div><span class="math-text">=δ<sub><span class="math-text">t</span></sub>+γλÂ<sub><span class="math-text">t+1</span></sub></span></div></div>
+]</span></div><div><span class="math-text">=δ<sub><span class="math-text">t</span></sub>+γλÂ<sub><span class="math-text">t+1</span></sub><sup><span class="math-text">GAE</span></sup></span></div></div>
 
 <p>真正终止时不能继续读取未来项，因此加入 <span class="math-text">1-d<sub><span class="math-text">t</span></sub></span>，得到有限 rollout 中使用的递推：</p>
-<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub>
+<div class="math-block"><span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>
 =δ<sub><span class="math-text">t</span></sub>
-+γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub></span></div>
++γλ(1-d<sub><span class="math-text">t</span></sub>)Â<sub><span class="math-text">t+1</span></sub><sup><span class="math-text">GAE</span></sup></span></div>
 
 <p>这不是第三种 GAE 定义，只是第一种 residual 求和的动态规划写法，计算量从反复求和降为一次反向扫描。</p>
 </details>
 
 <h3 id="section-8-7-3">8.7.3 <span class="math-text">λ</span> 控制 Advantage 回看多远</h3>
 <ul>
-<li><span class="math-text">λ=0</span>：<span class="math-text">Â<sub><span class="math-text">t</span></sub>=δ<sub><span class="math-text">t</span></sub></span>，退化为一步 TD。</li>
+<li><span class="math-text">λ=0</span>：<span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>=δ<sub><span class="math-text">t</span></sub></span>，退化为一步 TD。</li>
 <li><span class="math-text">λ</span> 接近 1：纳入更长时间的 residual，更接近长回报。</li>
 <li><span class="math-text">λ</span> 越大：通常 bias 降低、variance 增大。</li>
 <li><span class="math-text">λ</span> 越小：通常 variance 降低、但更依赖 Critic 的短期 bootstrap。</li>
@@ -1172,12 +1172,13 @@ Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">(n)</
 <h3 id="section-8-7-5">8.7.5 用 GAE Advantage 还原 Critic 的 Value Target</h3>
 <p>PPO/A2C 实现中经常先算 GAE advantage，再构造 Critic target。记 <span class="math-text">V̂<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup></span> 为 Estimated Value Target（价值目标估计）：帽子表示它由有限样本估计得到，<code>target</code> 表示它是 Critic 要拟合的标签，不是当前网络输出。</p>
 <div class="math-block"><span class="math-text">V̂<sub><span class="math-text">t</span></sub><sup><span class="math-text">target</span></sup>
-=Â<sub><span class="math-text">t</span></sub>+V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
+=Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup>+V<sub><span class="math-text">w</span></sub>(S<sub><span class="math-text">t</span></sub>)</span></div>
 
 <p>原因是 advantage 定义本来就是：</p>
 <div class="math-block"><span class="math-text">A=Q-V</span></div>
 
 <p>所以“value target = advantage estimate + old value estimate”是在把基线加回去。实现时通常保存 rollout 时的 value prediction，避免更新过程中 target 跟着当前网络反复变化。</p>
+<p>从下一节开始，<span class="math-text">Â<sub><span class="math-text">t</span></sub></span> 不带上标时表示 Generic Advantage Estimate（通用优势估计）：它可以选用一步 TD、固定 n-step 或本节的 <span class="math-text">Â<sub><span class="math-text">t</span></sub><sup><span class="math-text">GAE</span></sup></span>。只有从这里开始才允许省略具体估计方法的上标。</p>
 <h2 id="section-8-8">8.8 组装 Actor-Critic 的 Actor、Critic 与 Entropy Loss</h2>
 <p>下面用 <span class="math-text">𝔼̂<sub><span class="math-text">B<sub><span class="math-text">roll</span></sub></span></sub></span> 简写对当前 on-policy rollout batch 中全部有效 transition 的样本均值；其展开就是 8.5.4 的 <span class="math-text">i,t</span> 双重求和，不是只对时间下标取概率期望。</p>
 <p>本节采用 A2C 实现中常见的 batch-mean 写法，把折扣影响放在 return/advantage 的构造中，因此不在 Actor loss 外重复写 <span class="math-text">γ<sup><span class="math-text">t</span></sup></span>。若采用 8.5.3 的严格 start-state discounted objective（初始状态折扣目标），则使用 8.5.4 中显式带 <span class="math-text">γ<sup><span class="math-text">t</span></sup></span> 的形式。</p>
